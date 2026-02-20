@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
@@ -66,3 +67,73 @@
     </right>
 
 </BorderPane>
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.codedu.controllers.LearningPathController"
+            styleClass="lp-root">
+
+    <!-- ════════════════════ TOP HEADER ════════════════════ -->
+    <top>
+        <VBox styleClass="lp-header" spacing="4">
+            <padding><Insets top="20" right="28" bottom="16" left="28"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label styleClass="lp-title" text="📚  Learning Path"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="chapterCountLabel" styleClass="lp-count" text="0 Chapters"/>
+            </HBox>
+
+            <Label styleClass="lp-subtitle"
+                   text="Master programming step-by-step. Complete chapters to unlock new challenges and earn XP."/>
+        </VBox>
+    </top>
+
+    <!-- ════════════════════ CENTER — SCROLLABLE PATH ════════════════════ -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="lp-scroll" hbarPolicy="NEVER">
+            <VBox fx:id="pathContainer" styleClass="lp-path-container" alignment="TOP_CENTER" spacing="0">
+                <padding><Insets top="20" right="40" bottom="40" left="40"/></padding>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- ════════════════════ RIGHT — DETAIL PANEL ════════════════════ -->
+    <right>
+        <VBox fx:id="detailPanel" styleClass="lp-detail-panel" spacing="12"
+              prefWidth="280" visible="false" managed="false">
+            <padding><Insets top="24" right="20" bottom="24" left="20"/></padding>
+
+            <Label fx:id="detailIcon" styleClass="lp-detail-icon"/>
+            <Label fx:id="detailTitle" styleClass="lp-detail-title"/>
+            <Label fx:id="detailDifficulty" styleClass="difficulty-tag"/>
+            <Label fx:id="detailDescription" styleClass="lp-detail-desc" wrapText="true"/>
+
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label fx:id="detailLessons" styleClass="lp-detail-meta"/>
+            </HBox>
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label fx:id="detailXP" styleClass="lp-detail-meta"/>
+            </HBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+            <StackPane styleClass="lp-detail-btn-wrap" alignment="CENTER">
+                <Label fx:id="detailAction" styleClass="lp-detail-action" text="▶  Start Chapter"/>
+            </StackPane>
+        </VBox>
+    </right>
+
+</BorderPane>
+>>>>>>> 68084a056cecabbca83ad1f2bea89e41b0d5769a

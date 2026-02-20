@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* ============================================================
    CodEdu — Dark Gamified Theme
    Color Palette:
@@ -518,3 +519,525 @@
 .lp-detail-btn-wrap {
     -fx-padding: 8 0 0 0;
 }
+=======
+/* ============================================================
+   CodEdu — Dark Gamified Theme
+   Color Palette:
+     Background:   #0f0f1a  (deep navy-black)
+     Surface:      #1a1a2e  (sidebar / cards)
+     Surface-alt:  #16213e  (top bar)
+     Neon Green:   #00ff88  (success, active states)
+     Gold/Orange:  #ffa726  (tokens, challenges)
+     Cyan:         #00e5ff  (XP bar, highlights)
+     Text:         #e0e0e0  (primary)
+     Text-dim:     #8888aa  (secondary)
+   ============================================================ */
+
+/* ──────────────── Root & Global ──────────────── */
+
+.root-pane {
+    -fx-background-color: #0f0f1a;
+}
+
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* ──────────────── Top Bar ──────────────── */
+
+.top-bar {
+    -fx-background-color: #16213e;
+    -fx-border-color: transparent transparent #00ff8833 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-min-height: 56;
+}
+
+.badge-icon {
+    -fx-font-size: 28px;
+    -fx-effect: dropshadow(gaussian, #ffa726, 8, 0.4, 0, 0);
+}
+
+.username-label {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.token-label {
+    -fx-text-fill: #ffa726;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 16;
+    -fx-background-color: #ffa72618;
+    -fx-background-radius: 20;
+    -fx-border-color: #ffa72644;
+    -fx-border-radius: 20;
+}
+
+/* ──────────────── XP Progress Bar ──────────────── */
+
+.xp-bar {
+    -fx-pref-height: 14;
+    -fx-background-radius: 7;
+}
+
+.xp-bar .track {
+    -fx-background-color: #1a1a2e;
+    -fx-background-radius: 7;
+    -fx-border-color: #00e5ff44;
+    -fx-border-radius: 7;
+    -fx-border-width: 1;
+}
+
+.xp-bar .bar {
+    -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
+    -fx-background-radius: 7;
+    -fx-background-insets: 1;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.3, 0, 0);
+}
+
+.xp-label {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 11px;
+}
+
+/* ──────────────── Left Sidebar ──────────────── */
+
+.sidebar {
+    -fx-background-color: #1a1a2e;
+    -fx-pref-width: 230;
+    -fx-border-color: transparent #00ff8822 transparent transparent;
+    -fx-border-width: 0 2 0 0;
+}
+
+.app-logo {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00ff88, 12, 0.5, 0, 0);
+    -fx-padding: 0 0 2 0;
+}
+
+.app-tagline {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
+.version-label {
+    -fx-text-fill: #555577;
+    -fx-font-size: 10px;
+}
+
+/* ──────────────── Navigation Buttons ──────────────── */
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #c0c0d8;
+    -fx-font-size: 14px;
+    -fx-font-weight: normal;
+    -fx-padding: 12 18;
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-alignment: CENTER_LEFT;
+    -fx-transition: all 0.2s ease;
+}
+
+.nav-button:hover {
+    -fx-background-color: #00ff8818;
+    -fx-text-fill: #00ff88;
+    -fx-border-color: #00ff8844;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, #00ff88, 10, 0.2, 0, 0);
+}
+
+.nav-button:pressed {
+    -fx-background-color: #00ff8828;
+    -fx-text-fill: #00ff88;
+}
+
+.nav-button-active {
+    -fx-background-color: #00ff8822;
+    -fx-text-fill: #00ff88;
+    -fx-font-weight: bold;
+    -fx-border-color: #00ff8866;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.15, 0, 0);
+}
+
+/* ──────────────── Center Content Area ──────────────── */
+
+.content-area {
+    -fx-background-color: #0f0f1a;
+}
+
+/* ──────────────── Welcome Screen ──────────────── */
+
+.welcome-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 15, 0.3, 0, 0);
+}
+
+.welcome-subtitle {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 15px;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 4;
+}
+
+.welcome-stats {
+    -fx-text-fill: #00e5ff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+    -fx-background-color: #00e5ff10;
+    -fx-background-radius: 12;
+    -fx-border-color: #00e5ff33;
+    -fx-border-radius: 12;
+}
+
+/* ──────────────── Section Placeholders ──────────────── */
+
+.section-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+.section-description {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 14px;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 3;
+}
+
+.coming-soon {
+    -fx-text-fill: #ffa726;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-color: #ffa72612;
+    -fx-background-radius: 8;
+    -fx-border-color: #ffa72633;
+    -fx-border-radius: 8;
+}
+
+/* ──────────────── Scrollbar Theming ──────────────── */
+
+.scroll-bar {
+    -fx-background-color: #1a1a2e;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #333355;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #00ff8866;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LEARNING PATH MODULE
+   ══════════════════════════════════════════════════════════════ */
+
+/* ──────────────── Root & Header ──────────────── */
+
+.lp-root {
+    -fx-background-color: #0f0f1a;
+}
+
+.lp-header {
+    -fx-background-color: linear-gradient(to right, #16213e, #1a1a3e);
+    -fx-border-color: transparent transparent #00ff8833 transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.lp-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 10, 0.2, 0, 0);
+}
+
+.lp-subtitle {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 13px;
+}
+
+.lp-count {
+    -fx-text-fill: #00e5ff;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 14;
+    -fx-background-color: #00e5ff12;
+    -fx-background-radius: 16;
+    -fx-border-color: #00e5ff33;
+    -fx-border-radius: 16;
+}
+
+/* ──────────────── Scroll & Path Container ──────────────── */
+
+.lp-scroll {
+    -fx-background: #0f0f1a;
+    -fx-background-color: #0f0f1a;
+}
+
+.lp-scroll .viewport {
+    -fx-background-color: #0f0f1a;
+}
+
+.lp-path-container {
+    -fx-background-color: #0f0f1a;
+}
+
+/* ──────────────── Chapter Card ──────────────── */
+
+.chapter-card {
+    -fx-background-color: #1a1a2e;
+    -fx-background-radius: 14;
+    -fx-border-color: #2a2a4a;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00000066, 8, 0, 0, 2);
+}
+
+.chapter-card:hover {
+    -fx-background-color: #1e1e36;
+    -fx-border-color: #00e5ff55;
+    -fx-effect: dropshadow(gaussian, #00e5ff33, 16, 0.3, 0, 0);
+}
+
+.chapter-card-selected {
+    -fx-border-color: #00e5ff88;
+    -fx-background-color: #1a2040;
+    -fx-effect: dropshadow(gaussian, #00e5ff44, 20, 0.4, 0, 0);
+}
+
+.chapter-card-completed {
+    -fx-border-color: #00ff8855;
+    -fx-background-color: #142218;
+}
+
+.chapter-card-completed:hover {
+    -fx-border-color: #00ff8888;
+    -fx-effect: dropshadow(gaussian, #00ff8833, 16, 0.3, 0, 0);
+}
+
+.chapter-card-locked {
+    -fx-background-color: #14141f;
+    -fx-border-color: #222233;
+    -fx-opacity: 0.6;
+    -fx-cursor: default;
+}
+
+/* ──────────────── Chapter Icon Circle ──────────────── */
+
+.chapter-icon {
+    -fx-background-color: #252548;
+    -fx-background-radius: 26;
+    -fx-border-color: #00e5ff44;
+    -fx-border-radius: 26;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, #00e5ff22, 8, 0.2, 0, 0);
+}
+
+.chapter-icon-completed {
+    -fx-background-color: #1a3322;
+    -fx-border-color: #00ff8866;
+    -fx-effect: dropshadow(gaussian, #00ff8833, 10, 0.3, 0, 0);
+}
+
+.chapter-icon-locked {
+    -fx-background-color: #1a1a22;
+    -fx-border-color: #33333d;
+    -fx-effect: none;
+}
+
+/* ──────────────── Chapter Text ──────────────── */
+
+.chapter-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.chapter-desc {
+    -fx-text-fill: #777799;
+    -fx-font-size: 12px;
+    -fx-line-spacing: 2;
+}
+
+.chapter-num {
+    -fx-text-fill: #555577;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* ──────────────── Connector Line ──────────────── */
+
+.chapter-connector {
+    -fx-background-color: linear-gradient(to bottom, #00e5ff44, #00e5ff22);
+    -fx-background-radius: 2;
+}
+
+.chapter-connector-completed {
+    -fx-background-color: linear-gradient(to bottom, #00ff8866, #00ff8833);
+}
+
+.chapter-connector-locked {
+    -fx-background-color: #222233;
+}
+
+/* ──────────────── Difficulty Tags ──────────────── */
+
+.difficulty-tag {
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2 10;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+}
+
+.diff-beginner {
+    -fx-text-fill: #00ff88;
+    -fx-background-color: #00ff8818;
+    -fx-border-color: #00ff8844;
+}
+
+.diff-intermediate {
+    -fx-text-fill: #ffa726;
+    -fx-background-color: #ffa72618;
+    -fx-border-color: #ffa72644;
+}
+
+.diff-advanced {
+    -fx-text-fill: #ff5252;
+    -fx-background-color: #ff525218;
+    -fx-border-color: #ff525244;
+}
+
+/* ──────────────── Chapter Progress Bar ──────────────── */
+
+.chapter-progress-bar {
+    -fx-pref-height: 8;
+    -fx-background-radius: 4;
+}
+
+.chapter-progress-bar .track {
+    -fx-background-color: #252548;
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+}
+
+.chapter-progress-bar .bar {
+    -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
+    -fx-background-radius: 4;
+    -fx-background-insets: 0;
+}
+
+.chapter-progress-text {
+    -fx-text-fill: #666688;
+    -fx-font-size: 11px;
+}
+
+/* ──────────────── XP Badge ──────────────── */
+
+.chapter-xp-value {
+    -fx-text-fill: #ffa726;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #ffa726, 6, 0.2, 0, 0);
+}
+
+.chapter-xp-label {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.chapter-check {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.3, 0, 0);
+}
+
+/* ──────────────── Detail Panel ──────────────── */
+
+.lp-detail-panel {
+    -fx-background-color: #16213e;
+    -fx-border-color: #00e5ff22 transparent #00e5ff22 #00e5ff22;
+    -fx-border-width: 0 0 0 2;
+}
+
+.lp-detail-icon {
+    -fx-alignment: center;
+}
+
+.lp-detail-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.lp-detail-desc {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 3;
+}
+
+.lp-detail-meta {
+    -fx-text-fill: #aaaacc;
+    -fx-font-size: 13px;
+}
+
+.lp-detail-action {
+    -fx-text-fill: #0f0f1a;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 32;
+    -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 10, 0.3, 0, 0);
+}
+
+.lp-detail-action:hover {
+    -fx-effect: dropshadow(gaussian, #00ff88, 16, 0.5, 0, 0);
+}
+
+.lp-detail-action-done {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 32;
+    -fx-background-color: #00ff8818;
+    -fx-background-radius: 10;
+    -fx-border-color: #00ff8844;
+    -fx-border-radius: 10;
+}
+
+.lp-detail-btn-wrap {
+    -fx-padding: 8 0 0 0;
+}
+>>>>>>> 68084a056cecabbca83ad1f2bea89e41b0d5769a
