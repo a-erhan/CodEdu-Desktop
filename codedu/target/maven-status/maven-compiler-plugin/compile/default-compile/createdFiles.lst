@@ -1,8 +1,0 @@
-com\codedu\models\Chapter.class
-com\codedu\controllers\MainShellController.class
-module-info.class
-com\codedu\Main.class
-com\codedu\controllers\LearningPathController$1.class
-com\codedu\controllers\LearningPathController.class
-com\codedu\models\Chapter$Difficulty.class
-com\codedu\models\UserModel.class
