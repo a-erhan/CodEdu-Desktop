@@ -46,6 +46,12 @@
             <Button fx:id="btnLeaderboard"   styleClass="nav-button" text="🏆  Leaderboard"               maxWidth="Infinity"/>
             <Button fx:id="btnForum"         styleClass="nav-button" text="💬  Forum"                     maxWidth="Infinity"/>
             <Button fx:id="btnStore"         styleClass="nav-button" text="🛒  Store"                     maxWidth="Infinity"/>
+            <Button fx:id="btnAskAI"         styleClass="nav-button" text="🤖  Ask AI"                    maxWidth="Infinity"/>
+
+            <Region prefHeight="12"/>
+
+            <Button fx:id="btnProfile"       styleClass="nav-button" text="👤  Profile"                   maxWidth="Infinity"/>
+            <Button fx:id="btnSettings"      styleClass="nav-button" text="⚙️  Settings"                  maxWidth="Infinity"/>
 
             <Region VBox.vgrow="ALWAYS"/>
             <Label styleClass="version-label" text="v1.0.0-alpha"/>

@@ -1,0 +1,339 @@
+/* ============================================================
+   CodEdu — Light Theme Overrides
+   Swap this in place of application.css for light mode.
+   ============================================================ */
+
+/* ──────────────── Root & Global ──────────────── */
+
+.root-pane {
+    -fx-background-color: #f0f2f5;
+}
+
+/* ──────────────── Top Bar ──────────────── */
+
+.top-bar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #00cc6622 transparent;
+    -fx-effect: dropshadow(gaussian, #00000011, 4, 0, 0, 2);
+}
+
+.username-label {
+    -fx-text-fill: #1a1a2e;
+}
+
+.token-label {
+    -fx-text-fill: #e68a00;
+    -fx-background-color: #ffa72612;
+    -fx-border-color: #ffa72633;
+}
+
+/* ──────────────── XP Bar ──────────────── */
+
+.xp-bar .track {
+    -fx-background-color: #e8e8ee;
+    -fx-border-color: #00b8d433;
+}
+
+.xp-label {
+    -fx-text-fill: #888899;
+}
+
+/* ──────────────── Left Sidebar ──────────────── */
+
+.sidebar {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent #00cc6618 transparent transparent;
+    -fx-effect: dropshadow(gaussian, #00000008, 4, 0, 2, 0);
+}
+
+.app-logo {
+    -fx-text-fill: #00b864;
+    -fx-effect: dropshadow(gaussian, #00b864, 8, 0.3, 0, 0);
+}
+
+.app-tagline {
+    -fx-text-fill: #888899;
+}
+
+.version-label {
+    -fx-text-fill: #aaaabb;
+}
+
+/* ──────────────── Navigation Buttons ──────────────── */
+
+.nav-button {
+    -fx-text-fill: #444466;
+}
+
+.nav-button:hover {
+    -fx-background-color: #00b86412;
+    -fx-text-fill: #00995a;
+    -fx-border-color: #00b86433;
+    -fx-effect: dropshadow(gaussian, #00b864, 6, 0.1, 0, 0);
+}
+
+.nav-button:pressed {
+    -fx-background-color: #00b86420;
+    -fx-text-fill: #00995a;
+}
+
+.nav-button-active {
+    -fx-background-color: #00b86418;
+    -fx-text-fill: #00995a;
+    -fx-border-color: #00b86444;
+    -fx-effect: dropshadow(gaussian, #00b864, 6, 0.1, 0, 0);
+}
+
+/* ──────────────── Center Content Area ──────────────── */
+
+.content-area {
+    -fx-background-color: #f0f2f5;
+}
+
+/* ──────────────── Welcome Screen ──────────────── */
+
+.welcome-title {
+    -fx-text-fill: #1a1a2e;
+    -fx-effect: dropshadow(gaussian, #00b8d4, 10, 0.15, 0, 0);
+}
+
+.welcome-subtitle {
+    -fx-text-fill: #666688;
+}
+
+.welcome-stats {
+    -fx-text-fill: #0088aa;
+    -fx-background-color: #00b8d410;
+    -fx-border-color: #00b8d422;
+}
+
+/* ──────────────── Section Placeholders ──────────────── */
+
+.section-title {
+    -fx-text-fill: #1a1a2e;
+}
+
+.section-description {
+    -fx-text-fill: #666688;
+}
+
+.coming-soon {
+    -fx-text-fill: #e68a00;
+    -fx-background-color: #ffa72610;
+    -fx-border-color: #ffa72622;
+}
+
+/* ──────────────── Scrollbar Theming ──────────────── */
+
+.scroll-bar {
+    -fx-background-color: #f0f2f5;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #ccccdd;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #00b86466;
+}
+
+/* ──────────────── Learning Path ──────────────── */
+
+.lp-root {
+    -fx-background-color: #f0f2f5;
+}
+
+.lp-header {
+    -fx-background-color: linear-gradient(to right, #ffffff, #f8f8ff);
+    -fx-border-color: transparent transparent #00cc6622 transparent;
+}
+
+.lp-title {
+    -fx-text-fill: #1a1a2e;
+    -fx-effect: dropshadow(gaussian, #00b8d4, 6, 0.1, 0, 0);
+}
+
+.lp-subtitle { -fx-text-fill: #666688; }
+
+.lp-count {
+    -fx-text-fill: #0088aa;
+    -fx-background-color: #00b8d410;
+    -fx-border-color: #00b8d422;
+}
+
+.lp-scroll, .lp-scroll .viewport, .lp-path-container {
+    -fx-background: #f0f2f5;
+    -fx-background-color: #f0f2f5;
+}
+
+.chapter-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+    -fx-effect: dropshadow(gaussian, #00000011, 6, 0, 0, 2);
+}
+
+.chapter-card:hover {
+    -fx-background-color: #f8faff;
+    -fx-border-color: #00b8d444;
+    -fx-effect: dropshadow(gaussian, #00b8d422, 10, 0.2, 0, 0);
+}
+
+.chapter-card-selected {
+    -fx-border-color: #00b8d466;
+    -fx-background-color: #f0f8ff;
+}
+
+.chapter-card-completed {
+    -fx-border-color: #00b86444;
+    -fx-background-color: #f0fff4;
+}
+
+.chapter-card-locked {
+    -fx-background-color: #f5f5f8;
+    -fx-border-color: #e0e0e8;
+}
+
+.chapter-icon {
+    -fx-background-color: #eeeef5;
+    -fx-border-color: #00b8d433;
+}
+
+.chapter-icon-completed {
+    -fx-background-color: #e6f9ee;
+    -fx-border-color: #00b86444;
+}
+
+.chapter-icon-locked {
+    -fx-background-color: #f0f0f5;
+    -fx-border-color: #d0d0dd;
+}
+
+.chapter-title { -fx-text-fill: #1a1a2e; }
+.chapter-desc { -fx-text-fill: #666688; }
+.chapter-num { -fx-text-fill: #999999; }
+
+.chapter-connector { -fx-background-color: linear-gradient(to bottom, #00b8d433, #00b8d418); }
+.chapter-connector-completed { -fx-background-color: linear-gradient(to bottom, #00b86444, #00b86422); }
+.chapter-connector-locked { -fx-background-color: #ddddee; }
+
+.chapter-progress-bar .track { -fx-background-color: #e8e8ee; }
+.chapter-progress-text { -fx-text-fill: #888899; }
+.chapter-xp-value { -fx-text-fill: #e68a00; }
+.chapter-xp-label { -fx-text-fill: #888899; }
+.chapter-check { -fx-text-fill: #00b864; }
+
+.lp-detail-panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #00b8d418 transparent #00b8d418 #00b8d418;
+}
+
+.lp-detail-title { -fx-text-fill: #1a1a2e; }
+.lp-detail-desc { -fx-text-fill: #666688; }
+.lp-detail-meta { -fx-text-fill: #555577; }
+
+/* ──────────────── Store ──────────────── */
+
+.store-root { -fx-background-color: #f0f2f5; }
+
+.store-header {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #00cc6622 transparent;
+    -fx-effect: dropshadow(gaussian, #00000011, 4, 0, 0, 2);
+}
+
+.store-title { -fx-text-fill: #1a1a2e; }
+.store-subtitle { -fx-text-fill: #666688; }
+
+.store-token-badge {
+    -fx-text-fill: #e68a00;
+    -fx-background-color: #ffa72610;
+    -fx-border-color: #ffa72622;
+}
+
+.store-scroll, .store-scroll .viewport, .store-content {
+    -fx-background: #f0f2f5;
+    -fx-background-color: #f0f2f5;
+}
+
+.store-category-title { -fx-text-fill: #1a1a2e; }
+
+.store-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+    -fx-effect: dropshadow(gaussian, #00000011, 6, 0, 0, 2);
+}
+
+.store-card:hover {
+    -fx-background-color: #f8faff;
+    -fx-border-color: #00b8d444;
+}
+
+.store-item-name { -fx-text-fill: #1a1a2e; }
+.store-item-desc { -fx-text-fill: #666688; }
+
+/* ──────────────── Profile ──────────────── */
+
+.profile-scroll, .profile-scroll .viewport, .profile-root {
+    -fx-background: #f0f2f5;
+    -fx-background-color: #f0f2f5;
+}
+
+.profile-hero {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+    -fx-effect: dropshadow(gaussian, #00000011, 6, 0, 0, 2);
+}
+
+.profile-username { -fx-text-fill: #1a1a2e; }
+.profile-badge { -fx-text-fill: #666688; }
+
+.profile-stat-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+    -fx-effect: dropshadow(gaussian, #00000011, 4, 0, 0, 2);
+}
+
+.profile-stat-title { -fx-text-fill: #666688; }
+.profile-stat-value { -fx-text-fill: #1a1a2e; }
+.profile-stat-value-gold { -fx-text-fill: #e68a00; }
+
+.profile-avatar-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+}
+
+.profile-avatar-cell-active {
+    -fx-border-color: #00b86444;
+    -fx-background-color: #f0fff4;
+}
+
+.profile-avatar-name { -fx-text-fill: #444466; }
+.profile-no-items { -fx-text-fill: #888899; }
+
+/* ──────────────── Settings ──────────────── */
+
+.settings-scroll, .settings-scroll .viewport, .settings-root {
+    -fx-background: #f0f2f5;
+    -fx-background-color: #f0f2f5;
+}
+
+.settings-title { -fx-text-fill: #1a1a2e; }
+.settings-subtitle { -fx-text-fill: #666688; }
+
+.settings-section {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dddde8;
+    -fx-effect: dropshadow(gaussian, #00000011, 4, 0, 0, 2);
+}
+
+.settings-section-title { -fx-text-fill: #1a1a2e; }
+.settings-label { -fx-text-fill: #333344; }
+.settings-hint { -fx-text-fill: #888899; }
+
+.settings-danger-section {
+    -fx-background-color: #fff5f5;
+    -fx-border-color: #ff525233;
+}
+
+.settings-danger-title { -fx-text-fill: #cc3333; }
+.settings-hint-danger { -fx-text-fill: #cc6666; }

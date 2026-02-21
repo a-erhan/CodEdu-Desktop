@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -42,7 +43,8 @@
               prefWidth="280" visible="false" managed="false">
             <padding><Insets top="24" right="20" bottom="24" left="20"/></padding>
 
-            <Label fx:id="detailIcon" styleClass="lp-detail-icon"/>
+            <ImageView fx:id="detailIconImage" fitWidth="72" fitHeight="72" preserveRatio="true"
+                       styleClass="lp-detail-icon-img"/>
             <Label fx:id="detailTitle" styleClass="lp-detail-title"/>
             <Label fx:id="detailDifficulty" styleClass="difficulty-tag"/>
             <Label fx:id="detailDescription" styleClass="lp-detail-desc" wrapText="true"/>

@@ -1,5 +1,6 @@
 package com.codedu.controllers;
 
+import com.codedu.models.Chapter;
 import com.codedu.models.UserModel;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
@@ -17,7 +18,8 @@ import java.io.IOException;
 
 /**
  * Controller for the main application shell.
- * Manages sidebar navigation, header data binding, and center content switching.
+ * Manages sidebar navigation, header data binding, and center content
+ * switching.
  */
 public class MainShellController {
 
@@ -44,6 +46,12 @@ public class MainShellController {
     private Button btnForum;
     @FXML
     private Button btnStore;
+    @FXML
+    private Button btnAskAI;
+    @FXML
+    private Button btnProfile;
+    @FXML
+    private Button btnSettings;
 
     // --- Center content area ---
     @FXML
@@ -55,11 +63,11 @@ public class MainShellController {
     @FXML
     public void initialize() {
         // Bind header to user model
-        badgeLabel.setText(user.getBadgeIcon());
-        usernameLabel.setText(user.getUsername());
-        tokenLabel.setText("\uD83E\uDE99 " + user.getTokenBalance() + " Tokens");
-        xpProgressBar.setProgress(user.getXPProgress());
-        xpLabel.setText("XP: " + user.getCurrentXP() + " / " + user.getMaxXP());
+        updateHeader();
+
+        // Listen for token and avatar changes to refresh header
+        user.tokenBalanceProperty().addListener((obs, o, n) -> updateHeader());
+        user.equippedAvatarProperty().addListener((obs, o, n) -> updateHeader());
 
         // Setup Learning Path button — loads full FXML module
         setupNavButtonWithHover(btnLearningPath);
@@ -75,14 +83,43 @@ public class MainShellController {
                 "See how you rank against your peers. Climb the ranks and earn exclusive badges!");
         setupNavButton(btnForum, "\uD83D\uDCAC Forum",
                 "Discuss problems, share solutions, and collaborate with the CodEdu community.");
-        setupNavButton(btnStore, "\uD83D\uDED2 Store",
-                "Spend your hard\u2011earned tokens on themes, power\u2011ups, and profile customizations.");
+
+        // Store — loads full FXML module
+        setupNavButtonWithHover(btnStore);
+        btnStore.setOnAction(e -> {
+            setActiveButton(btnStore);
+            loadStore();
+        });
+
+        // Ask AI — placeholder
+        setupNavButton(btnAskAI, "\uD83E\uDD16 Ask AI",
+                "Get instant help from our AI tutor.\nAsk questions, debug your code, or explore concepts interactively.");
+
+        // Profile — loads full FXML module
+        setupNavButtonWithHover(btnProfile);
+        btnProfile.setOnAction(e -> {
+            setActiveButton(btnProfile);
+            loadProfile();
+        });
+
+        // Settings — loads full FXML module
+        setupNavButtonWithHover(btnSettings);
+        btnSettings.setOnAction(e -> {
+            setActiveButton(btnSettings);
+            loadSettings();
+        });
 
         // Show welcome screen by default
         showWelcome();
-
-        // Set first button as active
         setActiveButton(btnLearningPath);
+    }
+
+    private void updateHeader() {
+        badgeLabel.setText(user.getEquippedAvatar());
+        usernameLabel.setText(user.getUsername());
+        tokenLabel.setText("\uD83E\uDE99 " + user.getTokenBalance() + " Tokens");
+        xpProgressBar.setProgress(user.getXPProgress());
+        xpLabel.setText("XP: " + user.getCurrentXP() + " / " + user.getMaxXP());
     }
 
     private void setupNavButtonWithHover(Button button) {
@@ -116,11 +153,15 @@ public class MainShellController {
         activeButton.getStyleClass().add("nav-button-active");
     }
 
+    // --- Module loaders ---
+
     private void loadLearningPath() {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/LearningPath.fxml"));
             Parent learningPathView = loader.load();
+            LearningPathController lpController = loader.getController();
+            lpController.setOnStartChapter(chapter -> loadChapterView(chapter));
             contentArea.getChildren().setAll(learningPathView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -128,6 +169,86 @@ public class MainShellController {
                     "Error loading Learning Path module: " + ex.getMessage());
         }
     }
+
+    private void loadChapterView(Chapter chapter) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/ChapterView.fxml"));
+            Parent chapterView = loader.load();
+            ChapterViewController controller = loader.getController();
+            controller.setChapter(chapter);
+            controller.setOnBack(() -> loadLearningPath());
+            contentArea.getChildren().setAll(chapterView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("\uD83D\uDCDA Chapter",
+                    "Error loading chapter: " + ex.getMessage());
+        }
+    }
+
+    private void loadStore() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Store.fxml"));
+            Parent storeView = loader.load();
+            StoreController controller = loader.getController();
+            controller.setUserModel(user);
+            contentArea.getChildren().setAll(storeView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("\uD83D\uDED2 Store",
+                    "Error loading Store module: " + ex.getMessage());
+        }
+    }
+
+    private void loadProfile() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Profile.fxml"));
+            Parent profileView = loader.load();
+            ProfileController controller = loader.getController();
+            controller.setUserModel(user);
+            contentArea.getChildren().setAll(profileView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("\uD83D\uDC64 Profile",
+                    "Error loading Profile module: " + ex.getMessage());
+        }
+    }
+
+    private void loadSettings() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Settings.fxml"));
+            Parent settingsView = loader.load();
+            SettingsController controller = loader.getController();
+            controller.setUserModel(user);
+            controller.setThemeToggleCallback(() -> toggleTheme());
+            contentArea.getChildren().setAll(settingsView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("\u2699\uFE0F Settings",
+                    "Error loading Settings module: " + ex.getMessage());
+        }
+    }
+
+    private void toggleTheme() {
+        var scene = contentArea.getScene();
+        if (scene == null)
+            return;
+
+        String darkCSS = getClass().getResource("/com/codedu/views/application.css").toExternalForm();
+        String lightCSS = getClass().getResource("/com/codedu/views/application-light.css").toExternalForm();
+
+        scene.getStylesheets().clear();
+        if (user.isDarkMode()) {
+            scene.getStylesheets().add(darkCSS);
+        } else {
+            scene.getStylesheets().addAll(darkCSS, lightCSS);
+        }
+    }
+
+    // --- Content helpers ---
 
     private void showWelcome() {
         VBox welcomeBox = new VBox(16);

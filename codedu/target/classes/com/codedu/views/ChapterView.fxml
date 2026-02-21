@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.codedu.controllers.ChapterViewController"
+            styleClass="cv-root">
+
+    <top>
+        <VBox styleClass="cv-header" spacing="8">
+            <padding><Insets top="16" right="28" bottom="12" left="28"/></padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Button fx:id="btnBack" text="← Back" styleClass="cv-back-btn"/>
+                <Label fx:id="headerTitle" styleClass="cv-header-title" text="Chapter"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="headerXP" styleClass="cv-header-xp"/>
+            </HBox>
+
+            <!-- Tab bar -->
+            <HBox fx:id="tabBar" styleClass="cv-tab-bar" spacing="4" alignment="CENTER_LEFT">
+                <Button fx:id="tabLearn" text="📖  Learn" styleClass="cv-tab,cv-tab-active"/>
+                <Button fx:id="tabQuiz" text="❓  Quiz" styleClass="cv-tab"/>
+                <Button fx:id="tabPractice" text="💻  Practice" styleClass="cv-tab"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <StackPane fx:id="contentStack">
+            <ScrollPane fx:id="learnScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER">
+                <VBox fx:id="learnContainer" styleClass="cv-content" spacing="16">
+                    <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
+                </VBox>
+            </ScrollPane>
+
+            <ScrollPane fx:id="quizScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER"
+                        visible="false">
+                <VBox fx:id="quizContainer" styleClass="cv-content" spacing="20">
+                    <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
+                </VBox>
+            </ScrollPane>
+
+            <ScrollPane fx:id="practiceScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER"
+                        visible="false">
+                <VBox fx:id="practiceContainer" styleClass="cv-content" spacing="16">
+                    <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+
+</BorderPane>

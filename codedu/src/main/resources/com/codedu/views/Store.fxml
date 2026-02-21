@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codedu.controllers.StoreController"
+      styleClass="store-root" spacing="0">
+
+    <!-- Header -->
+    <HBox styleClass="store-header" alignment="CENTER_LEFT" spacing="16">
+        <padding><Insets top="20" right="28" bottom="20" left="28"/></padding>
+        <VBox spacing="4">
+            <Label styleClass="store-title" text="🛒  Store"/>
+            <Label styleClass="store-subtitle" text="Spend your tokens on avatars, themes, power-ups and more!"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="storeTokenLabel" styleClass="store-token-badge" text="🪙 0 Tokens"/>
+    </HBox>
+
+    <!-- Scrollable item grid -->
+    <ScrollPane styleClass="store-scroll" fitToWidth="true" VBox.vgrow="ALWAYS">
+        <VBox fx:id="storeContent" styleClass="store-content" spacing="24">
+            <padding><Insets top="24" right="28" bottom="24" left="28"/></padding>
+        </VBox>
+    </ScrollPane>
+</VBox>

@@ -9,26 +9,35 @@ public class Chapter {
         BEGINNER, INTERMEDIATE, ADVANCED
     }
 
+    private final String id;
     private final String title;
     private final String description;
     private final String iconEmoji;
+    private final String iconImage; // resource path e.g. "/com/codedu/images/ch_hello_world.png"
     private final Difficulty difficulty;
     private final int totalLessons;
     private final int completedLessons;
     private final int xpReward;
     private final boolean locked;
+    private ChapterContent content;
 
-    public Chapter(String title, String description, String iconEmoji,
-                   Difficulty difficulty, int totalLessons, int completedLessons,
-                   int xpReward, boolean locked) {
+    public Chapter(String id, String title, String description, String iconEmoji,
+            String iconImage, Difficulty difficulty, int totalLessons,
+            int completedLessons, int xpReward, boolean locked) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.iconEmoji = iconEmoji;
+        this.iconImage = iconImage;
         this.difficulty = difficulty;
         this.totalLessons = totalLessons;
         this.completedLessons = completedLessons;
         this.xpReward = xpReward;
         this.locked = locked;
+    }
+
+    public String getId() {
+        return id;
     }
 
     public String getTitle() {
@@ -41,6 +50,10 @@ public class Chapter {
 
     public String getIconEmoji() {
         return iconEmoji;
+    }
+
+    public String getIconImage() {
+        return iconImage;
     }
 
     public Difficulty getDifficulty() {
@@ -71,5 +84,13 @@ public class Chapter {
         if (totalLessons == 0)
             return 0;
         return (double) completedLessons / totalLessons;
+    }
+
+    public ChapterContent getContent() {
+        return content;
+    }
+
+    public void setContent(ChapterContent content) {
+        this.content = content;
     }
 }
