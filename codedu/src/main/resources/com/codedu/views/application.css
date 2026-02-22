@@ -33,7 +33,7 @@
 
 .badge-icon {
     -fx-font-size: 28px;
-    -fx-effect: dropshadow(gaussian, #ffa726, 8, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 4, 0.15, 0, 0);
 }
 
 .username-label {
@@ -72,7 +72,7 @@
     -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
     -fx-background-radius: 7;
     -fx-background-insets: 1;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.1, 0, 0);
 }
 
 .xp-label {
@@ -93,7 +93,7 @@
     -fx-text-fill: #00ff88;
     -fx-font-size: 28px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #00ff88, 12, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 4, 0.15, 0, 0);
     -fx-padding: 0 0 2 0;
 }
 
@@ -129,7 +129,7 @@
     -fx-border-color: #00ff8844;
     -fx-border-width: 1;
     -fx-border-radius: 10;
-    -fx-effect: dropshadow(gaussian, #00ff88, 10, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 4, 0.08, 0, 0);
 }
 
 .nav-button:pressed {
@@ -144,7 +144,7 @@
     -fx-border-color: #00ff8866;
     -fx-border-width: 1;
     -fx-border-radius: 10;
-    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.15, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 3, 0.06, 0, 0);
 }
 
 /* ──────────────── Center Content Area ──────────────── */
@@ -159,7 +159,7 @@
     -fx-text-fill: #e0e0e0;
     -fx-font-size: 36px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 15, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 5, 0.1, 0, 0);
 }
 
 .welcome-subtitle {
@@ -253,7 +253,7 @@
     -fx-text-fill: #e0e0e0;
     -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 10, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 4, 0.08, 0, 0);
 }
 
 .lp-subtitle {
@@ -296,19 +296,19 @@
     -fx-border-radius: 14;
     -fx-border-width: 1;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #00000066, 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #00000044, 4, 0, 0, 1);
 }
 
 .chapter-card:hover {
     -fx-background-color: #1e1e36;
     -fx-border-color: #00e5ff55;
-    -fx-effect: dropshadow(gaussian, #00e5ff33, 16, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff22, 6, 0.1, 0, 0);
 }
 
 .chapter-card-selected {
     -fx-border-color: #00e5ff88;
     -fx-background-color: #1a2040;
-    -fx-effect: dropshadow(gaussian, #00e5ff44, 20, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff33, 6, 0.12, 0, 0);
 }
 
 .chapter-card-completed {
@@ -318,7 +318,7 @@
 
 .chapter-card-completed:hover {
     -fx-border-color: #00ff8888;
-    -fx-effect: dropshadow(gaussian, #00ff8833, 16, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff8822, 6, 0.1, 0, 0);
 }
 
 .chapter-card-locked {
@@ -336,13 +336,13 @@
     -fx-border-color: #00e5ff44;
     -fx-border-radius: 26;
     -fx-border-width: 2;
-    -fx-effect: dropshadow(gaussian, #00e5ff22, 8, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff18, 3, 0.08, 0, 0);
 }
 
 .chapter-icon-completed {
     -fx-background-color: #1a3322;
     -fx-border-color: #00ff8866;
-    -fx-effect: dropshadow(gaussian, #00ff8833, 10, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff8822, 4, 0.1, 0, 0);
 }
 
 .chapter-icon-locked {
@@ -444,7 +444,7 @@
     -fx-text-fill: #ffa726;
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #ffa726, 6, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 3, 0.08, 0, 0);
 }
 
 .chapter-xp-label {
@@ -457,7 +457,7 @@
     -fx-text-fill: #00ff88;
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 3, 0.1, 0, 0);
 }
 
 /* ──────────────── Detail Panel ──────────────── */
@@ -497,11 +497,11 @@
     -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
     -fx-background-radius: 10;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 10, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 4, 0.1, 0, 0);
 }
 
 .lp-detail-action:hover {
-    -fx-effect: dropshadow(gaussian, #00ff88, 16, 0.5, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 6, 0.15, 0, 0);
 }
 
 .lp-detail-action-done {
@@ -537,7 +537,7 @@
     -fx-text-fill: #e0e0e0;
     -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #ffa726, 10, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 4, 0.08, 0, 0);
 }
 
 .store-subtitle {
@@ -582,13 +582,13 @@
     -fx-border-color: #2a2a4a;
     -fx-border-radius: 14;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #00000066, 8, 0, 0, 2);
+    -fx-effect: dropshadow(gaussian, #00000044, 4, 0, 0, 1);
 }
 
 .store-card:hover {
     -fx-background-color: #1e1e36;
     -fx-border-color: #ffa72655;
-    -fx-effect: dropshadow(gaussian, #ffa72633, 14, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa72622, 5, 0.1, 0, 0);
 }
 
 .store-item-name {
@@ -619,11 +619,11 @@
     -fx-background-color: linear-gradient(to right, #ffa726, #ffcc02);
     -fx-background-radius: 8;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #ffa726, 6, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 3, 0.08, 0, 0);
 }
 
 .store-buy-btn:hover {
-    -fx-effect: dropshadow(gaussian, #ffa726, 12, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 5, 0.12, 0, 0);
 }
 
 .store-owned-btn {
@@ -660,12 +660,12 @@
     -fx-border-color: #00e5ff33;
     -fx-border-radius: 16;
     -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, #00e5ff22, 20, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff18, 6, 0.1, 0, 0);
 }
 
 .profile-avatar-big {
     -fx-font-size: 72px;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 16, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 5, 0.12, 0, 0);
 }
 
 .profile-username {
@@ -704,7 +704,7 @@
     -fx-text-fill: #ffa726;
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #ffa726, 6, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ffa726, 3, 0.08, 0, 0);
 }
 
 .profile-avatar-cell {
@@ -718,13 +718,13 @@
 
 .profile-avatar-cell:hover {
     -fx-border-color: #00e5ff55;
-    -fx-effect: dropshadow(gaussian, #00e5ff22, 10, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff18, 4, 0.08, 0, 0);
 }
 
 .profile-avatar-cell-active {
     -fx-border-color: #00ff8888;
     -fx-background-color: #142218;
-    -fx-effect: dropshadow(gaussian, #00ff8833, 12, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff8822, 4, 0.1, 0, 0);
 }
 
 .profile-avatar-name {
@@ -745,7 +745,7 @@
 }
 
 .profile-equip-btn:hover {
-    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 3, 0.1, 0, 0);
 }
 
 .profile-equipped-btn {
@@ -787,7 +787,7 @@
     -fx-text-fill: #e0e0e0;
     -fx-font-size: 26px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 10, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 4, 0.08, 0, 0);
 }
 
 .settings-subtitle {
@@ -832,11 +832,11 @@
     -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
     -fx-background-radius: 8;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.08, 0, 0);
 }
 
 .settings-toggle-btn:hover {
-    -fx-effect: dropshadow(gaussian, #00ff88, 12, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 5, 0.12, 0, 0);
 }
 
 .settings-check {
@@ -901,7 +901,7 @@
 .settings-action-btn:hover {
     -fx-background-color: #2a2a58;
     -fx-border-color: #00e5ff44;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.1, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.05, 0, 0);
 }
 
 /* Danger Zone */
@@ -942,7 +942,7 @@
 
 .settings-danger-btn:hover {
     -fx-background-color: #ff3333;
-    -fx-effect: dropshadow(gaussian, #ff5252, 10, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #ff5252, 4, 0.1, 0, 0);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -973,7 +973,7 @@
 
 .cv-back-btn:hover {
     -fx-background-color: #00e5ff28;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.08, 0, 0);
 }
 
 .cv-header-title {
@@ -1044,7 +1044,7 @@
     -fx-font-size: 26px;
     -fx-font-weight: bold;
     -fx-padding: 0 0 8 0;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 8, 0.15, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.06, 0, 0);
 }
 
 .cv-learn-h2 {
@@ -1186,7 +1186,7 @@
 
 .cv-fill-input:focused {
     -fx-border-color: #00e5ff66;
-    -fx-effect: dropshadow(gaussian, #00e5ff, 4, 0.1, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00e5ff, 2, 0.05, 0, 0);
 }
 
 .cv-fill-check-btn {
@@ -1200,7 +1200,7 @@
 }
 
 .cv-fill-check-btn:hover {
-    -fx-effect: dropshadow(gaussian, #00ff88, 8, 0.3, 0, 0);
+    -fx-effect: dropshadow(gaussian, #00ff88, 3, 0.1, 0, 0);
 }
 
 .cv-fill-result {
@@ -1255,15 +1255,92 @@
     -fx-background-color: linear-gradient(to right, #00e5ff, #7c4dff);
     -fx-background-radius: 10;
     -fx-cursor: hand;
-    -fx-effect: dropshadow(gaussian, #7c4dff, 8, 0.2, 0, 0);
+    -fx-effect: dropshadow(gaussian, #7c4dff, 3, 0.08, 0, 0);
 }
 
 .cv-run-btn:hover {
-    -fx-effect: dropshadow(gaussian, #7c4dff, 14, 0.4, 0, 0);
+    -fx-effect: dropshadow(gaussian, #7c4dff, 5, 0.12, 0, 0);
 }
 
 .cv-run-result {
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 8 0 0 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOGIN MODULE
+   ══════════════════════════════════════════════════════════════ */
+
+.login-root {
+    -fx-background-color: #0f0f1a;
+}
+
+.login-card {
+    -fx-background-color: #1a1a2e;
+    -fx-background-radius: 18;
+    -fx-border-color: #2a2a4a;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #00000044, 6, 0, 0, 2);
+}
+
+.login-logo {
+    -fx-text-fill: #00ff88;
+    -fx-font-size: 36px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, #00ff88, 3, 0.08, 0, 0);
+}
+
+.login-tagline {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+.login-field {
+    -fx-text-fill: #e0e0e0;
+    -fx-prompt-text-fill: #555577;
+    -fx-font-size: 14px;
+    -fx-background-color: #252548;
+    -fx-background-radius: 10;
+    -fx-border-color: #333355;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-padding: 10 14;
+}
+
+.login-field:focused {
+    -fx-border-color: #00e5ff66;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 2, 0.05, 0, 0);
+}
+
+.login-btn {
+    -fx-text-fill: #0f0f1a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 0;
+    -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 3, 0.08, 0, 0);
+}
+
+.login-btn:hover {
+    -fx-effect: dropshadow(gaussian, #00ff88, 4, 0.1, 0, 0);
+}
+
+.login-btn:pressed {
+    -fx-background-color: linear-gradient(to right, #00ccdd, #00dd77);
+}
+
+.login-link {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 12px;
+}
+
+.login-error {
+    -fx-text-fill: #ff5252;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
 }

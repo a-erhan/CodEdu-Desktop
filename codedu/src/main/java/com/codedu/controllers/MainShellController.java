@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import com.codedu.models.Chapter;
-import com.codedu.models.UserModel;
+import com.codedu.models.User;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -57,17 +57,21 @@ public class MainShellController {
     @FXML
     private StackPane contentArea;
 
-    private final UserModel user = new UserModel();
+    private User user = new User();
     private Button activeButton;
+
+    /**
+     * Set the authenticated user from the login screen.
+     */
+    public void setUser(User user) {
+        this.user = user;
+        updateHeader();
+    }
 
     @FXML
     public void initialize() {
         // Bind header to user model
         updateHeader();
-
-        // Listen for token and avatar changes to refresh header
-        user.tokenBalanceProperty().addListener((obs, o, n) -> updateHeader());
-        user.equippedAvatarProperty().addListener((obs, o, n) -> updateHeader());
 
         // Setup Learning Path button — loads full FXML module
         setupNavButtonWithHover(btnLearningPath);
@@ -115,11 +119,11 @@ public class MainShellController {
     }
 
     private void updateHeader() {
-        badgeLabel.setText(user.getEquippedAvatar());
-        usernameLabel.setText(user.getUsername());
+        badgeLabel.setText("\uD83E\uDDD1\u200D\uD83D\uDCBB");
+        usernameLabel.setText(user.getUsername() != null ? user.getUsername() : "User");
         tokenLabel.setText("\uD83E\uDE99 " + user.getTokenBalance() + " Tokens");
-        xpProgressBar.setProgress(user.getXPProgress());
-        xpLabel.setText("XP: " + user.getCurrentXP() + " / " + user.getMaxXP());
+        xpProgressBar.setProgress(0);
+        xpLabel.setText("XP: 0 / 1000");
     }
 
     private void setupNavButtonWithHover(Button button) {
@@ -241,11 +245,8 @@ public class MainShellController {
         String lightCSS = getClass().getResource("/com/codedu/views/application-light.css").toExternalForm();
 
         scene.getStylesheets().clear();
-        if (user.isDarkMode()) {
-            scene.getStylesheets().add(darkCSS);
-        } else {
-            scene.getStylesheets().addAll(darkCSS, lightCSS);
-        }
+        // Default to dark mode
+        scene.getStylesheets().add(darkCSS);
     }
 
     // --- Content helpers ---
@@ -266,8 +267,8 @@ public class MainShellController {
         subtitle.getStyleClass().add("welcome-subtitle");
         subtitle.setWrapText(true);
 
-        Label stats = new Label(String.format("\u26A1 %s  |  \uD83E\uDE99 %d Tokens  |  \uD83C\uDFAF %d / %d XP",
-                user.getUsername(), user.getTokenBalance(), user.getCurrentXP(), user.getMaxXP()));
+        Label stats = new Label(String.format("\u26A1 %s  |  \uD83E\uDE99 %d Tokens  |  \uD83C\uDFAF 0 / 1000 XP",
+                user.getUsername() != null ? user.getUsername() : "User", user.getTokenBalance()));
         stats.getStyleClass().add("welcome-stats");
 
         welcomeBox.getChildren().addAll(logo, title, subtitle, stats);

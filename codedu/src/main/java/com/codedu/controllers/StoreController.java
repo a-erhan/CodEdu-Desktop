@@ -1,8 +1,8 @@
 package com.codedu.controllers;
 
-import com.codedu.models.StoreItem;
-import com.codedu.models.StoreItem.Category;
-import com.codedu.models.UserModel;
+import com.codedu.models.Item;
+import com.codedu.models.ItemType;
+import com.codedu.models.User;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -32,57 +32,53 @@ public class StoreController {
     @FXML
     private Label storeTokenLabel;
 
-    private UserModel user;
-    private final List<StoreItem> allItems = new ArrayList<>();
+    private User user;
+    private final List<Item> allItems = new ArrayList<>();
 
-    public void setUserModel(UserModel user) {
+    public void setUserModel(User user) {
         this.user = user;
         storeTokenLabel.setText("\uD83E\uDE99 " + user.getTokenBalance() + " Tokens");
-        user.tokenBalanceProperty()
-                .addListener((obs, o, n) -> storeTokenLabel.setText("\uD83E\uDE99 " + n.intValue() + " Tokens"));
         loadMockItems();
         buildGrid();
     }
 
     private void loadMockItems() {
         // Avatars
-        allItems.add(new StoreItem("Ninja Coder", "A stealthy coding warrior", "\uD83E\uDD77", 200, Category.AVATAR));
-        allItems.add(new StoreItem("Robot Dev", "Automated perfection", "\uD83E\uDD16", 300, Category.AVATAR));
-        allItems.add(new StoreItem("Wizard Hacker", "Magic meets code", "\uD83E\uDDD9", 250, Category.AVATAR));
-        allItems.add(new StoreItem("Astronaut", "Code among the stars", "\uD83D\uDE80", 350, Category.AVATAR));
-        allItems.add(new StoreItem("Dragon Master", "Legendary beast tamer", "\uD83D\uDC09", 500, Category.AVATAR));
-
-        // Themes
-        allItems.add(new StoreItem("Neon Synthwave", "Retro-futuristic vibes", "\uD83C\uDF03", 400, Category.THEME));
-        allItems.add(new StoreItem("Ocean Breeze", "Cool blue gradients", "\uD83C\uDF0A", 300, Category.THEME));
-        allItems.add(new StoreItem("Forest Night", "Deep emerald darkness", "\uD83C\uDF32", 350, Category.THEME));
+        allItems.add(new Item("Ninja Coder", "A stealthy coding warrior", "\uD83E\uDD77", 200, ItemType.AVATAR));
+        allItems.add(new Item("Robot Dev", "Automated perfection", "\uD83E\uDD16", 300, ItemType.AVATAR));
+        allItems.add(new Item("Wizard Hacker", "Magic meets code", "\uD83E\uDDD9", 250, ItemType.AVATAR));
+        allItems.add(new Item("Astronaut", "Code among the stars", "\uD83D\uDE80", 350, ItemType.AVATAR));
+        allItems.add(new Item("Dragon Master", "Legendary beast tamer", "\uD83D\uDC09", 500, ItemType.AVATAR));
 
         // Power-ups
-        allItems.add(new StoreItem("Double XP (1h)", "Earn double XP for 1 hour", "⚡", 150, Category.POWER_UP));
-        allItems.add(new StoreItem("Hint Token", "Get a free hint on any challenge", "\uD83D\uDCA1", 100,
-                Category.POWER_UP));
-        allItems.add(new StoreItem("Streak Shield", "Protect your streak for one day", "\uD83D\uDEE1\uFE0F", 200,
-                Category.POWER_UP));
+        allItems.add(new Item("Double XP (1h)", "Earn double XP for 1 hour", "\u26A1", 150, ItemType.POWER_UP));
+        allItems.add(new Item("Hint Token", "Get a free hint on any challenge", "\uD83D\uDCA1", 100,
+                ItemType.POWER_UP));
+        allItems.add(new Item("Streak Shield", "Protect your streak for one day", "\uD83D\uDEE1\uFE0F", 200,
+                ItemType.POWER_UP));
 
-        // Bundles
-        allItems.add(new StoreItem("Starter Pack", "3 avatars + Double XP + 500 bonus tokens", "\uD83C\uDF81", 800,
-                Category.BUNDLE));
+        // AI Usage
+        allItems.add(new Item("AI Code Review", "Get AI-powered feedback on your code", "\uD83E\uDD16", 120,
+                ItemType.AI_USAGE));
+        allItems.add(new Item("AI Debugging Assistant", "Let AI help you find and fix bugs", "\uD83D\uDC1B", 150,
+                ItemType.AI_USAGE));
+        allItems.add(new Item("AI Solution Explainer", "Get step-by-step explanations from AI", "\uD83D\uDCD6", 100,
+                ItemType.AI_USAGE));
     }
 
     private void buildGrid() {
         storeContent.getChildren().clear();
 
-        // Group items by category
-        Map<Category, List<StoreItem>> grouped = new LinkedHashMap<>();
-        grouped.put(Category.AVATAR, new ArrayList<>());
-        grouped.put(Category.THEME, new ArrayList<>());
-        grouped.put(Category.POWER_UP, new ArrayList<>());
-        grouped.put(Category.BUNDLE, new ArrayList<>());
-        for (StoreItem item : allItems) {
-            grouped.get(item.getCategory()).add(item);
+        // Group items by type
+        Map<ItemType, List<Item>> grouped = new LinkedHashMap<>();
+        grouped.put(ItemType.AVATAR, new ArrayList<>());
+        grouped.put(ItemType.POWER_UP, new ArrayList<>());
+        grouped.put(ItemType.AI_USAGE, new ArrayList<>());
+        for (Item item : allItems) {
+            grouped.get(item.getType()).add(item);
         }
 
-        for (Map.Entry<Category, List<StoreItem>> entry : grouped.entrySet()) {
+        for (Map.Entry<ItemType, List<Item>> entry : grouped.entrySet()) {
             if (entry.getValue().isEmpty())
                 continue;
 
@@ -92,14 +88,14 @@ public class StoreController {
 
             FlowPane grid = new FlowPane(16, 16);
             grid.setAlignment(Pos.TOP_LEFT);
-            for (StoreItem item : entry.getValue()) {
+            for (Item item : entry.getValue()) {
                 grid.getChildren().add(buildItemCard(item));
             }
             storeContent.getChildren().add(grid);
         }
     }
 
-    private VBox buildItemCard(StoreItem item) {
+    private VBox buildItemCard(Item item) {
         VBox card = new VBox(8);
         card.getStyleClass().add("store-card");
         card.setPadding(new Insets(20, 20, 16, 20));
@@ -135,11 +131,14 @@ public class StoreController {
 
         if (!item.isOwned()) {
             buyBtn.setOnAction(e -> {
-                if (user.buyItem(item)) {
+                if (user.getTokenBalance() >= item.getPrice()) {
+                    user.setTokenBalance(user.getTokenBalance() - item.getPrice());
+                    item.setOwned(true);
                     buyBtn.setText("✓ Owned");
                     buyBtn.getStyleClass().removeAll("store-buy-btn");
                     buyBtn.getStyleClass().add("store-owned-btn");
                     buyBtn.setOnAction(null);
+                    storeTokenLabel.setText("\uD83E\uDE99 " + user.getTokenBalance() + " Tokens");
 
                     // Purchase animation
                     ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
@@ -170,12 +169,12 @@ public class StoreController {
         return card;
     }
 
-    private String categoryTitle(Category c) {
+    private String categoryTitle(ItemType c) {
         return switch (c) {
             case AVATAR -> "\uD83D\uDC64  Avatars";
-            case THEME -> "\uD83C\uDFA8  Themes";
-            case POWER_UP -> "⚡  Power-Ups";
-            case BUNDLE -> "\uD83C\uDF81  Bundles";
+            case POWER_UP -> "\u26A1  Power-Ups";
+            case AI_USAGE -> "\uD83E\uDD16  AI Usage";
+            default -> c.name();
         };
     }
 }

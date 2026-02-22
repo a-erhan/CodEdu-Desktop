@@ -1,6 +1,6 @@
 package com.codedu.controllers;
 
-import com.codedu.models.UserModel;
+import com.codedu.models.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -37,10 +37,11 @@ public class SettingsController {
     @FXML
     private Button btnRemoveAccount;
 
-    private UserModel user;
+    private User user;
+    private boolean darkMode = true;
     private Runnable themeToggleCallback;
 
-    public void setUserModel(UserModel user) {
+    public void setUserModel(User user) {
         this.user = user;
         updateThemeButton();
     }
@@ -60,7 +61,7 @@ public class SettingsController {
         comboLanguage.getSelectionModel().selectFirst();
 
         btnThemeToggle.setOnAction(e -> {
-            user.setDarkMode(!user.isDarkMode());
+            darkMode = !darkMode;
             updateThemeButton();
             if (themeToggleCallback != null)
                 themeToggleCallback.run();
@@ -72,9 +73,11 @@ public class SettingsController {
     }
 
     private void updateThemeButton() {
-        if (user != null) {
-            btnThemeToggle.setText(user.isDarkMode() ? "\uD83C\uDF19 Dark Mode" : "☀\uFE0F Light Mode");
-        }
+        btnThemeToggle.setText(darkMode ? "\uD83C\uDF19 Dark Mode" : "☀\uFE0F Light Mode");
+    }
+
+    public boolean isDarkMode() {
+        return darkMode;
     }
 
     private void showChangePasswordDialog() {
