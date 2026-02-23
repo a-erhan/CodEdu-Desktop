@@ -16,6 +16,8 @@ module com.codedu {
     requires spring.beans;
     requires spring.core;
     requires spring.data.jpa;
+    requires spring.data.commons;
+    requires org.aspectj.weaver;
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;
