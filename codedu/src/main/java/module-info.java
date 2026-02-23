@@ -19,6 +19,7 @@ module com.codedu {
     requires spring.data.jpa;
     requires spring.data.commons;
     requires org.aspectj.weaver;
+    requires static lombok;
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;

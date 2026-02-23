@@ -1,17 +1,16 @@
 package com.codedu.models;
 
 import jakarta.persistence.*;
+import lombok.*;
 
-/**
- * Model representing user data according to the UML diagram.
- */
 @Entity
 @Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -35,87 +34,7 @@ public class User {
     @JoinColumn(name = "inventory_id")
     private UserInventory inventory;
 
-    public User() {
-    }
-
-    // --- ID ---
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    // --- Username ---
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    // --- Email ---
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    // --- Password ---
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    // --- Role ---
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    // --- Token Balance ---
-    public int getTokenBalance() {
-        return tokenBalance;
-    }
-
-    public void setTokenBalance(int tokenBalance) {
-        this.tokenBalance = tokenBalance;
-    }
-
-    // --- Competitor ---
-    public Competitor getCompetitor() {
-        return competitor;
-    }
-
-    public void setCompetitor(Competitor competitor) {
-        this.competitor = competitor;
-    }
-
-    // --- Inventory ---
-    public UserInventory getInventory() {
-        return inventory;
-    }
-
-    public void setInventory(UserInventory inventory) {
-        this.inventory = inventory;
-    }
-
-    // --- Methods from UML ---
-    public void login() {
-        // TODO: implement login logic
-    }
-
-    public void updateProgress() {
-        // TODO: implement progress update logic
+    public boolean hasEnoughTokens(int amount) {
+        return this.tokenBalance >= amount;
     }
 }
