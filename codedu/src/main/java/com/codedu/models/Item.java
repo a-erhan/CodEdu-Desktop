@@ -1,17 +1,27 @@
 package com.codedu.models;
 
+import jakarta.persistence.*;
+
 /**
  * Model representing an item in the store (from UML diagram).
- * Merged with the former StoreItem class.
  */
+@Entity
+@Table(name = "items")
 public class Item {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
     private String description;
     private String emoji;
     private int price;
+
+    @Enumerated(EnumType.STRING)
     private ItemType type;
+
+    @Transient
     private boolean owned;
 
     public Item() {
@@ -80,7 +90,7 @@ public class Item {
         this.type = type;
     }
 
-    // --- Owned ---
+    // --- Owned (UI-only, not persisted) ---
     public boolean isOwned() {
         return owned;
     }

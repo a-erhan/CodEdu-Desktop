@@ -1,14 +1,23 @@
 package com.codedu.models;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
  * Model representing an item in a user's inventory (from UML diagram).
  */
+@Entity
+@Table(name = "inventory_items")
 public class InventoryItem {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "item_id")
     private Item item;
+
     private int quantity;
     private boolean isEquipped;
     private LocalDateTime acquiredAt;

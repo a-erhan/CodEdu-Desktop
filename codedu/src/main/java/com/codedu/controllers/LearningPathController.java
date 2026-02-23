@@ -74,7 +74,7 @@ public class LearningPathController {
 
         private void loadPlaceholderChapters() {
                 // ── 1. Hello World ────────────────────────────────
-                Chapter ch1 = new Chapter("hello-world",
+                Chapter ch1 = new Chapter(
                                 "Hello, World!",
                                 "Your very first program — learn to print output and understand program structure.",
                                 "\uD83D\uDC4B", "/com/codedu/images/ch_hello_world.png", Difficulty.BEGINNER, 5, 5, 50,
@@ -102,7 +102,7 @@ public class LearningPathController {
                 chapters.add(ch1);
 
                 // ── 2. Variables & Data Types ─────────────────────
-                Chapter ch2 = new Chapter("variables",
+                Chapter ch2 = new Chapter(
                                 "Variables & Data Types",
                                 "Store and manipulate data using variables, strings, integers, and booleans.",
                                 "\uD83D\uDCE6", "/com/codedu/images/ch_variables.png", Difficulty.BEGINNER, 8, 8, 80,
@@ -126,7 +126,7 @@ public class LearningPathController {
                 chapters.add(ch2);
 
                 // ── 3. Operators & Expressions ────────────────────
-                Chapter ch3 = new Chapter("operators",
+                Chapter ch3 = new Chapter(
                                 "Operators & Expressions",
                                 "Master arithmetic, comparison, and logical operators to build expressions.",
                                 "\u2796", "/com/codedu/images/ch_operators.png", Difficulty.BEGINNER, 6, 6, 60, false);
@@ -151,7 +151,7 @@ public class LearningPathController {
                 chapters.add(ch3);
 
                 // ── 4. Control Flow: If/Else ──────────────────────
-                Chapter ch4 = new Chapter("control-flow",
+                Chapter ch4 = new Chapter(
                                 "Control Flow: If/Else",
                                 "Make decisions in your code using conditional statements and branching logic.",
                                 "\uD83D\uDD00", "/com/codedu/images/ch_control_flow.png", Difficulty.BEGINNER, 7, 4, 70,
@@ -177,7 +177,7 @@ public class LearningPathController {
                 chapters.add(ch4);
 
                 // ── 5. Loops: For & While ─────────────────────────
-                Chapter ch5 = new Chapter("loops",
+                Chapter ch5 = new Chapter(
                                 "Loops: For & While",
                                 "Repeat actions efficiently with for-loops, while-loops, and iteration patterns.",
                                 "\uD83D\uDD01", "/com/codedu/images/ch_loops.png", Difficulty.INTERMEDIATE, 9, 2, 100,
@@ -201,7 +201,7 @@ public class LearningPathController {
                 chapters.add(ch5);
 
                 // ── 6. Functions & Methods ────────────────────────
-                Chapter ch6 = new Chapter("functions",
+                Chapter ch6 = new Chapter(
                                 "Functions & Methods",
                                 "Write reusable blocks of code, understand parameters, return values, and scope.",
                                 "\u2699\uFE0F", "/com/codedu/images/ch_functions.png", Difficulty.INTERMEDIATE, 10, 0,
@@ -229,7 +229,7 @@ public class LearningPathController {
                 chapters.add(ch6);
 
                 // ── 7. Arrays & Collections ───────────────────────
-                Chapter ch7 = new Chapter("arrays",
+                Chapter ch7 = new Chapter(
                                 "Arrays & Collections",
                                 "Organize data with arrays, lists, and maps. Learn indexing and iteration.",
                                 "\uD83D\uDCDA", "/com/codedu/images/ch_arrays.png", Difficulty.INTERMEDIATE, 8, 0, 100,
@@ -255,7 +255,7 @@ public class LearningPathController {
                 chapters.add(ch7);
 
                 // ── 8. OOP (Advanced) ─────────────────────────────
-                Chapter ch8 = new Chapter("oop",
+                Chapter ch8 = new Chapter(
                                 "Object-Oriented Programming",
                                 "Design classes, objects, inheritance, and polymorphism like a pro.",
                                 "\uD83C\uDFD7\uFE0F", "/com/codedu/images/ch_oop.png", Difficulty.ADVANCED, 12, 0, 200,
@@ -287,7 +287,7 @@ public class LearningPathController {
                 chapters.add(ch8);
 
                 // ── 9. Linear Data Structures (Advanced) ──────────
-                Chapter ch9 = new Chapter("linear-ds",
+                Chapter ch9 = new Chapter(
                                 "Linear Data Structures",
                                 "Master arrays, linked lists, stacks, and queues — the building blocks of algorithms.",
                                 "\uD83D\uDD17", "/com/codedu/images/ch_linear_ds.png", Difficulty.ADVANCED, 10, 0, 180,
@@ -317,7 +317,7 @@ public class LearningPathController {
                 chapters.add(ch9);
 
                 // ── 10. Non-Linear Data Structures (Advanced) ─────
-                Chapter ch10 = new Chapter("nonlinear-ds",
+                Chapter ch10 = new Chapter(
                                 "Non-Linear Data Structures",
                                 "Explore trees, graphs, and hash maps — essential for advanced algorithms.",
                                 "\uD83C\uDF33", "/com/codedu/images/ch_nonlinear_ds.png", Difficulty.ADVANCED, 10, 0,

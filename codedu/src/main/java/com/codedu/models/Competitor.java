@@ -1,12 +1,21 @@
 package com.codedu.models;
 
+import jakarta.persistence.*;
+
 /**
  * Model representing a competitor in the system (from UML diagram).
  */
+@Entity
+@Table(name = "competitors")
 public class Competitor {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+
+    @OneToOne(mappedBy = "competitor")
+    private User user;
+
     private int rankingPoint;
     private int totalWins;
     private int totalLosses;
@@ -24,13 +33,13 @@ public class Competitor {
         this.id = id;
     }
 
-    // --- User ID ---
-    public Long getUserId() {
-        return userId;
+    // --- User ---
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     // --- Ranking Point ---

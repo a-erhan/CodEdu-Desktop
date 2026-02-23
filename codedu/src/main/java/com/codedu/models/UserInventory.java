@@ -1,15 +1,25 @@
 package com.codedu.models;
 
+import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Model representing a user's inventory (from UML diagram).
  */
+@Entity
+@Table(name = "user_inventories")
 public class UserInventory {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long userId;
+
+    @OneToOne(mappedBy = "inventory")
+    private User user;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id")
     private List<InventoryItem> items;
 
     public UserInventory() {
@@ -25,13 +35,13 @@ public class UserInventory {
         this.id = id;
     }
 
-    // --- User ID ---
-    public Long getUserId() {
-        return userId;
+    // --- User ---
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     // --- Items ---
@@ -46,8 +56,8 @@ public class UserInventory {
     public void addItem(InventoryItem item) {
         this.items.add(item);
     }
+
     public void removeItem(InventoryItem item) {
         this.items.remove(item);
     }
-
 }

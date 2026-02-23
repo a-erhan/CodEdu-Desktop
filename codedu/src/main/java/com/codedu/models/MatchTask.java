@@ -1,13 +1,42 @@
 package com.codedu.models;
 
-import java.util.Collections;
+import jakarta.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Model representing a task assigned to a match.
+ */
+@Entity
+@Table(name = "match_tasks")
 public class MatchTask {
-    private long id;
-    private List<Long> questionIds;
-    private int xpReward, tokenReward;
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ElementCollection
+    @CollectionTable(name = "match_task_questions", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "question_id")
+    private List<Long> questionIds;
+
+    private int xpReward;
+    private int tokenReward;
+
+    public MatchTask() {
+        this.questionIds = new ArrayList<>();
+    }
+
+    // --- ID ---
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    // --- Token Reward ---
     public int getTokenReward() {
         return tokenReward;
     }
@@ -16,14 +45,7 @@ public class MatchTask {
         this.tokenReward = tokenReward;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
+    // --- XP Reward ---
     public int getXpReward() {
         return xpReward;
     }
@@ -32,6 +54,7 @@ public class MatchTask {
         this.xpReward = xpReward;
     }
 
+    // --- Question IDs ---
     public List<Long> getQuestionIds() {
         return questionIds;
     }
