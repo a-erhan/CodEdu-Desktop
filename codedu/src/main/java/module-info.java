@@ -22,8 +22,7 @@ module com.codedu {
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;
-    opens com.codedu.controllers to spring.core, spring.beans, spring.context;
-
+    opens com.codedu.controllers to javafx.fxml, spring.core, spring.beans, spring.context;
     // --- YENİ: Hibernate ve Spring'in Model (Entity) sınıflarımıza erişip tablo oluşturabilmesi için izinler ---
     opens com.codedu.models to org.hibernate.orm.core, spring.core, spring.beans;
     opens com.codedu to spring.core, spring.beans, spring.context;
