@@ -13,6 +13,7 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.springframework.stereotype.Controller;
 
 import java.io.IOException;
 
@@ -21,6 +22,7 @@ import java.io.IOException;
  * Manages sidebar navigation, header data binding, and center content
  * switching.
  */
+@Controller
 public class MainShellController {
 
     // --- Header elements ---

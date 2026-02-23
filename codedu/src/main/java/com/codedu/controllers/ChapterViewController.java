@@ -13,6 +13,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
+import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * Controller for the interactive chapter content view.
  * Renders Learn / Quiz / Practice sections for a given chapter.
  */
+@Controller
 public class ChapterViewController {
 
     @FXML

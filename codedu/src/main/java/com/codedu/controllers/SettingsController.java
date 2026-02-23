@@ -12,12 +12,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.springframework.stereotype.Controller;
 
 /**
  * Controller for the Settings view.
  * Handles theme switching, notifications, language, password change, and
  * account removal.
  */
+@Controller
 public class SettingsController {
 
     @FXML

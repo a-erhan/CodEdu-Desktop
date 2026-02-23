@@ -8,6 +8,7 @@ module com.codedu {
     requires java.sql;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
+    requires java.instrument;
 
     // --- YENİ: Spring Boot Gereksinimleri ---
     requires spring.boot;
@@ -21,12 +22,14 @@ module com.codedu {
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;
-    opens com.codedu.controllers to javafx.fxml;
+    opens com.codedu.controllers to spring.core, spring.beans, spring.context;
 
     // --- YENİ: Hibernate ve Spring'in Model (Entity) sınıflarımıza erişip tablo oluşturabilmesi için izinler ---
     opens com.codedu.models to org.hibernate.orm.core, spring.core, spring.beans;
+    opens com.codedu to spring.core, spring.beans, spring.context;
 
     // --- Dışarı Aktarımlar ---
     exports com.codedu;
     exports com.codedu.models;
+    exports com.codedu.controllers;
 }

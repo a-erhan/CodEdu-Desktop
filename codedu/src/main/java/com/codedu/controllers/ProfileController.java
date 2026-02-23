@@ -5,11 +5,13 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.FlowPane;
+import org.springframework.stereotype.Controller;
 
 /**
  * Controller for the Profile view.
  * Displays user stats.
  */
+@Controller
 public class ProfileController {
 
     @FXML

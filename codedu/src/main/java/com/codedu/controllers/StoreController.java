@@ -15,6 +15,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -25,6 +26,7 @@ import java.util.Map;
  * Controller for the Store view.
  * Displays purchasable items in a card grid, grouped by category.
  */
+@Controller
 public class StoreController {
 
     @FXML

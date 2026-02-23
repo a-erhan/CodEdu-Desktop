@@ -17,6 +17,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.util.Duration;
+import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.function.Consumer;
  * Controller for the Learning Path module.
  * Builds a vertical path of chapter cards inspired by Coddy's journey UI.
  */
+@Controller
 public class LearningPathController {
 
         @FXML
