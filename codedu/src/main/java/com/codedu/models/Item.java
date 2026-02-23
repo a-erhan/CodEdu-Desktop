@@ -22,4 +22,12 @@ public class Item extends BaseEntity {
 
     @Transient
     private boolean owned;
+
+    public Item(String name, String description, String emoji, int price, ItemType type) {
+        this.name = name;
+        this.description = description;
+        this.emoji = emoji;
+        this.price = price;
+        this.type = type;
+    }
 }

@@ -36,6 +36,20 @@ public class Chapter extends BaseEntity {
     @JoinColumn(name = "content_id")
     private ChapterContent content;
 
+    public Chapter(String title, String description, String iconEmoji, String iconImage,
+                   Difficulty difficulty, int totalLessons, int completedLessons,
+                   int xpReward, boolean locked) {
+        this.title = title;
+        this.description = description;
+        this.iconEmoji = iconEmoji;
+        this.iconImage = iconImage;
+        this.difficulty = difficulty;
+        this.totalLessons = totalLessons;
+        this.completedLessons = completedLessons;
+        this.xpReward = xpReward;
+        this.locked = locked;
+    }
+
     public boolean isCompleted() {
         return !locked && completedLessons >= totalLessons;
     }

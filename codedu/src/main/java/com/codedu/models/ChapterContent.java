@@ -28,4 +28,6 @@ public class ChapterContent extends BaseEntity {
     public void removeQuestion(Question question) {
         this.questions.remove(question);
     }
+
+
 }
