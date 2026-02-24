@@ -1,5 +1,6 @@
 package com.codedu.controllers;
 
+import atlantafx.base.theme.Styles;
 import com.codedu.models.User;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -25,14 +26,6 @@ public class SettingsController {
     @FXML
     private Button btnThemeToggle;
     @FXML
-    private CheckBox chkPushNotif;
-    @FXML
-    private CheckBox chkEmailNotif;
-    @FXML
-    private CheckBox chkDailyReminder;
-    @FXML
-    private ComboBox<String> comboLanguage;
-    @FXML
     private Button btnChangePassword;
     @FXML
     private Button btnLogout;
@@ -40,7 +33,8 @@ public class SettingsController {
     private Button btnRemoveAccount;
 
     private User user;
-    private boolean darkMode = false;
+    // Match global default: NordDark
+    private boolean darkMode = true;
     private Runnable themeToggleCallback;
 
     public void setUserModel(User user) {
@@ -58,9 +52,8 @@ public class SettingsController {
 
     @FXML
     public void initialize() {
-        comboLanguage.setItems(FXCollections.observableArrayList(
-                "English", "Türkçe", "Deutsch", "Français", "Español"));
-        comboLanguage.getSelectionModel().selectFirst();
+        // Use outlined style for theme toggle to fit Nord
+        btnThemeToggle.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
 
         btnThemeToggle.setOnAction(e -> {
             darkMode = !darkMode;
@@ -75,7 +68,8 @@ public class SettingsController {
     }
 
     private void updateThemeButton() {
-        btnThemeToggle.setText(darkMode ? "Dark mode" : "Light mode");
+        // Label indicates what you will switch TO
+        btnThemeToggle.setText(darkMode ? "Switch to light mode" : "Switch to dark mode");
     }
 
     public boolean isDarkMode() {

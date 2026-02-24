@@ -4,6 +4,8 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -12,54 +14,56 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/25"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.codedu.controllers.MainShellController"
-            styleClass="root-pane">
+            fx:controller="com.codedu.controllers.MainShellController">
 
     <top>
-        <HBox styleClass="top-bar" alignment="CENTER_LEFT" spacing="16">
+        <HBox alignment="CENTER_LEFT" spacing="16">
             <padding><Insets top="10" right="24" bottom="10" left="24"/></padding>
 
-            <Label fx:id="badgeLabel" styleClass="badge-icon" text=""/>
-            <Label fx:id="usernameLabel" styleClass="username-label" text="Student"/>
+            <Label fx:id="badgeLabel" text=""/>
+            <Label fx:id="usernameLabel" text="Student"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <Label fx:id="tokenLabel" styleClass="token-label" text="Tokens: 0"/>
+            <Label fx:id="tokenLabel" text="Tokens: 0"/>
 
             <VBox alignment="CENTER" spacing="2">
-                <ProgressBar fx:id="xpProgressBar" styleClass="xp-bar" prefWidth="200" progress="0.0"/>
-                <Label fx:id="xpLabel" styleClass="xp-label" text="XP: 0 / 0"/>
+                <ProgressBar fx:id="xpProgressBar" prefWidth="200" progress="0.0"/>
+                <Label fx:id="xpLabel" text="XP: 0 / 0"/>
             </VBox>
         </HBox>
     </top>
 
     <left>
-        <VBox styleClass="sidebar" spacing="8" alignment="TOP_CENTER">
-            <padding><Insets top="20" right="12" bottom="20" left="12"/></padding>
+        <VBox fx:id="sidebar" spacing="12" alignment="TOP_LEFT">
+            <padding><Insets top="20" right="16" bottom="20" left="16"/></padding>
 
-            <Label styleClass="app-logo" text="CodEdu"/>
-            <Label styleClass="app-tagline" text="Level Up Your Code"/>
+            <ImageView fitHeight="48" preserveRatio="true">
+                <image>
+                    <Image url="@../images/logo.png"/>
+                </image>
+            </ImageView>
+            <Label fx:id="taglineLabel" text="CodEdu"/>
             <Region prefHeight="20"/>
 
-            <Button fx:id="btnLearningPath"  styleClass="nav-button" text="Learning path"             maxWidth="Infinity"/>
-            <Button fx:id="btnDailyChallenge" styleClass="nav-button" text="Daily challenge"           maxWidth="Infinity"/>
-            <Button fx:id="btnLeaderboard"   styleClass="nav-button" text="Leaderboard"               maxWidth="Infinity"/>
-            <Button fx:id="btnForum"         styleClass="nav-button" text="Forum"                     maxWidth="Infinity"/>
-            <Button fx:id="btnStore"         styleClass="nav-button" text="Store"                     maxWidth="Infinity"/>
-            <Button fx:id="btnAskAI"         styleClass="nav-button" text="Ask AI"                    maxWidth="Infinity"/>
+            <Button fx:id="btnLearningPath"  text="Journey"           maxWidth="Infinity"/>
+            <Button fx:id="btnDailyChallenge" text="Daily Challenge"  maxWidth="Infinity"/>
+            <Button fx:id="btnLeaderboard"   text="Goals"             maxWidth="Infinity"/>
+            <Button fx:id="btnForum"         text="Leaderboard"       maxWidth="Infinity"/>
+            <Button fx:id="btnStore"         text="Store"             maxWidth="Infinity"/>
+            <Button fx:id="btnAskAI"         text="Profile"           maxWidth="Infinity"/>
 
             <Region prefHeight="12"/>
 
-            <Button fx:id="btnProfile"       styleClass="nav-button" text="Profile"                   maxWidth="Infinity"/>
-            <Button fx:id="btnSettings"      styleClass="nav-button" text="Settings"                  maxWidth="Infinity"/>
+            <Button fx:id="btnSettings"      text="Settings"          maxWidth="Infinity"/>
 
             <Region VBox.vgrow="ALWAYS"/>
-            <Label styleClass="version-label" text="v1.0.0-alpha"/>
+            <Label text="v1.0.0-alpha"/>
         </VBox>
     </left>
 
     <center>
-        <StackPane fx:id="contentArea" styleClass="content-area">
+        <StackPane fx:id="contentArea">
             <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
         </StackPane>
     </center>

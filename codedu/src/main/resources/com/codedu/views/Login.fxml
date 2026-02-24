@@ -10,36 +10,35 @@
 
 <StackPane xmlns="http://javafx.com/javafx/25"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.codedu.controllers.LoginController"
-           styleClass="login-root">
+           fx:controller="com.codedu.controllers.LoginController">
 
-    <VBox styleClass="login-card" alignment="CENTER" spacing="10" maxWidth="380">
+    <VBox alignment="CENTER" spacing="12" maxWidth="380">
         <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
         <!-- Logo -->
-        <Label styleClass="login-logo" text="CodEdu"/>
-        <Label styleClass="login-tagline" text="The free, fun, and effective way to learn to code!"/>
+        <Label fx:id="titleLabel" text="CodEdu"/>
+        <Label text="The free, fun, and effective way to learn to code!"/>
 
         <!-- Spacer -->
         <Label prefHeight="16"/>
 
         <!-- Email field -->
-        <TextField fx:id="emailField" styleClass="login-field" promptText="Email"/>
+        <TextField fx:id="emailField" promptText="Email"/>
 
         <!-- Password field -->
-        <PasswordField fx:id="passwordField" styleClass="login-field" promptText="Password"/>
+        <PasswordField fx:id="passwordField" promptText="Password"/>
 
         <!-- Error label -->
-        <Label fx:id="errorLabel" styleClass="login-error" text="" wrapText="true"/>
+        <Label fx:id="errorLabel" text="" wrapText="true"/>
 
         <!-- Login button -->
-        <Button fx:id="loginButton" styleClass="login-btn" text="Login" maxWidth="Infinity"
+        <Button fx:id="loginButton" text="Login" maxWidth="Infinity"
                 onAction="#handleLogin"/>
 
         <!-- Spacer -->
         <Label prefHeight="4"/>
 
         <!-- Sign Up link -->
-        <Label styleClass="login-link" text="Join over 3,165,792 codders. Don't have an account? Sign Up"/>
+        <Label text="Join over 3,165,792 codders. Don't have an account? Sign Up"/>
     </VBox>
 </StackPane>

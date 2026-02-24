@@ -2,6 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.NordDark;
 import atlantafx.base.theme.NordLight;
+import atlantafx.base.theme.Styles;
 import com.codedu.models.Chapter;
 import com.codedu.models.Competitor;
 import com.codedu.models.DailyChallenge;
@@ -47,6 +48,12 @@ public class MainShellController {
     @FXML
     private Label xpLabel;
 
+    // --- Sidebar ---
+    @FXML
+    private VBox sidebar;
+    @FXML
+    private Label taglineLabel;
+
     // --- Sidebar buttons ---
     @FXML
     private Button btnLearningPath;
@@ -60,8 +67,6 @@ public class MainShellController {
     private Button btnStore;
     @FXML
     private Button btnAskAI;
-    @FXML
-    private Button btnProfile;
     @FXML
     private Button btnSettings;
 
@@ -90,6 +95,26 @@ public class MainShellController {
         // Bind header to user model
         initDemoModelsIfNeeded();
         updateHeader();
+
+        // Apply Nord typography and container styling
+        usernameLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (taglineLabel != null) {
+            taglineLabel.getStyleClass().add(Styles.TITLE_3);
+        }
+        if (sidebar != null) {
+            sidebar.setSpacing(16);
+            sidebar.setFillWidth(true);
+            sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
+        }
+
+        // Apply common Nord nav-button styling
+        styleNavButton(btnLearningPath);
+        styleNavButton(btnDailyChallenge);
+        styleNavButton(btnLeaderboard);
+        styleNavButton(btnForum);
+        styleNavButton(btnStore);
+        styleNavButton(btnAskAI);
+        styleNavButton(btnSettings);
 
         // Setup Learning Path button — loads full FXML module
         setupNavButtonWithHover(btnLearningPath);
@@ -126,17 +151,10 @@ public class MainShellController {
             loadStore();
         });
 
-        // Ask AI
+        // Profile
         setupNavButtonWithHover(btnAskAI);
         btnAskAI.setOnAction(e -> {
             setActiveButton(btnAskAI);
-            showAskAI();
-        });
-
-        // Profile — loads full FXML module
-        setupNavButtonWithHover(btnProfile);
-        btnProfile.setOnAction(e -> {
-            setActiveButton(btnProfile);
             loadProfile();
         });
 
@@ -147,9 +165,9 @@ public class MainShellController {
             loadSettings();
         });
 
-        // Show welcome screen by default
-        showWelcome();
+        // Default to Journey (Learning Path) instead of welcome hero page
         setActiveButton(btnLearningPath);
+        loadLearningPath();
     }
 
     private void updateHeader() {
@@ -186,21 +204,28 @@ public class MainShellController {
         }
 
         if (weeklyLeaderboard == null) {
+            // Create mock competitors, assigning one to the current user
+            Competitor me = Competitor.builder()
+                    .user(user)
+                    .rankingPoint(2180)
+                    .totalWins(12)
+                    .totalLosses(8)
+                    .totalMatches(20)
+                    .build();
             Competitor c1 = Competitor.builder().rankingPoint(2840).totalWins(20).totalLosses(5).totalMatches(25).build();
             Competitor c2 = Competitor.builder().rankingPoint(2650).totalWins(18).totalLosses(6).totalMatches(24).build();
             Competitor c3 = Competitor.builder().rankingPoint(2420).totalWins(15).totalLosses(7).totalMatches(22).build();
-            Competitor c4 = Competitor.builder().rankingPoint(2180).totalWins(12).totalLosses(8).totalMatches(20).build();
             Competitor c5 = Competitor.builder().rankingPoint(1950).totalWins(10).totalLosses(9).totalMatches(19).build();
 
             weeklyLeaderboard = LeaderBoard.builder()
                     .name("Weekly XP")
-                    .userRank(4)
+                    .userRank(4) // 4th place
                     .requiredLevel(1)
                     .build();
             weeklyLeaderboard.addCompetitor(c1);
             weeklyLeaderboard.addCompetitor(c2);
             weeklyLeaderboard.addCompetitor(c3);
-            weeklyLeaderboard.addCompetitor(c4);
+            weeklyLeaderboard.addCompetitor(me);
             weeklyLeaderboard.addCompetitor(c5);
         }
 
@@ -253,12 +278,20 @@ public class MainShellController {
         });
     }
 
+    private void styleNavButton(Button button) {
+        if (button == null) return;
+        button.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DENSE, Styles.INTERACTIVE);
+        button.setMaxWidth(Double.MAX_VALUE);
+    }
+
     private void setActiveButton(Button button) {
         if (activeButton != null) {
-            activeButton.getStyleClass().remove("nav-button-active");
+            activeButton.getStyleClass().remove(Styles.ACCENT);
         }
         activeButton = button;
-        activeButton.getStyleClass().add("nav-button-active");
+        if (!activeButton.getStyleClass().contains(Styles.ACCENT)) {
+            activeButton.getStyleClass().add(Styles.ACCENT);
+        }
     }
 
     // --- Module loaders ---
@@ -341,13 +374,15 @@ public class MainShellController {
         }
     }
 
+    // Track theme explicitly instead of inspecting the UA string
+    private boolean darkTheme = true;
+
     private void toggleTheme() {
-        // Toggle only the AtlantaFX user-agent stylesheet between Nord light and dark.
-        String current = Application.getUserAgentStylesheet();
-        if (current != null && current.contains("NordDark")) {
-            Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
-        } else {
+        darkTheme = !darkTheme;
+        if (darkTheme) {
             Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet());
+        } else {
+            Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
         }
     }
 
@@ -358,7 +393,12 @@ public class MainShellController {
         root.setAlignment(Pos.CENTER);
         root.setMaxWidth(900);
 
-        // --- Hero section (Coddy-style landing) ---
+        String username = user.getUsername() != null ? user.getUsername() : "User";
+
+        Label welcome = new Label("Welcome " + username);
+        welcome.getStyleClass().add(Styles.TITLE_3);
+
+        // --- Hero section ---
         VBox heroBox = new VBox(12);
         heroBox.setAlignment(Pos.CENTER);
 
@@ -390,7 +430,7 @@ public class MainShellController {
         Button btnContinue = new Button("CONTINUE WHERE I LEFT OFF");
         btnContinue.getStyleClass().add("hero-cta-secondary");
         btnContinue.setOnAction(e -> {
-            setActiveButton(btnProfile);
+            setActiveButton(btnAskAI);
             loadProfile();
         });
 
@@ -463,7 +503,7 @@ public class MainShellController {
 
         sectionsRow.getChildren().addAll(learnByDoing, streakCard, proveCard);
 
-        root.getChildren().addAll(heroBox, sectionsRow);
+        root.getChildren().addAll(welcome, heroBox, sectionsRow);
         contentArea.getChildren().setAll(root);
     }
 
@@ -472,89 +512,99 @@ public class MainShellController {
         root.setAlignment(Pos.TOP_CENTER);
         root.setMaxWidth(900);
 
-        Label title = new Label("Daily challenge");
-        title.getStyleClass().add("section-title");
+        Label title = new Label("Daily Challenges");
+        title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
-                "Solve a fresh coding task every day and keep your streak alive.");
-        subtitle.getStyleClass().add("section-description");
+                "Tackle today’s challenges. Each card is a separate task with its own rewards.");
         subtitle.setWrapText(true);
 
-        HBox row = new HBox(16);
-        row.setAlignment(Pos.TOP_CENTER);
+        VBox list = new VBox(16);
+        list.setFillWidth(true);
 
-        VBox challengeCard = new VBox(10);
-        challengeCard.getStyleClass().add("hero-section-card");
-        challengeCard.setAlignment(Pos.TOP_LEFT);
-        challengeCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        Label chTitle = new Label("Today’s task: " + todayChallenge.getName());
-        chTitle.getStyleClass().add("hero-section-title");
-        Label chBody = new Label(todayChallenge.getDescription());
-        chBody.getStyleClass().add("hero-section-body");
-        chBody.setWrapText(true);
-        Label chBadge = new Label(todayChallenge.getXpRewards() + " XP · " + todayChallenge.getTokenRewards() + " tokens");
-        chBadge.getStyleClass().add("hero-section-badge");
-        challengeCard.getChildren().addAll(chTitle, chBody, chBadge);
+        // For now, create a small list of mock challenges using the DailyChallenge model
+        java.util.List<DailyChallenge> challenges = java.util.List.of(
+                todayChallenge,
+                DailyChallenge.builder()
+                        .name("Array Practice")
+                        .description("Work with arrays: sum numbers, find max, and reverse the list.")
+                        .xpRewards(40)
+                        .tokenRewards(15)
+                        .build(),
+                DailyChallenge.builder()
+                        .name("Debug the Loop")
+                        .description("Fix an off-by-one error in a for-loop and make tests pass.")
+                        .xpRewards(35)
+                        .tokenRewards(10)
+                        .build()
+        );
 
-        VBox streakCard = new VBox(10);
-        streakCard.getStyleClass().add("hero-section-card");
-        streakCard.setAlignment(Pos.TOP_LEFT);
-        streakCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        Label stTitle = new Label("Your streak");
-        stTitle.getStyleClass().add("hero-section-title");
-        Label stBody = new Label("You have a 0-day streak. Complete today’s challenge to start building momentum.");
-        stBody.getStyleClass().add("hero-section-body");
-        stBody.setWrapText(true);
-        Label stBadge = new Label("STREAKS & FREEZE DAYS");
-        stBadge.getStyleClass().add("hero-section-badge");
-        streakCard.getChildren().addAll(stTitle, stBody, stBadge);
+        for (DailyChallenge ch : challenges) {
+            VBox card = new VBox(6);
+            card.setAlignment(Pos.TOP_LEFT);
+            card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+            card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-        row.getChildren().addAll(challengeCard, streakCard);
+            Label chTitle = new Label(ch.getName());
+            chTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-        root.getChildren().addAll(title, subtitle, row);
+            Label chBody = new Label(ch.getDescription());
+            chBody.setWrapText(true);
+
+            Label chMeta = new Label(ch.getXpRewards() + " XP · " + ch.getTokenRewards() + " tokens");
+            chMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+            card.getChildren().addAll(chTitle, chBody, chMeta);
+            list.getChildren().add(card);
+        }
+
+        root.getChildren().addAll(title, subtitle, list);
         contentArea.getChildren().setAll(root);
     }
 
     private void showLeaderboard() {
         VBox root = new VBox(20);
         root.setAlignment(Pos.TOP_CENTER);
-        root.setMaxWidth(700);
+        root.setMaxWidth(900);
 
-        Label title = new Label("Leaderboard");
-        title.getStyleClass().add("section-title");
+        Label title = new Label("Goals");
+        title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
-                "See how you rank against other learners this week.");
-        subtitle.getStyleClass().add("section-description");
+                "Track your medium‑term learning goals. Each card represents one goal.");
         subtitle.setWrapText(true);
 
-        VBox board = new VBox(8);
-        board.getStyleClass().add("hero-section-card");
-        board.setPadding(new javafx.geometry.Insets(16, 20, 16, 20));
+        VBox list = new VBox(16);
+        list.setFillWidth(true);
 
+        // Represent goals using competitors data for now
         java.util.List<Competitor> competitors = weeklyLeaderboard.getCompetitors();
         for (int i = 0; i < competitors.size(); i++) {
             Competitor c = competitors.get(i);
-            HBox line = new HBox(12);
-            line.setAlignment(Pos.CENTER_LEFT);
-
-            Label pos = new Label(String.valueOf(i + 1));
-            pos.getStyleClass().add("hero-section-badge");
+            VBox goalCard = new VBox(6);
+            goalCard.setAlignment(Pos.TOP_LEFT);
+            goalCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+            goalCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
             String nameText = c.getUser() != null && c.getUser().getUsername() != null
                     ? c.getUser().getUsername()
-                    : "Player " + (i + 1);
-            Label name = new Label(nameText);
-            name.getStyleClass().add("hero-section-title");
+                    : "Goal " + (i + 1);
 
-            Label score = new Label(c.getRankingPoint() + " XP · " + String.format("%.0f", c.getWinRate()) + "% win rate");
-            score.getStyleClass().add("hero-section-body");
+            Label goalTitle = new Label(nameText);
+            goalTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            line.getChildren().addAll(pos, name, score);
-            board.getChildren().add(line);
+            Label goalBody = new Label("Reach " + c.getRankingPoint() + " XP with at least "
+                    + String.format("%.0f", c.getWinRate()) + "% win rate.");
+            goalBody.setWrapText(true);
+
+            Label goalMeta = new Label("Progress goal");
+            goalMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+            goalCard.getChildren().addAll(goalTitle, goalBody, goalMeta);
+            list.getChildren().add(goalCard);
         }
 
-        root.getChildren().addAll(title, subtitle, board);
+        root.getChildren().addAll(title, subtitle, list);
         contentArea.getChildren().setAll(root);
     }
 
@@ -563,50 +613,78 @@ public class MainShellController {
         root.setAlignment(Pos.TOP_CENTER);
         root.setMaxWidth(900);
 
-        Label title = new Label("Community discussions");
-        title.getStyleClass().add("section-title");
+        Label title = new Label("Leaderboard");
+        title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
-                "Ask questions, share solutions, and help other learners.");
-        subtitle.getStyleClass().add("section-description");
+                "See how you rank against other learners this week.");
         subtitle.setWrapText(true);
 
-        HBox row = new HBox(16);
-        row.setAlignment(Pos.TOP_CENTER);
+        java.util.List<Competitor> competitors = weeklyLeaderboard.getCompetitors();
+        int myRank = weeklyLeaderboard.getUserRank();
+        int total = competitors.size();
+        int myIndex = Math.max(0, Math.min(total - 1, myRank - 1));
+        Competitor me = competitors.get(myIndex);
 
-        VBox threads = new VBox(10);
-        threads.getStyleClass().add("hero-section-card");
-        threads.setAlignment(Pos.TOP_LEFT);
-        threads.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        Label thTitle = new Label("Trending threads");
-        thTitle.getStyleClass().add("hero-section-title");
-        threads.getChildren().add(thTitle);
-        for (ForumPost post : forumThreads) {
-            String authorName = post.getAuthor() != null && post.getAuthor().getUsername() != null
-                    ? post.getAuthor().getUsername()
-                    : "Anonymous";
-            Label line = new Label("• " + post.getTitle() + " — " + authorName);
-            line.getStyleClass().add("hero-section-body");
-            threads.getChildren().add(line);
+        // Highlight current user's position in a larger card
+        VBox myCard = new VBox(6);
+        myCard.setAlignment(Pos.TOP_LEFT);
+        myCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
+        myCard.getStyleClass().addAll(
+                Styles.BORDERED,
+                Styles.ROUNDED,
+                Styles.BG_ACCENT_SUBTLE,
+                Styles.ELEVATED_1
+        );
+
+        String myName = me.getUser() != null && me.getUser().getUsername() != null
+                ? me.getUser().getUsername()
+                : "You";
+
+        Label myTitle = new Label("Your position");
+        myTitle.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Label myRankLabel = new Label("#" + myRank + " of " + total + " · " + myName);
+        myRankLabel.getStyleClass().add(Styles.TITLE_3);
+
+        Label myScore = new Label(me.getRankingPoint() + " XP · " + String.format("%.0f", me.getWinRate()) + "% wins");
+        myScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+        myCard.getChildren().addAll(myTitle, myRankLabel, myScore);
+
+        // Full leaderboard list
+        VBox board = new VBox(8);
+        board.setAlignment(Pos.TOP_LEFT);
+
+        for (int i = 0; i < competitors.size(); i++) {
+            Competitor c = competitors.get(i);
+
+            HBox line = new HBox(12);
+            line.setAlignment(Pos.CENTER_LEFT);
+            line.setPadding(new javafx.geometry.Insets(8, 10, 8, 10));
+
+            if (i == myIndex) {
+                line.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_ACCENT_SUBTLE);
+            } else {
+                line.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+            }
+
+            Label pos = new Label(String.valueOf(i + 1));
+            pos.getStyleClass().add(Styles.TEXT_BOLD);
+
+            String nameText = c.getUser() != null && c.getUser().getUsername() != null
+                    ? c.getUser().getUsername()
+                    : "Player " + (i + 1);
+            Label name = new Label(nameText);
+
+            Label score = new Label(c.getRankingPoint() + " XP · " + String.format("%.0f", c.getWinRate()) + "% wins");
+            score.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+            line.getChildren().addAll(pos, name, score);
+            board.getChildren().add(line);
         }
 
-        VBox tips = new VBox(10);
-        tips.getStyleClass().add("hero-section-card");
-        tips.setAlignment(Pos.TOP_LEFT);
-        tips.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        Label tipsTitle = new Label("Posting guidelines");
-        tipsTitle.getStyleClass().add("hero-section-title");
-        Label tipsBody = new Label(
-                "Describe your problem clearly, include code snippets, and share what you have tried so far.");
-        tipsBody.getStyleClass().add("hero-section-body");
-        tipsBody.setWrapText(true);
-        Label tipsBadge = new Label("HELP OTHERS LEARN");
-        tipsBadge.getStyleClass().add("hero-section-badge");
-        tips.getChildren().addAll(tipsTitle, tipsBody, tipsBadge);
-
-        row.getChildren().addAll(threads, tips);
-
-        root.getChildren().addAll(title, subtitle, row);
+        root.getChildren().addAll(title, subtitle, myCard, board);
         contentArea.getChildren().setAll(root);
     }
 

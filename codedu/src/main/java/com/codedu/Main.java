@@ -24,8 +24,8 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        // Use AtlantaFX Nord light theme as the base user agent stylesheet
-        Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
+        // Set global AtlantaFX Nord dark theme by default
+        Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet());
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Login.fxml"));
         loader.setControllerFactory(springContext::getBean);

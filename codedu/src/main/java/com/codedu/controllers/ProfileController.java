@@ -1,12 +1,14 @@
 package com.codedu.controllers;
 
-import com.codedu.models.User;
+import atlantafx.base.theme.Styles;
 import com.codedu.models.InventoryItem;
+import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -36,6 +38,16 @@ public class ProfileController {
     private Label noAvatarsLabel;
     @FXML
     private FlowPane avatarGrid;
+    @FXML
+    private VBox avatarCard;
+    @FXML
+    private VBox xpCard;
+    @FXML
+    private VBox tokensCard;
+    @FXML
+    private VBox badgeCard;
+    @FXML
+    private VBox itemsCard;
 
     private User user;
     private UserGameState gameState;
@@ -54,7 +66,9 @@ public class ProfileController {
         String username = user != null && user.getUsername() != null ? user.getUsername() : "User";
         String initial = username.isEmpty() ? "C" : username.substring(0, 1).toUpperCase();
         avatarDisplay.setText(initial);
+        avatarDisplay.getStyleClass().add(Styles.TITLE_2);
         usernameDisplay.setText(username);
+        usernameDisplay.getStyleClass().add(Styles.TITLE_3);
         int level = gameState != null ? gameState.getLevel() : 1;
         badgeDisplay.setText("Level " + level);
 
@@ -75,6 +89,23 @@ public class ProfileController {
             }
         }
         profileItemsLabel.setText(String.valueOf(itemCount));
+
+        // Card-like styling for profile sections
+        if (avatarCard != null) {
+            avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
+        }
+        if (xpCard != null) {
+            xpCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        }
+        if (tokensCard != null) {
+            tokensCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        }
+        if (badgeCard != null) {
+            badgeCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        }
+        if (itemsCard != null) {
+            itemsCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        }
 
         noAvatarsLabel.setVisible(true);
         noAvatarsLabel.setManaged(true);

@@ -1,12 +1,14 @@
 package com.codedu.controllers;
 
+import atlantafx.base.theme.Styles;
+import com.codedu.models.Role;
 import com.codedu.models.User;
 import com.codedu.models.UserInventory;
-import com.codedu.models.Role;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -26,6 +28,22 @@ public class LoginController {
     private PasswordField passwordField;
     @FXML
     private Label errorLabel;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private Button loginButton;
+
+    @FXML
+    public void initialize() {
+        // Apply Nord typography to the login title
+        if (titleLabel != null) {
+            titleLabel.getStyleClass().add(Styles.TITLE_3);
+        }
+        // Make login button a primary, rounded CTA
+        if (loginButton != null) {
+            loginButton.getStyleClass().addAll(Styles.ACCENT, Styles.LARGE, Styles.ROUNDED);
+        }
+    }
 
     @FXML
     private void handleLogin() {

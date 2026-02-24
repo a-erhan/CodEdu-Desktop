@@ -14,109 +14,75 @@
 <ScrollPane xmlns="http://javafx.com/javafx/25"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.codedu.controllers.SettingsController"
-            styleClass="settings-scroll" fitToWidth="true">
+            fitToWidth="true">
 
-    <VBox styleClass="settings-root" spacing="28" alignment="TOP_LEFT">
+    <VBox spacing="28" alignment="TOP_LEFT">
         <padding><Insets top="32" right="40" bottom="32" left="40"/></padding>
 
         <!-- Header -->
         <VBox spacing="4">
-            <Label styleClass="settings-title" text="Settings"/>
-            <Label styleClass="settings-subtitle" text="Manage your preferences and account"/>
+            <Label text="Settings"/>
+            <Label text="Manage your preferences and account"/>
         </VBox>
 
         <!-- Appearance -->
-        <VBox styleClass="settings-section" spacing="12">
+        <VBox spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="Appearance"/>
-            <Separator styleClass="settings-separator"/>
+            <Label text="Appearance"/>
+            <Separator/>
             <HBox alignment="CENTER_LEFT" spacing="16">
-                <Label styleClass="settings-label" text="Theme"/>
+                <Label text="Theme"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnThemeToggle" styleClass="settings-toggle-btn" text="🌙 Dark Mode"/>
-            </HBox>
-        </VBox>
-
-        <!-- Notifications -->
-        <VBox styleClass="settings-section" spacing="12">
-            <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="Notifications"/>
-            <Separator styleClass="settings-separator"/>
-            <HBox alignment="CENTER_LEFT" spacing="16">
-                <Label styleClass="settings-label" text="Push Notifications"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <CheckBox fx:id="chkPushNotif" selected="true" styleClass="settings-check"/>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="16">
-                <Label styleClass="settings-label" text="Email Notifications"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <CheckBox fx:id="chkEmailNotif" selected="true" styleClass="settings-check"/>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="16">
-                <Label styleClass="settings-label" text="Daily Challenge Reminders"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <CheckBox fx:id="chkDailyReminder" selected="true" styleClass="settings-check"/>
-            </HBox>
-        </VBox>
-
-        <!-- Language -->
-        <VBox styleClass="settings-section" spacing="12">
-            <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="Language"/>
-            <Separator styleClass="settings-separator"/>
-            <HBox alignment="CENTER_LEFT" spacing="16">
-                <Label styleClass="settings-label" text="Application Language"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <ComboBox fx:id="comboLanguage" styleClass="settings-combo"/>
+                <Button fx:id="btnThemeToggle" styleClass="button-outlined" text="Dark mode"/>
             </HBox>
         </VBox>
 
         <!-- Account -->
-        <VBox styleClass="settings-section" spacing="12">
+        <VBox spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="Account"/>
-            <Separator styleClass="settings-separator"/>
+            <Label text="Account"/>
+            <Separator/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
-                    <Label styleClass="settings-label" text="Change Password"/>
-                    <Label styleClass="settings-hint" text="Update your account password"/>
+                    <Label text="Change Password"/>
+                    <Label text="Update your account password"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnChangePassword" styleClass="settings-action-btn" text="Change Password"/>
+                <Button fx:id="btnChangePassword" text="Change Password"/>
             </HBox>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
-                    <Label styleClass="settings-label" text="Log Out"/>
-                    <Label styleClass="settings-hint" text="Sign out of your account"/>
+                    <Label text="Log Out"/>
+                    <Label text="Sign out of your account"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnLogout" styleClass="settings-action-btn" text="Log Out"/>
+                <Button fx:id="btnLogout" text="Log Out"/>
             </HBox>
         </VBox>
 
         <!-- Danger Zone -->
-        <VBox styleClass="settings-danger-section" spacing="12">
+        <VBox spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-danger-title" text="Danger zone"/>
-            <Separator styleClass="settings-separator-danger"/>
+            <Label text="Danger zone"/>
+            <Separator/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
-                    <Label styleClass="settings-label" text="Remove Account"/>
-                    <Label styleClass="settings-hint-danger" text="Permanently delete your account and all data"/>
+                    <Label text="Remove Account"/>
+                    <Label text="Permanently delete your account and all data"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button fx:id="btnRemoveAccount" styleClass="settings-danger-btn" text="Remove Account"/>
+                <Button fx:id="btnRemoveAccount" styleClass="danger button-outlined" text="Remove Account"/>
             </HBox>
         </VBox>
 
         <!-- About -->
-        <VBox styleClass="settings-section" spacing="8">
+        <VBox spacing="8">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="About"/>
-            <Separator styleClass="settings-separator"/>
-            <Label styleClass="settings-label" text="CodEdu — Gamified Coding Education"/>
-            <Label styleClass="settings-hint" text="Version 1.0.0-alpha"/>
-            <Label styleClass="settings-hint" text="© 2026 CodEdu Team. All rights reserved."/>
+            <Label text="About"/>
+            <Separator/>
+            <Label text="CodEdu — Gamified Coding Education"/>
+            <Label text="Version 1.0.0-alpha"/>
+            <Label text="© 2026 CodEdu Team. All rights reserved."/>
         </VBox>
 
     </VBox>

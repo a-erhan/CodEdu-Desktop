@@ -12,47 +12,46 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/25"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.codedu.controllers.ChapterViewController"
-            styleClass="cv-root">
+            fx:controller="com.codedu.controllers.ChapterViewController">
 
     <top>
-        <VBox styleClass="cv-header" spacing="8">
+        <VBox spacing="8">
             <padding><Insets top="16" right="28" bottom="12" left="28"/></padding>
 
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Button fx:id="btnBack" text="Back" styleClass="cv-back-btn"/>
-                <Label fx:id="headerTitle" styleClass="cv-header-title" text="Chapter"/>
+                <Button fx:id="btnBack" text="Back"/>
+                <Label fx:id="headerTitle" text="Chapter"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="headerXP" styleClass="cv-header-xp"/>
+                <Label fx:id="headerXP"/>
             </HBox>
 
             <!-- Tab bar -->
-            <HBox fx:id="tabBar" styleClass="cv-tab-bar" spacing="4" alignment="CENTER_LEFT">
-                <Button fx:id="tabLearn" text="Learn" styleClass="cv-tab,cv-tab-active"/>
-                <Button fx:id="tabQuiz" text="Quiz" styleClass="cv-tab"/>
-                <Button fx:id="tabPractice" text="Practice" styleClass="cv-tab"/>
+            <HBox fx:id="tabBar" spacing="4" alignment="CENTER_LEFT">
+                <Button fx:id="tabLearn" text="Learn"/>
+                <Button fx:id="tabQuiz" text="Quiz"/>
+                <Button fx:id="tabPractice" text="Practice"/>
             </HBox>
         </VBox>
     </top>
 
     <center>
         <StackPane fx:id="contentStack">
-            <ScrollPane fx:id="learnScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER">
-                <VBox fx:id="learnContainer" styleClass="cv-content" spacing="16">
+            <ScrollPane fx:id="learnScroll" fitToWidth="true" hbarPolicy="NEVER">
+                <VBox fx:id="learnContainer" spacing="16">
                     <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
                 </VBox>
             </ScrollPane>
 
-            <ScrollPane fx:id="quizScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER"
+            <ScrollPane fx:id="quizScroll" fitToWidth="true" hbarPolicy="NEVER"
                         visible="false">
-                <VBox fx:id="quizContainer" styleClass="cv-content" spacing="20">
+                <VBox fx:id="quizContainer" spacing="20">
                     <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
                 </VBox>
             </ScrollPane>
 
-            <ScrollPane fx:id="practiceScroll" fitToWidth="true" styleClass="cv-scroll" hbarPolicy="NEVER"
+            <ScrollPane fx:id="practiceScroll" fitToWidth="true" hbarPolicy="NEVER"
                         visible="false">
-                <VBox fx:id="practiceContainer" styleClass="cv-content" spacing="16">
+                <VBox fx:id="practiceContainer" spacing="16">
                     <padding><Insets top="24" right="40" bottom="40" left="40"/></padding>
                 </VBox>
             </ScrollPane>

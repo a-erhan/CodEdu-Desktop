@@ -12,48 +12,48 @@
 <ScrollPane xmlns="http://javafx.com/javafx/25"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.codedu.controllers.ProfileController"
-            styleClass="profile-scroll" fitToWidth="true">
+            fitToWidth="true">
 
-    <VBox styleClass="profile-root" spacing="28" alignment="TOP_CENTER">
+    <VBox spacing="28" alignment="TOP_CENTER">
         <padding><Insets top="32" right="40" bottom="32" left="40"/></padding>
 
         <!-- Avatar + User info -->
-        <VBox styleClass="profile-hero" spacing="12" alignment="CENTER">
+        <VBox fx:id="avatarCard" spacing="12" alignment="CENTER">
             <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
-            <Label fx:id="avatarDisplay" styleClass="profile-avatar-big"/>
-            <Label fx:id="usernameDisplay" styleClass="profile-username"/>
-            <Label fx:id="badgeDisplay" styleClass="profile-badge"/>
+            <Label fx:id="avatarDisplay"/>
+            <Label fx:id="usernameDisplay"/>
+            <Label fx:id="badgeDisplay"/>
         </VBox>
 
         <!-- Stats Row -->
         <HBox spacing="16" alignment="CENTER">
-            <VBox fx:id="xpCard" styleClass="profile-stat-card" spacing="6" alignment="CENTER">
+            <VBox fx:id="xpCard" spacing="6" alignment="CENTER">
                 <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="XP progress" styleClass="profile-stat-title"/>
-                <ProgressBar fx:id="profileXpBar" styleClass="xp-bar" prefWidth="180" progress="0.0"/>
-                <Label fx:id="profileXpLabel" styleClass="profile-stat-value"/>
+                <Label text="XP progress"/>
+                <ProgressBar fx:id="profileXpBar" prefWidth="180" progress="0.0"/>
+                <Label fx:id="profileXpLabel"/>
             </VBox>
-            <VBox styleClass="profile-stat-card" spacing="6" alignment="CENTER">
+            <VBox fx:id="tokensCard" spacing="6" alignment="CENTER">
                 <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Tokens" styleClass="profile-stat-title"/>
-                <Label fx:id="profileTokenLabel" styleClass="profile-stat-value-gold"/>
+                <Label text="Tokens"/>
+                <Label fx:id="profileTokenLabel"/>
             </VBox>
-            <VBox styleClass="profile-stat-card" spacing="6" alignment="CENTER">
+            <VBox fx:id="badgeCard" spacing="6" alignment="CENTER">
                 <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Badge" styleClass="profile-stat-title"/>
-                <Label fx:id="profileBadgeLabel" styleClass="profile-stat-value"/>
+                <Label text="Badge"/>
+                <Label fx:id="profileBadgeLabel"/>
             </VBox>
-            <VBox styleClass="profile-stat-card" spacing="6" alignment="CENTER">
+            <VBox fx:id="itemsCard" spacing="6" alignment="CENTER">
                 <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Items owned" styleClass="profile-stat-title"/>
-                <Label fx:id="profileItemsLabel" styleClass="profile-stat-value"/>
+                <Label text="Items owned"/>
+                <Label fx:id="profileItemsLabel"/>
             </VBox>
         </HBox>
 
         <!-- My avatars section -->
         <VBox spacing="12" alignment="CENTER_LEFT">
-            <Label text="My avatars" styleClass="store-category-title"/>
-            <Label fx:id="noAvatarsLabel" styleClass="profile-no-items" text="No avatars owned yet. Visit the Store to buy some!"/>
+            <Label text="My avatars"/>
+            <Label fx:id="noAvatarsLabel" text="No avatars owned yet. Visit the Store to buy some!"/>
             <FlowPane fx:id="avatarGrid" hgap="14" vgap="14"/>
         </VBox>
 

@@ -1,5 +1,6 @@
 package com.codedu.controllers;
 
+import atlantafx.base.theme.Styles;
 import com.codedu.models.InventoryItem;
 import com.codedu.models.Item;
 import com.codedu.models.ItemType;
@@ -103,7 +104,7 @@ public class StoreController {
                 continue;
 
             Label categoryLabel = new Label(categoryTitle(entry.getKey()));
-            categoryLabel.getStyleClass().add("store-category-title");
+            categoryLabel.getStyleClass().add(Styles.TITLE_3);
             storeContent.getChildren().add(categoryLabel);
 
             FlowPane grid = new FlowPane(16, 16);
@@ -117,7 +118,7 @@ public class StoreController {
 
     private VBox buildItemCard(Item item) {
         VBox card = new VBox(8);
-        card.getStyleClass().add("store-card");
+        card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         card.setPadding(new Insets(20, 20, 16, 20));
         card.setPrefWidth(200);
         card.setMinWidth(200);
@@ -128,11 +129,11 @@ public class StoreController {
         Label emoji = new Label(iconText);
 
         Label name = new Label(item.getName());
-        name.getStyleClass().add("store-item-name");
+        name.getStyleClass().add(Styles.TEXT_BOLD);
         name.setWrapText(true);
 
         Label desc = new Label(item.getDescription());
-        desc.getStyleClass().add("store-item-desc");
+        desc.getStyleClass().add(Styles.TEXT_SUBTLE);
         desc.setWrapText(true);
         desc.setMaxHeight(36);
 
@@ -142,11 +143,15 @@ public class StoreController {
         HBox priceRow = new HBox(8);
         priceRow.setAlignment(Pos.CENTER);
         Label priceLabel = new Label("Tokens: " + item.getPrice());
-        priceLabel.getStyleClass().add("store-price-tag");
+        priceLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
         priceRow.getChildren().add(priceLabel);
 
         Button buyBtn = new Button(item.isOwned() ? "Owned" : "Buy");
-        buyBtn.getStyleClass().add(item.isOwned() ? "store-owned-btn" : "store-buy-btn");
+        if (item.isOwned()) {
+            buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
+        } else {
+            buyBtn.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+        }
         buyBtn.setMaxWidth(Double.MAX_VALUE);
 
         if (!item.isOwned()) {
@@ -155,8 +160,8 @@ public class StoreController {
                     user.setTokenBalance(user.getTokenBalance() - item.getPrice());
                     item.setOwned(true);
                     buyBtn.setText("Owned");
-                    buyBtn.getStyleClass().removeAll("store-buy-btn");
-                    buyBtn.getStyleClass().add("store-owned-btn");
+                    buyBtn.getStyleClass().clear();
+                    buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
                     buyBtn.setOnAction(null);
                     storeTokenLabel.setText("Tokens: " + user.getTokenBalance());
 
