@@ -75,7 +75,7 @@ public class SettingsController {
     }
 
     private void updateThemeButton() {
-        btnThemeToggle.setText(darkMode ? "\uD83C\uDF19 Dark Mode" : "☀\uFE0F Light Mode");
+        btnThemeToggle.setText(darkMode ? "Dark mode" : "Light mode");
     }
 
     public boolean isDarkMode() {
@@ -90,7 +90,7 @@ public class SettingsController {
         content.setPadding(new Insets(28));
         content.setStyle("-fx-background-color: #1a1a2e; -fx-background-radius: 12;");
 
-        Label title = new Label("\uD83D\uDD12  Change Password");
+        Label title = new Label("Change password");
         title.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 20px; -fx-font-weight: bold;");
 
         PasswordField oldPwd = new PasswordField();
@@ -182,7 +182,7 @@ public class SettingsController {
         content.setPadding(new Insets(28));
         content.setStyle("-fx-background-color: #1a1a2e; -fx-background-radius: 12;");
 
-        Label title = new Label("⚠\uFE0F  Remove Account");
+        Label title = new Label("Remove account");
         title.setStyle("-fx-text-fill: #ff5252; -fx-font-size: 20px; -fx-font-weight: bold;");
 
         Label msg = new Label(

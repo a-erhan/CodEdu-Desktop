@@ -18,7 +18,7 @@
 
         <!-- Logo -->
         <Label styleClass="login-logo" text="CodEdu"/>
-        <Label styleClass="login-tagline" text="Level Up Your Code"/>
+        <Label styleClass="login-tagline" text="The free, fun, and effective way to learn to code!"/>
 
         <!-- Spacer -->
         <Label prefHeight="16"/>
@@ -40,6 +40,6 @@
         <Label prefHeight="4"/>
 
         <!-- Sign Up link -->
-        <Label styleClass="login-link" text="Don't have an account? Sign Up"/>
+        <Label styleClass="login-link" text="Join over 3,165,792 codders. Don't have an account? Sign Up"/>
     </VBox>
 </StackPane>

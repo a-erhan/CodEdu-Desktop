@@ -43,15 +43,17 @@ public class ProfileController {
     }
 
     private void bindStats() {
-        avatarDisplay.setText("🧑‍💻");
+        String username = user.getUsername() != null ? user.getUsername() : "User";
+        String initial = username.isEmpty() ? "C" : username.substring(0, 1).toUpperCase();
+        avatarDisplay.setText(initial);
         avatarDisplay.setStyle("-fx-font-size: 72px;");
-        usernameDisplay.setText(user.getUsername() != null ? user.getUsername() : "User");
-        badgeDisplay.setText("🏅  Level 1");
+        usernameDisplay.setText(username);
+        badgeDisplay.setText("Level 1");
 
         profileXpBar.setProgress(0);
         profileXpLabel.setText("0 / 1000 XP");
         profileTokenLabel.setText(String.valueOf(user.getTokenBalance()));
-        profileBadgeLabel.setText("🏅");
+        profileBadgeLabel.setText("Level 1");
         profileItemsLabel.setText("0");
 
         noAvatarsLabel.setVisible(true);

@@ -428,8 +428,8 @@ public class LearningPathController {
                 iconCircle.setMaxSize(52, 52);
 
                 if (chapter.isLocked()) {
-                        Label lockLabel = new Label("\uD83D\uDD12");
-                        lockLabel.setStyle("-fx-font-size: 24px;");
+                        Label lockLabel = new Label("Locked");
+                        lockLabel.setStyle("-fx-font-size: 12px;");
                         iconCircle.getChildren().add(lockLabel);
                 } else if (chapter.getIconImage() != null) {
                         Image img = new Image(getClass().getResourceAsStream(chapter.getIconImage()));
@@ -541,12 +541,12 @@ public class LearningPathController {
                 detailDifficulty.getStyleClass().removeAll("diff-beginner", "diff-intermediate", "diff-advanced");
                 detailDifficulty.getStyleClass().add(difficultyClass(chapter.getDifficulty()));
                 detailDescription.setText(chapter.getDescription());
-                detailLessons.setText("\uD83D\uDCD6  " + chapter.getCompletedLessons() + " / "
+                detailLessons.setText(chapter.getCompletedLessons() + " / "
                                 + chapter.getTotalLessons() + " lessons completed");
-                detailXP.setText("\u2B50  " + chapter.getXpReward() + " XP reward");
+                detailXP.setText(chapter.getXpReward() + " XP reward");
 
                 if (chapter.isCompleted()) {
-                        detailAction.setText("✓  Completed");
+                        detailAction.setText("Completed");
                         detailAction.getStyleClass().removeAll("lp-detail-action");
                         detailAction.getStyleClass().add("lp-detail-action-done");
                         detailAction.setOnMouseClicked(e -> {
@@ -555,7 +555,7 @@ public class LearningPathController {
                         });
                 } else {
                         int pct = (int) (chapter.getProgress() * 100);
-                        detailAction.setText(pct > 0 ? "▶  Continue (" + pct + "%)" : "▶  Start Chapter");
+                        detailAction.setText(pct > 0 ? "Continue (" + pct + "%)" : "Start chapter");
                         detailAction.getStyleClass().removeAll("lp-detail-action-done");
                         if (!detailAction.getStyleClass().contains("lp-detail-action")) {
                                 detailAction.getStyleClass().add("lp-detail-action");

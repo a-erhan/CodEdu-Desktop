@@ -21,14 +21,14 @@
 
         <!-- Header -->
         <VBox spacing="4">
-            <Label styleClass="settings-title" text="⚙️  Settings"/>
+            <Label styleClass="settings-title" text="Settings"/>
             <Label styleClass="settings-subtitle" text="Manage your preferences and account"/>
         </VBox>
 
         <!-- Appearance -->
         <VBox styleClass="settings-section" spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="🎨  Appearance"/>
+            <Label styleClass="settings-section-title" text="Appearance"/>
             <Separator styleClass="settings-separator"/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <Label styleClass="settings-label" text="Theme"/>
@@ -40,7 +40,7 @@
         <!-- Notifications -->
         <VBox styleClass="settings-section" spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="🔔  Notifications"/>
+            <Label styleClass="settings-section-title" text="Notifications"/>
             <Separator styleClass="settings-separator"/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <Label styleClass="settings-label" text="Push Notifications"/>
@@ -62,7 +62,7 @@
         <!-- Language -->
         <VBox styleClass="settings-section" spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="🌍  Language"/>
+            <Label styleClass="settings-section-title" text="Language"/>
             <Separator styleClass="settings-separator"/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <Label styleClass="settings-label" text="Application Language"/>
@@ -74,7 +74,7 @@
         <!-- Account -->
         <VBox styleClass="settings-section" spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="🔒  Account"/>
+            <Label styleClass="settings-section-title" text="Account"/>
             <Separator styleClass="settings-separator"/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
@@ -97,7 +97,7 @@
         <!-- Danger Zone -->
         <VBox styleClass="settings-danger-section" spacing="12">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-danger-title" text="⚠️  Danger Zone"/>
+            <Label styleClass="settings-danger-title" text="Danger zone"/>
             <Separator styleClass="settings-separator-danger"/>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="2">
@@ -112,7 +112,7 @@
         <!-- About -->
         <VBox styleClass="settings-section" spacing="8">
             <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
-            <Label styleClass="settings-section-title" text="ℹ️  About"/>
+            <Label styleClass="settings-section-title" text="About"/>
             <Separator styleClass="settings-separator"/>
             <Label styleClass="settings-label" text="CodEdu — Gamified Coding Education"/>
             <Label styleClass="settings-hint" text="Version 1.0.0-alpha"/>

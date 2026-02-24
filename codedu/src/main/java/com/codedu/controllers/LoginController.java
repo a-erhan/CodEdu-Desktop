@@ -58,6 +58,8 @@ public class LoginController {
             Scene scene = new Scene(root, 1200, 750);
             scene.getStylesheets().add(
                     getClass().getResource("/com/codedu/views/application.css").toExternalForm());
+            scene.getStylesheets().add(
+                    getClass().getResource("/com/codedu/views/application-light.css").toExternalForm());
             stage.setScene(scene);
         } catch (Exception e) {
             errorLabel.setText("Failed to load application.");

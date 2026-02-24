@@ -28,7 +28,9 @@ public class Main extends Application {
         Parent root = loader.load();
 
         Scene scene = new Scene(root, 1200, 750);
+        // Base dark theme + Coddy-style light overrides for a bright, website-like UI
         scene.getStylesheets().add(getClass().getResource("/com/codedu/views/application.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/com/codedu/views/application-light.css").toExternalForm());
 
         primaryStage.setTitle("CodEdu — Gamified Coding Education");
         primaryStage.setScene(scene);

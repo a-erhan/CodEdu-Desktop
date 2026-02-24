@@ -81,7 +81,7 @@ public class ChapterViewController {
             headerTitle.setGraphic(iv);
             headerTitle.setGraphicTextGap(10);
         }
-        headerXP.setText("⭐ " + chapter.getXpReward() + " XP");
+        headerXP.setText("XP: " + chapter.getXpReward());
 
         ChapterContent content = chapter.getContent();
         if (content != null) {
@@ -189,7 +189,7 @@ public class ChapterViewController {
         quizContainer.getChildren().clear();
 
         // Section header: MCQ
-        Label mcqTitle = new Label("📝  Multiple Choice");
+        Label mcqTitle = new Label("Multiple choice");
         mcqTitle.getStyleClass().add("cv-section-title");
         quizContainer.getChildren().add(mcqTitle);
 
@@ -198,7 +198,7 @@ public class ChapterViewController {
         }
 
         // Section header: Fill in the blank
-        Label fillTitle = new Label("✏️  Fill in the Blank");
+        Label fillTitle = new Label("Fill in the blank");
         fillTitle.getStyleClass().add("cv-section-title");
         VBox.setMargin(fillTitle, new Insets(20, 0, 0, 0));
         quizContainer.getChildren().add(fillTitle);
@@ -264,14 +264,14 @@ public class ChapterViewController {
 
                 if (idx == correctIdx) {
                     optBtn.getStyleClass().add("cv-mcq-correct");
-                    feedbackLabel.setText("✅  Correct!");
+                    feedbackLabel.setText("Correct!");
                     feedbackLabel.getStyleClass().add("cv-feedback-correct");
                 } else {
                     optBtn.getStyleClass().add("cv-mcq-wrong");
                     // Highlight the correct one
                     Button correctBtn = (Button) optionsBox.getChildren().get(correctIdx);
                     correctBtn.getStyleClass().add("cv-mcq-correct");
-                    feedbackLabel.setText("❌  Wrong! The answer is " + letters[correctIdx] + ".");
+                    feedbackLabel.setText("Wrong. The answer is " + letters[correctIdx] + ".");
                     feedbackLabel.getStyleClass().add("cv-feedback-wrong");
                 }
                 feedbackLabel.setVisible(true);
@@ -322,7 +322,7 @@ public class ChapterViewController {
         codeLabel.setWrapText(true);
         codeBox.getChildren().add(codeLabel);
 
-        Label hintLabel = new Label("💡 Hint: " + (q.getHint() != null ? q.getHint() : ""));
+        Label hintLabel = new Label("Hint: " + (q.getHint() != null ? q.getHint() : ""));
         hintLabel.getStyleClass().add("cv-fill-hint");
         hintLabel.setWrapText(true);
 
@@ -342,13 +342,13 @@ public class ChapterViewController {
         checkBtn.setOnAction(e -> {
             String userAnswer = inputField.getText().trim();
             if (userAnswer.equalsIgnoreCase(q.getSolution())) {
-                resultLabel.setText("✅  Correct!");
+                resultLabel.setText("Correct!");
                 resultLabel.getStyleClass().removeAll("cv-feedback-wrong");
                 resultLabel.getStyleClass().add("cv-feedback-correct");
                 inputField.setDisable(true);
                 checkBtn.setDisable(true);
             } else {
-                resultLabel.setText("❌  Try again! Expected: " + q.getSolution());
+                resultLabel.setText("Try again. Expected: " + q.getSolution());
                 resultLabel.getStyleClass().removeAll("cv-feedback-correct");
                 resultLabel.getStyleClass().add("cv-feedback-wrong");
             }
@@ -375,7 +375,7 @@ public class ChapterViewController {
         for (int i = 0; i < codeQuestions.size(); i++) {
             Question task = codeQuestions.get(i);
 
-            Label titleLabel = new Label("🚀  Programming Task " + (i + 1));
+            Label titleLabel = new Label("Programming task " + (i + 1));
             titleLabel.getStyleClass().add("cv-section-title");
 
             // Split content into description and starter code at the first code block
@@ -424,14 +424,14 @@ public class ChapterViewController {
             expectedBox.getChildren().add(expectedLabel);
 
             // Submit button (placeholder)
-            Button runBtn = new Button("▶  Run Code");
+            Button runBtn = new Button("Run code");
             runBtn.getStyleClass().add("cv-run-btn");
 
             Label runResult = new Label();
             runResult.getStyleClass().add("cv-run-result");
 
             runBtn.setOnAction(e -> {
-                runResult.setText("✅  Code submitted successfully! (Evaluation is simulated)");
+                runResult.setText("Code submitted successfully. (Evaluation is simulated)");
                 runResult.getStyleClass().add("cv-feedback-correct");
             });
 

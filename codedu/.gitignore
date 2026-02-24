@@ -41,8 +41,5 @@ logs/
 temp/
 tmp/
 
-**/src/main/resources/application.properties
-!**/src/main/resources/application.properties.example
-
 # --- Project specific ---
 skills-lock.json

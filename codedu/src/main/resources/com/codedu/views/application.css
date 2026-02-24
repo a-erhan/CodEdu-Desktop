@@ -1344,3 +1344,129 @@
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   CODDY-STYLE LANDING HERO
+   Used by the main welcome screen to resemble coddy.tech
+   ══════════════════════════════════════════════════════════════ */
+
+.hero-tagline {
+    -fx-text-fill: #00e5ff;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 2;
+    -fx-text-alignment: center;
+    -fx-text-transform: uppercase;
+}
+
+.hero-main-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 34px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 6, 0.16, 0, 0);
+}
+
+.hero-subtitle {
+    -fx-text-fill: #8888aa;
+    -fx-font-size: 14px;
+    -fx-text-alignment: center;
+    -fx-line-spacing: 4;
+}
+
+.hero-metric {
+    -fx-text-fill: #00e5ff;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-color: #00e5ff10;
+    -fx-background-radius: 14;
+    -fx-border-color: #00e5ff33;
+    -fx-border-radius: 14;
+}
+
+.hero-cta-primary {
+    -fx-text-fill: #0f0f1a;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 26;
+    -fx-background-color: linear-gradient(to right, #00e5ff, #00ff88);
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00e5ff, 4, 0.12, 0, 0);
+}
+
+.hero-cta-primary:hover {
+    -fx-effect: dropshadow(gaussian, #00ff88, 6, 0.18, 0, 0);
+}
+
+.hero-cta-secondary {
+    -fx-text-fill: #c0c0d8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 24;
+    -fx-background-color: transparent;
+    -fx-background-radius: 20;
+    -fx-border-color: #333355;
+    -fx-border-radius: 20;
+    -fx-cursor: hand;
+}
+
+.hero-cta-secondary:hover {
+    -fx-border-color: #00e5ff55;
+    -fx-text-fill: #00e5ff;
+}
+
+.hero-language-pill {
+    -fx-text-fill: #c0c0d8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 4 12;
+    -fx-background-color: #252548;
+    -fx-background-radius: 999;
+    -fx-border-color: #333355;
+    -fx-border-radius: 999;
+}
+
+.hero-language-pill-featured {
+    -fx-text-fill: #00ff88;
+    -fx-background-color: #00ff8818;
+    -fx-border-color: #00ff8844;
+}
+
+.hero-section-row {
+    -fx-padding: 24 0 0 0;
+}
+
+.hero-section-card {
+    -fx-background-color: #1a1a2e;
+    -fx-background-radius: 18;
+    -fx-border-color: #2a2a4a;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, #00000055, 6, 0, 0, 2);
+}
+
+.hero-section-title {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.hero-section-body {
+    -fx-text-fill: #b0b0c8;
+    -fx-font-size: 12px;
+    -fx-line-spacing: 3;
+}
+
+.hero-section-badge {
+    -fx-text-fill: #ffa726;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 10;
+    -fx-background-color: #ffa72618;
+    -fx-background-radius: 10;
+    -fx-border-color: #ffa72644;
+    -fx-border-radius: 10;
+}

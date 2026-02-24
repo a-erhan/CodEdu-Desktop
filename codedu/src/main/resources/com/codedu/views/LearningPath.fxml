@@ -20,7 +20,7 @@
             <padding><Insets top="20" right="28" bottom="16" left="28"/></padding>
 
             <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label styleClass="lp-title" text="📚  Learning Path"/>
+                <Label styleClass="lp-title" text="Learning path"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="chapterCountLabel" styleClass="lp-count" text="0 Chapters"/>
             </HBox>
