@@ -10,33 +10,33 @@
 
 <StackPane xmlns="http://javafx.com/javafx/25"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.codedu.controllers.LoginController">
+           fx:controller="com.codedu.controllers.RegisterController">
 
-    <VBox alignment="CENTER" spacing="12" maxWidth="380">
+    <VBox alignment="CENTER" spacing="12" maxWidth="420">
         <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
-        <!-- Logo -->
-        <Label fx:id="titleLabel" text="CodEdu"/>
-        <Label text="The free, fun, and effective way to learn to code!"/>
+        <!-- Title -->
+        <Label fx:id="titleLabel" text="Create your CodEdu account"/>
 
-        <!-- Spacer -->
-        <Label prefHeight="16"/>
-
-        <!-- Email field -->
+        <!-- Email -->
         <TextField fx:id="emailField" promptText="Email"/>
 
-        <!-- Password field -->
+        <!-- Password -->
         <PasswordField fx:id="passwordField" promptText="Password"/>
+
+        <!-- Confirm Password -->
+        <PasswordField fx:id="confirmPasswordField" promptText="Confirm password"/>
 
         <!-- Error label -->
         <Label fx:id="errorLabel" text="" wrapText="true"/>
 
-        <!-- Login button -->
-        <Button fx:id="loginButton" text="Login" maxWidth="Infinity"
-                onAction="#handleLogin"/>
+        <!-- Actions -->
+        <Button fx:id="registerButton" text="Create account" maxWidth="Infinity"
+                onAction="#handleRegister"/>
 
-        <!-- Sign Up -->
-        <Button text="Create a new account" maxWidth="Infinity"
-                onAction="#handleOpenRegister"/>
+        <Button text="Back to login" maxWidth="Infinity"
+                onAction="#handleBackToLogin"/>
+
     </VBox>
 </StackPane>
+

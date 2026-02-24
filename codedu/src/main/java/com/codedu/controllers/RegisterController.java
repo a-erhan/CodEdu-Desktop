@@ -16,50 +16,57 @@ import javafx.stage.Stage;
 import org.springframework.stereotype.Controller;
 
 /**
- * Controller for the Login screen.
- * Validates credentials and transitions to MainShell on success.
+ * Simple registration screen that creates a User and opens the main shell.
+ * In a real app, this would persist the user via a service/repository.
  */
 @Controller
-public class LoginController {
+public class RegisterController {
 
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private TextField usernameField;
     @FXML
     private TextField emailField;
     @FXML
     private PasswordField passwordField;
     @FXML
+    private PasswordField confirmPasswordField;
+    @FXML
     private Label errorLabel;
     @FXML
-    private Label titleLabel;
-    @FXML
-    private Button loginButton;
+    private Button registerButton;
 
     @FXML
     public void initialize() {
-        // Apply Nord typography to the login title
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
-        // Make login button a primary, rounded CTA
-        if (loginButton != null) {
-            loginButton.getStyleClass().addAll(Styles.ACCENT, Styles.LARGE, Styles.ROUNDED);
+        if (registerButton != null) {
+            registerButton.getStyleClass().addAll(Styles.ACCENT, Styles.LARGE, Styles.ROUNDED);
         }
     }
 
     @FXML
-    private void handleLogin() {
+    private void handleRegister() {
+        String username = usernameField.getText().trim();
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
+        String confirm = confirmPasswordField.getText().trim();
 
-        // Basic validation
-        if (email.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("Please fill in both email and password.");
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+            errorLabel.setText("Please fill in all fields.");
+            return;
+        }
+        if (!password.equals(confirm)) {
+            errorLabel.setText("Passwords do not match.");
             return;
         }
 
-        // Create user and transition to main shell
+        // Mock user creation (no persistence yet)
         User user = new User();
+        user.setUsername(username);
         user.setEmail(email);
-        user.setUsername(email.contains("@") ? email.substring(0, email.indexOf('@')) : email);
         user.setPassword(password);
         user.setRole(Role.STUDENT);
         user.setTokenBalance(500);
@@ -70,32 +77,32 @@ public class LoginController {
                     getClass().getResource("/com/codedu/views/MainShell.fxml"));
             Parent root = loader.load();
 
-            // Pass user to main shell controller
             MainShellController controller = loader.getController();
             controller.setUser(user);
 
-            Stage stage = (Stage) emailField.getScene().getWindow();
+            Stage stage = (Stage) usernameField.getScene().getWindow();
             Scene scene = new Scene(root, 1200, 750);
             stage.setScene(scene);
         } catch (Exception e) {
-            errorLabel.setText("Failed to load application.");
+            errorLabel.setText("Failed to create account.");
             e.printStackTrace();
         }
     }
 
     @FXML
-    private void handleOpenRegister() {
+    private void handleBackToLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/Register.fxml"));
+                    getClass().getResource("/com/codedu/views/Login.fxml"));
             Parent root = loader.load();
 
-            Stage stage = (Stage) emailField.getScene().getWindow();
+            Stage stage = (Stage) usernameField.getScene().getWindow();
             Scene scene = new Scene(root, 1200, 750);
             stage.setScene(scene);
         } catch (Exception e) {
-            errorLabel.setText("Failed to open registration.");
+            errorLabel.setText("Failed to go back to login.");
             e.printStackTrace();
         }
     }
 }
+

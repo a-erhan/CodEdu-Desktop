@@ -21,6 +21,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -40,13 +42,13 @@ public class MainShellController {
     @FXML
     private Label badgeLabel;
     @FXML
-    private Label usernameLabel;
-    @FXML
     private Label tokenLabel;
     @FXML
     private ProgressBar xpProgressBar;
     @FXML
     private Label xpLabel;
+    @FXML
+    private Label welcomeNavLabel;
 
     // --- Sidebar ---
     @FXML
@@ -65,6 +67,8 @@ public class MainShellController {
     private Button btnForum;
     @FXML
     private Button btnStore;
+    @FXML
+    private Button btnMatchmaking;
     @FXML
     private Button btnAskAI;
     @FXML
@@ -97,7 +101,6 @@ public class MainShellController {
         updateHeader();
 
         // Apply Nord typography and container styling
-        usernameLabel.getStyleClass().add(Styles.TEXT_BOLD);
         if (taglineLabel != null) {
             taglineLabel.getStyleClass().add(Styles.TITLE_3);
         }
@@ -106,12 +109,16 @@ public class MainShellController {
             sidebar.setFillWidth(true);
             sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
         }
+        if (welcomeNavLabel != null) {
+            welcomeNavLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+        }
 
         // Apply common Nord nav-button styling
         styleNavButton(btnLearningPath);
         styleNavButton(btnDailyChallenge);
         styleNavButton(btnLeaderboard);
         styleNavButton(btnForum);
+        styleNavButton(btnMatchmaking);
         styleNavButton(btnStore);
         styleNavButton(btnAskAI);
         styleNavButton(btnSettings);
@@ -144,6 +151,13 @@ public class MainShellController {
             showForum();
         });
 
+        // Matchmaking
+        setupNavButtonWithHover(btnMatchmaking);
+        btnMatchmaking.setOnAction(e -> {
+            setActiveButton(btnMatchmaking);
+            showMatchmaking();
+        });
+
         // Store — loads full FXML module
         setupNavButtonWithHover(btnStore);
         btnStore.setOnAction(e -> {
@@ -151,11 +165,11 @@ public class MainShellController {
             loadStore();
         });
 
-        // Profile
+        // Ask AI
         setupNavButtonWithHover(btnAskAI);
         btnAskAI.setOnAction(e -> {
             setActiveButton(btnAskAI);
-            loadProfile();
+            showAskAI();
         });
 
         // Settings — loads full FXML module
@@ -173,8 +187,12 @@ public class MainShellController {
     private void updateHeader() {
         String username = user.getUsername() != null ? user.getUsername() : "User";
         badgeLabel.setText("");
-        usernameLabel.setText(username);
         tokenLabel.setText("Tokens: " + user.getTokenBalance());
+
+        if (welcomeNavLabel != null) {
+            welcomeNavLabel.setText("Welcome @" + username);
+            welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
+        }
 
         int level = gameState != null ? gameState.getLevel() : 1;
         int xp = gameState != null ? gameState.getXp() : 0;
@@ -567,11 +585,11 @@ public class MainShellController {
         root.setAlignment(Pos.TOP_CENTER);
         root.setMaxWidth(900);
 
-        Label title = new Label("Goals");
+        Label title = new Label("Achievements");
         title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
-                "Track your medium‑term learning goals. Each card represents one goal.");
+                "Celebrate your progress with medium‑term learning achievements.");
         subtitle.setWrapText(true);
 
         VBox list = new VBox(16);
@@ -613,78 +631,174 @@ public class MainShellController {
         root.setAlignment(Pos.TOP_CENTER);
         root.setMaxWidth(900);
 
-        Label title = new Label("Leaderboard");
+        Label title = new Label("Forum");
         title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
-                "See how you rank against other learners this week.");
+                "Ask questions, share tips, and read what other learners are working on.");
         subtitle.setWrapText(true);
 
-        java.util.List<Competitor> competitors = weeklyLeaderboard.getCompetitors();
-        int myRank = weeklyLeaderboard.getUserRank();
-        int total = competitors.size();
-        int myIndex = Math.max(0, Math.min(total - 1, myRank - 1));
-        Competitor me = competitors.get(myIndex);
+        VBox list = new VBox(16);
+        list.setFillWidth(true);
 
-        // Highlight current user's position in a larger card
-        VBox myCard = new VBox(6);
-        myCard.setAlignment(Pos.TOP_LEFT);
-        myCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        myCard.getStyleClass().addAll(
-                Styles.BORDERED,
-                Styles.ROUNDED,
-                Styles.BG_ACCENT_SUBTLE,
-                Styles.ELEVATED_1
-        );
+        for (ForumPost post : forumThreads) {
+            VBox card = new VBox(6);
+            card.setAlignment(Pos.TOP_LEFT);
+            card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+            card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-        String myName = me.getUser() != null && me.getUser().getUsername() != null
-                ? me.getUser().getUsername()
-                : "You";
+            Label postTitle = new Label(post.getTitle());
+            postTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-        Label myTitle = new Label("Your position");
-        myTitle.getStyleClass().add(Styles.TEXT_BOLD);
+            String authorName = (post.getAuthor() != null && post.getAuthor().getUsername() != null)
+                    ? post.getAuthor().getUsername()
+                    : "Anonymous";
+            Label meta = new Label("Posted by " + authorName);
+            meta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
-        Label myRankLabel = new Label("#" + myRank + " of " + total + " · " + myName);
-        myRankLabel.getStyleClass().add(Styles.TITLE_3);
+            Label content = new Label(post.getContent());
+            content.setWrapText(true);
 
-        Label myScore = new Label(me.getRankingPoint() + " XP · " + String.format("%.0f", me.getWinRate()) + "% wins");
-        myScore.getStyleClass().add(Styles.TEXT_SUBTLE);
-
-        myCard.getChildren().addAll(myTitle, myRankLabel, myScore);
-
-        // Full leaderboard list
-        VBox board = new VBox(8);
-        board.setAlignment(Pos.TOP_LEFT);
-
-        for (int i = 0; i < competitors.size(); i++) {
-            Competitor c = competitors.get(i);
-
-            HBox line = new HBox(12);
-            line.setAlignment(Pos.CENTER_LEFT);
-            line.setPadding(new javafx.geometry.Insets(8, 10, 8, 10));
-
-            if (i == myIndex) {
-                line.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_ACCENT_SUBTLE);
-            } else {
-                line.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-            }
-
-            Label pos = new Label(String.valueOf(i + 1));
-            pos.getStyleClass().add(Styles.TEXT_BOLD);
-
-            String nameText = c.getUser() != null && c.getUser().getUsername() != null
-                    ? c.getUser().getUsername()
-                    : "Player " + (i + 1);
-            Label name = new Label(nameText);
-
-            Label score = new Label(c.getRankingPoint() + " XP · " + String.format("%.0f", c.getWinRate()) + "% wins");
-            score.getStyleClass().add(Styles.TEXT_SUBTLE);
-
-            line.getChildren().addAll(pos, name, score);
-            board.getChildren().add(line);
+            card.getChildren().addAll(postTitle, meta, content);
+            list.getChildren().add(card);
         }
 
-        root.getChildren().addAll(title, subtitle, myCard, board);
+        root.getChildren().addAll(title, subtitle, list);
+        contentArea.getChildren().setAll(root);
+    }
+
+    private void showMatchmaking() {
+        VBox root = new VBox(16);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setMaxWidth(1100);
+
+        // Header row with title on the left and time on the right
+        HBox headerRow = new HBox(8);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label title = new Label("Matchmaking");
+        title.getStyleClass().add(Styles.TITLE_3);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label timeLabel = new Label("Time: 00:00");
+        timeLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+        headerRow.getChildren().addAll(title, spacer, timeLabel);
+
+        Label subtitle = new Label("Solve the coding challenge faster and more accurately than your opponent to win!");
+        subtitle.setWrapText(true);
+
+        // Main content row: left = challenge + editor, right = score panel
+        HBox mainRow = new HBox(16);
+        mainRow.setAlignment(Pos.TOP_LEFT);
+
+        VBox leftColumn = new VBox(12);
+        leftColumn.setPrefWidth(750);
+
+        // Status card
+        VBox statusCard = new VBox(6);
+        statusCard.setAlignment(Pos.TOP_LEFT);
+        statusCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
+        statusCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        HBox statusRow = new HBox(6);
+        Label statusLabel = new Label("Status:");
+        statusLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        Label statusValue = new Label("Waiting for opponent...");
+        statusValue.getStyleClass().add(Styles.TEXT_SUBTLE);
+        statusRow.getChildren().addAll(statusLabel, statusValue);
+
+        statusCard.getChildren().add(statusRow);
+
+        // Challenge card
+        VBox challengeCard = new VBox(6);
+        challengeCard.setAlignment(Pos.TOP_LEFT);
+        challengeCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
+        challengeCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        Label challengeHeader = new Label("Challenge");
+        challengeHeader.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Label problemTitle = new Label("Problem title");
+        problemTitle.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+        Label problemDescription = new Label("Problem description will appear here when a match starts.");
+        problemDescription.setWrapText(true);
+
+        challengeCard.getChildren().addAll(challengeHeader, problemTitle, problemDescription);
+
+        // Code editor + actions + output
+        VBox editorCard = new VBox(8);
+        editorCard.setAlignment(Pos.TOP_LEFT);
+        editorCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
+        editorCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        Label editorLabel = new Label("Code editor");
+        editorLabel.getStyleClass().add(Styles.TEXT_BOLD);
+
+        TextArea codeArea = new TextArea();
+        codeArea.setPromptText("Write your solution here...");
+        codeArea.setPrefRowCount(10);
+
+        HBox actionRow = new HBox(8);
+        Button runButton = new Button("Run code");
+        runButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
+        runButton.setDisable(true); // prototype
+
+        Button submitButton = new Button("Submit");
+        submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+        submitButton.setDisable(true); // prototype
+        actionRow.getChildren().addAll(runButton, submitButton);
+
+        Label outputLabel = new Label("Output");
+        outputLabel.getStyleClass().add(Styles.TEXT_BOLD);
+
+        TextArea outputArea = new TextArea();
+        outputArea.setEditable(false);
+        outputArea.setPrefRowCount(4);
+
+        editorCard.getChildren().addAll(editorLabel, codeArea, actionRow, outputLabel, outputArea);
+
+        leftColumn.getChildren().addAll(statusCard, challengeCard, editorCard);
+
+        // Score / attempts side panel
+        VBox scoreCard = new VBox(10);
+        scoreCard.setAlignment(Pos.TOP_LEFT);
+        scoreCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+        scoreCard.setPrefWidth(220);
+        scoreCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        Label scoreTitle = new Label("Score");
+        scoreTitle.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Label youScore = new Label("You: 0");
+        Label opponentScore = new Label("Opponent: 0");
+
+        Label attemptsTitle = new Label("Attempts");
+        attemptsTitle.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Label youAttempts = new Label("You: 0");
+        Label opponentAttempts = new Label("Opponent: 0");
+
+        youScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        opponentScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        youAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+        opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+        scoreCard.getChildren().addAll(
+                scoreTitle,
+                youScore,
+                opponentScore,
+                attemptsTitle,
+                youAttempts,
+                opponentAttempts
+        );
+
+        mainRow.getChildren().addAll(leftColumn, scoreCard);
+
+        root.getChildren().addAll(headerRow, subtitle, mainRow);
         contentArea.getChildren().setAll(root);
     }
 
@@ -693,28 +807,27 @@ public class MainShellController {
         root.setAlignment(Pos.TOP_CENTER);
         root.setMaxWidth(800);
 
-        Label title = new Label("Ask the tutor");
-        title.getStyleClass().add("section-title");
+        Label title = new Label("Ask AI tutor");
+        title.getStyleClass().add(Styles.TITLE_3);
 
         Label subtitle = new Label(
                 "Type a question about your code or a concept you are learning. In a full version, an AI tutor would answer here.");
-        subtitle.getStyleClass().add("section-description");
         subtitle.setWrapText(true);
 
         VBox card = new VBox(12);
-        card.getStyleClass().add("hero-section-card");
+        card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         card.setAlignment(Pos.TOP_LEFT);
         card.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
 
         Label promptLabel = new Label("Your question");
-        promptLabel.getStyleClass().add("hero-section-title");
+        promptLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
         TextArea area = new TextArea();
         area.setPromptText("For example: \"Why am I getting an index out of bounds error in this loop?\"");
         area.setPrefRowCount(5);
 
         Label note = new Label("Responses are not yet wired up in this prototype, but this is where explanations would appear.");
-        note.getStyleClass().add("hero-section-body");
+        note.getStyleClass().add(Styles.TEXT_SUBTLE);
         note.setWrapText(true);
 
         card.getChildren().addAll(promptLabel, area, note);
