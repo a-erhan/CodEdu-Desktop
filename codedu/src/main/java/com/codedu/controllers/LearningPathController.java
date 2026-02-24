@@ -429,7 +429,6 @@ public class LearningPathController {
 
                 if (chapter.isLocked()) {
                         Label lockLabel = new Label("Locked");
-                        lockLabel.setStyle("-fx-font-size: 12px;");
                         iconCircle.getChildren().add(lockLabel);
                 } else if (chapter.getIconImage() != null) {
                         Image img = new Image(getClass().getResourceAsStream(chapter.getIconImage()));
@@ -441,7 +440,6 @@ public class LearningPathController {
                         iconCircle.getChildren().add(iv);
                 } else {
                         Label iconLabel = new Label(chapter.getIconEmoji());
-                        iconLabel.setStyle("-fx-font-size: 24px;");
                         iconCircle.getChildren().add(iconLabel);
                 }
 

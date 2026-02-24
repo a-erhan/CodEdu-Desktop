@@ -40,7 +40,7 @@ public class SettingsController {
     private Button btnRemoveAccount;
 
     private User user;
-    private boolean darkMode = true;
+    private boolean darkMode = false;
     private Runnable themeToggleCallback;
 
     public void setUserModel(User user) {
@@ -88,10 +88,8 @@ public class SettingsController {
         VBox content = new VBox(14);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(28));
-        content.setStyle("-fx-background-color: #1a1a2e; -fx-background-radius: 12;");
 
         Label title = new Label("Change password");
-        title.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 20px; -fx-font-weight: bold;");
 
         PasswordField oldPwd = new PasswordField();
         oldPwd.setPromptText("Current Password");
@@ -106,19 +104,14 @@ public class SettingsController {
         styleTextField(confirmPwd);
 
         Label feedback = new Label();
-        feedback.setStyle("-fx-text-fill: #ff5252; -fx-font-size: 12px;");
 
         HBox btnRow = new HBox(12);
         btnRow.setAlignment(Pos.CENTER);
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle(
-                "-fx-background-color: #2a2a4a; -fx-text-fill: #c0c0d8; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button saveBtn = new Button("Save Password");
-        saveBtn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #00e5ff, #00ff88); -fx-text-fill: #0f0f1a; -fx-font-weight: bold; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         saveBtn.setOnAction(e -> {
             if (newPwd.getText().isEmpty() || confirmPwd.getText().isEmpty()) {
                 feedback.setText("Please fill in all fields.");
@@ -127,7 +120,6 @@ public class SettingsController {
             } else if (newPwd.getText().length() < 6) {
                 feedback.setText("Password must be at least 6 characters.");
             } else {
-                feedback.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 12px;");
                 feedback.setText("✓ Password changed successfully!");
                 saveBtn.setDisable(true);
             }
@@ -146,25 +138,18 @@ public class SettingsController {
         VBox content = new VBox(16);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(28));
-        content.setStyle("-fx-background-color: #1a1a2e; -fx-background-radius: 12;");
 
         Label title = new Label("Log Out?");
-        title.setStyle("-fx-text-fill: #e0e0e0; -fx-font-size: 20px; -fx-font-weight: bold;");
 
         Label msg = new Label("Are you sure you want to log out?");
-        msg.setStyle("-fx-text-fill: #8888aa; -fx-font-size: 14px;");
 
         HBox btnRow = new HBox(12);
         btnRow.setAlignment(Pos.CENTER);
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle(
-                "-fx-background-color: #2a2a4a; -fx-text-fill: #c0c0d8; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button confirmBtn = new Button("Log Out");
-        confirmBtn.setStyle(
-                "-fx-background-color: #ffa726; -fx-text-fill: #0f0f1a; -fx-font-weight: bold; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         confirmBtn.setOnAction(e -> dialog.close());
 
         btnRow.getChildren().addAll(cancelBtn, confirmBtn);
@@ -180,27 +165,20 @@ public class SettingsController {
         VBox content = new VBox(16);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(28));
-        content.setStyle("-fx-background-color: #1a1a2e; -fx-background-radius: 12;");
 
         Label title = new Label("Remove account");
-        title.setStyle("-fx-text-fill: #ff5252; -fx-font-size: 20px; -fx-font-weight: bold;");
 
         Label msg = new Label(
                 "This action is permanent and cannot be undone.\nAll your progress, tokens, and purchases will be lost.");
-        msg.setStyle("-fx-text-fill: #ff8888; -fx-font-size: 13px; -fx-text-alignment: center;");
         msg.setWrapText(true);
 
         HBox btnRow = new HBox(12);
         btnRow.setAlignment(Pos.CENTER);
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle(
-                "-fx-background-color: #2a2a4a; -fx-text-fill: #c0c0d8; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> dialog.close());
 
         Button deleteBtn = new Button("Delete My Account");
-        deleteBtn.setStyle(
-                "-fx-background-color: #ff5252; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 24; -fx-background-radius: 8; -fx-cursor: hand;");
         deleteBtn.setOnAction(e -> dialog.close());
 
         btnRow.getChildren().addAll(cancelBtn, deleteBtn);
@@ -222,10 +200,6 @@ public class SettingsController {
     }
 
     private void styleTextField(TextField field) {
-        field.setStyle("-fx-background-color: #252548; -fx-text-fill: #e0e0e0; " +
-                "-fx-prompt-text-fill: #666688; -fx-padding: 10 14; " +
-                "-fx-background-radius: 8; -fx-border-color: #333355; " +
-                "-fx-border-radius: 8; -fx-font-size: 13px;");
         field.setMaxWidth(280);
     }
 }

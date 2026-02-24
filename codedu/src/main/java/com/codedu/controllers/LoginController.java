@@ -1,6 +1,7 @@
 package com.codedu.controllers;
 
 import com.codedu.models.User;
+import com.codedu.models.UserInventory;
 import com.codedu.models.Role;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -44,6 +45,7 @@ public class LoginController {
         user.setPassword(password);
         user.setRole(Role.STUDENT);
         user.setTokenBalance(500);
+        user.setInventory(UserInventory.builder().build());
 
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -56,10 +58,6 @@ public class LoginController {
 
             Stage stage = (Stage) emailField.getScene().getWindow();
             Scene scene = new Scene(root, 1200, 750);
-            scene.getStylesheets().add(
-                    getClass().getResource("/com/codedu/views/application.css").toExternalForm());
-            scene.getStylesheets().add(
-                    getClass().getResource("/com/codedu/views/application-light.css").toExternalForm());
             stage.setScene(scene);
         } catch (Exception e) {
             errorLabel.setText("Failed to load application.");

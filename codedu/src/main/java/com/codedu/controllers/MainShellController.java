@@ -1,8 +1,16 @@
 package com.codedu.controllers;
 
+import atlantafx.base.theme.NordDark;
+import atlantafx.base.theme.NordLight;
 import com.codedu.models.Chapter;
+import com.codedu.models.Competitor;
+import com.codedu.models.DailyChallenge;
+import com.codedu.models.ForumPost;
+import com.codedu.models.LeaderBoard;
 import com.codedu.models.User;
+import com.codedu.models.UserGameState;
 import javafx.animation.ScaleTransition;
+import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -62,6 +70,10 @@ public class MainShellController {
     private StackPane contentArea;
 
     private User user = new User();
+    private UserGameState gameState;
+    private DailyChallenge todayChallenge;
+    private LeaderBoard weeklyLeaderboard;
+    private java.util.List<ForumPost> forumThreads = new java.util.ArrayList<>();
     private Button activeButton;
 
     /**
@@ -69,12 +81,14 @@ public class MainShellController {
      */
     public void setUser(User user) {
         this.user = user;
+        initDemoModelsIfNeeded();
         updateHeader();
     }
 
     @FXML
     public void initialize() {
         // Bind header to user model
+        initDemoModelsIfNeeded();
         updateHeader();
 
         // Setup Learning Path button — loads full FXML module
@@ -139,11 +153,81 @@ public class MainShellController {
     }
 
     private void updateHeader() {
+        String username = user.getUsername() != null ? user.getUsername() : "User";
         badgeLabel.setText("");
-        usernameLabel.setText(user.getUsername() != null ? user.getUsername() : "User");
+        usernameLabel.setText(username);
         tokenLabel.setText("Tokens: " + user.getTokenBalance());
-        xpProgressBar.setProgress(0);
-        xpLabel.setText("XP: 0 / 1000");
+
+        int level = gameState != null ? gameState.getLevel() : 1;
+        int xp = gameState != null ? gameState.getXp() : 0;
+        int levelCap = Math.max(1, level * 1000);
+        double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
+        xpProgressBar.setProgress(progress);
+        xpLabel.setText("XP: " + xp + " / " + levelCap);
+    }
+
+    private void initDemoModelsIfNeeded() {
+        if (gameState == null) {
+            gameState = UserGameState.builder()
+                    .user(user)
+                    .level(1)
+                    .xp(0)
+                    .heartCount(3)
+                    .build();
+        }
+
+        if (todayChallenge == null) {
+            todayChallenge = DailyChallenge.builder()
+                    .name("Loops & counters")
+                    .description("Write a function that prints the numbers from 1 to 100 and counts how many are even.")
+                    .xpRewards(50)
+                    .tokenRewards(25)
+                    .build();
+        }
+
+        if (weeklyLeaderboard == null) {
+            Competitor c1 = Competitor.builder().rankingPoint(2840).totalWins(20).totalLosses(5).totalMatches(25).build();
+            Competitor c2 = Competitor.builder().rankingPoint(2650).totalWins(18).totalLosses(6).totalMatches(24).build();
+            Competitor c3 = Competitor.builder().rankingPoint(2420).totalWins(15).totalLosses(7).totalMatches(22).build();
+            Competitor c4 = Competitor.builder().rankingPoint(2180).totalWins(12).totalLosses(8).totalMatches(20).build();
+            Competitor c5 = Competitor.builder().rankingPoint(1950).totalWins(10).totalLosses(9).totalMatches(19).build();
+
+            weeklyLeaderboard = LeaderBoard.builder()
+                    .name("Weekly XP")
+                    .userRank(4)
+                    .requiredLevel(1)
+                    .build();
+            weeklyLeaderboard.addCompetitor(c1);
+            weeklyLeaderboard.addCompetitor(c2);
+            weeklyLeaderboard.addCompetitor(c3);
+            weeklyLeaderboard.addCompetitor(c4);
+            weeklyLeaderboard.addCompetitor(c5);
+        }
+
+        if (forumThreads.isEmpty()) {
+            String authorName = user.getUsername() != null ? user.getUsername() : "You";
+            User author = User.builder()
+                    .username(authorName)
+                    .email(authorName.toLowerCase() + "@example.com")
+                    .password("")
+                    .build();
+
+            forumThreads.add(ForumPost.builder()
+                    .title("How do I fix a NullPointerException in Java?")
+                    .content("I am looping over a list and sometimes get a NullPointerException. How can I debug this?")
+                    .author(author)
+                    .build());
+            forumThreads.add(ForumPost.builder()
+                    .title("Best way to understand loops as a beginner?")
+                    .content("I get confused with indices in for-loops. Any mental models that helped you?")
+                    .author(author)
+                    .build());
+            forumThreads.add(ForumPost.builder()
+                    .title("Share your favorite resources for learning SQL")
+                    .content("Looking for interactive resources that teach SQL with real-world examples.")
+                    .author(author)
+                    .build());
+        }
     }
 
     private void setupNavButtonWithHover(Button button) {
@@ -232,6 +316,7 @@ public class MainShellController {
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             controller.setUserModel(user);
+            controller.setGameState(gameState);
             contentArea.getChildren().setAll(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -257,25 +342,12 @@ public class MainShellController {
     }
 
     private void toggleTheme() {
-        var scene = contentArea.getScene();
-        if (scene == null)
-            return;
-
-        String darkCSS = getClass().getResource("/com/codedu/views/application.css").toExternalForm();
-        String lightCSS = getClass().getResource("/com/codedu/views/application-light.css").toExternalForm();
-
-        var stylesheets = scene.getStylesheets();
-
-        // Ensure base dark stylesheet is always present for shared rules
-        if (!stylesheets.contains(darkCSS)) {
-            stylesheets.add(0, darkCSS);
-        }
-
-        // Toggle Coddy-style light overrides on/off
-        if (stylesheets.contains(lightCSS)) {
-            stylesheets.remove(lightCSS); // Switch to dark-only
+        // Toggle only the AtlantaFX user-agent stylesheet between Nord light and dark.
+        String current = Application.getUserAgentStylesheet();
+        if (current != null && current.contains("NordDark")) {
+            Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
         } else {
-            stylesheets.add(lightCSS); // Switch to bright Coddy-style look
+            Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet());
         }
     }
 
@@ -415,12 +487,12 @@ public class MainShellController {
         challengeCard.getStyleClass().add("hero-section-card");
         challengeCard.setAlignment(Pos.TOP_LEFT);
         challengeCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-        Label chTitle = new Label("Today’s task: Loops & counters");
+        Label chTitle = new Label("Today’s task: " + todayChallenge.getName());
         chTitle.getStyleClass().add("hero-section-title");
-        Label chBody = new Label("Write a function that prints the numbers from 1 to 100 and counts how many are even.");
+        Label chBody = new Label(todayChallenge.getDescription());
         chBody.getStyleClass().add("hero-section-body");
         chBody.setWrapText(true);
-        Label chBadge = new Label("EST. TIME · 10 MIN");
+        Label chBadge = new Label(todayChallenge.getXpRewards() + " XP · " + todayChallenge.getTokenRewards() + " tokens");
         chBadge.getStyleClass().add("hero-section-badge");
         challengeCard.getChildren().addAll(chTitle, chBody, chBadge);
 
@@ -460,25 +532,22 @@ public class MainShellController {
         board.getStyleClass().add("hero-section-card");
         board.setPadding(new javafx.geometry.Insets(16, 20, 16, 20));
 
-        String[][] rows = {
-                { "1", "Alex", "2,840 XP" },
-                { "2", "Jordan", "2,650 XP" },
-                { "3", "Sam", "2,420 XP" },
-                { "4", "Casey", "2,180 XP" },
-                { "5", "Morgan", "1,950 XP" }
-        };
-
-        for (String[] r : rows) {
+        java.util.List<Competitor> competitors = weeklyLeaderboard.getCompetitors();
+        for (int i = 0; i < competitors.size(); i++) {
+            Competitor c = competitors.get(i);
             HBox line = new HBox(12);
             line.setAlignment(Pos.CENTER_LEFT);
 
-            Label pos = new Label(r[0]);
+            Label pos = new Label(String.valueOf(i + 1));
             pos.getStyleClass().add("hero-section-badge");
 
-            Label name = new Label(r[1]);
+            String nameText = c.getUser() != null && c.getUser().getUsername() != null
+                    ? c.getUser().getUsername()
+                    : "Player " + (i + 1);
+            Label name = new Label(nameText);
             name.getStyleClass().add("hero-section-title");
 
-            Label score = new Label(r[2]);
+            Label score = new Label(c.getRankingPoint() + " XP · " + String.format("%.0f", c.getWinRate()) + "% win rate");
             score.getStyleClass().add("hero-section-body");
 
             line.getChildren().addAll(pos, name, score);
@@ -511,13 +580,15 @@ public class MainShellController {
         threads.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
         Label thTitle = new Label("Trending threads");
         thTitle.getStyleClass().add("hero-section-title");
-        Label th1 = new Label("• How do I fix a NullPointerException in Java?");
-        th1.getStyleClass().add("hero-section-body");
-        Label th2 = new Label("• Best way to understand loops as a beginner?");
-        th2.getStyleClass().add("hero-section-body");
-        Label th3 = new Label("• Share your favorite resources for learning SQL.");
-        th3.getStyleClass().add("hero-section-body");
-        threads.getChildren().addAll(thTitle, th1, th2, th3);
+        threads.getChildren().add(thTitle);
+        for (ForumPost post : forumThreads) {
+            String authorName = post.getAuthor() != null && post.getAuthor().getUsername() != null
+                    ? post.getAuthor().getUsername()
+                    : "Anonymous";
+            Label line = new Label("• " + post.getTitle() + " — " + authorName);
+            line.getStyleClass().add("hero-section-body");
+            threads.getChildren().add(line);
+        }
 
         VBox tips = new VBox(10);
         tips.getStyleClass().add("hero-section-card");

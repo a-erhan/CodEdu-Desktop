@@ -1,5 +1,6 @@
 package com.codedu.controllers;
 
+import com.codedu.models.InventoryItem;
 import com.codedu.models.Item;
 import com.codedu.models.ItemType;
 import com.codedu.models.User;
@@ -41,7 +42,24 @@ public class StoreController {
         this.user = user;
         storeTokenLabel.setText("Tokens: " + user.getTokenBalance());
         loadMockItems();
+        markOwnedItemsFromInventory();
         buildGrid();
+    }
+
+    private void markOwnedItemsFromInventory() {
+        if (user.getInventory() == null || user.getInventory().getItems() == null) {
+            return;
+        }
+        for (InventoryItem inv : user.getInventory().getItems()) {
+            Item invItem = inv.getItem();
+            if (invItem == null || invItem.getName() == null) continue;
+            for (Item storeItem : allItems) {
+                if (storeItem.getName() != null &&
+                        storeItem.getName().equalsIgnoreCase(invItem.getName())) {
+                    storeItem.setOwned(true);
+                }
+            }
+        }
     }
 
     private void loadMockItems() {
@@ -108,7 +126,6 @@ public class StoreController {
 
         String iconText = item.getName().isEmpty() ? "" : item.getName().substring(0, 1).toUpperCase();
         Label emoji = new Label(iconText);
-        emoji.setStyle("-fx-font-size: 32px; -fx-text-fill: #e0e0e0;");
 
         Label name = new Label(item.getName());
         name.getStyleClass().add("store-item-name");
@@ -128,7 +145,7 @@ public class StoreController {
         priceLabel.getStyleClass().add("store-price-tag");
         priceRow.getChildren().add(priceLabel);
 
-        Button buyBtn = new Button(item.isOwned() ? "✓ Owned" : "Buy");
+        Button buyBtn = new Button(item.isOwned() ? "Owned" : "Buy");
         buyBtn.getStyleClass().add(item.isOwned() ? "store-owned-btn" : "store-buy-btn");
         buyBtn.setMaxWidth(Double.MAX_VALUE);
 

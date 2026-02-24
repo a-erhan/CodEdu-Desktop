@@ -1,5 +1,7 @@
 package com.codedu;
 
+import atlantafx.base.theme.NordDark;
+import atlantafx.base.theme.NordLight;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -22,16 +24,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Use AtlantaFX Nord light theme as the base user agent stylesheet
+        Application.setUserAgentStylesheet(new NordLight().getUserAgentStylesheet());
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Login.fxml"));
         loader.setControllerFactory(springContext::getBean);
 
         Parent root = loader.load();
 
         Scene scene = new Scene(root, 1200, 750);
-        // Base dark theme + Coddy-style light overrides for a bright, website-like UI
-        scene.getStylesheets().add(getClass().getResource("/com/codedu/views/application.css").toExternalForm());
-        scene.getStylesheets().add(getClass().getResource("/com/codedu/views/application-light.css").toExternalForm());
-
         primaryStage.setTitle("CodEdu — Gamified Coding Education");
         primaryStage.setScene(scene);
         primaryStage.show();

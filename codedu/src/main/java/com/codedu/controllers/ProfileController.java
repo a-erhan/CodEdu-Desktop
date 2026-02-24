@@ -1,6 +1,8 @@
 package com.codedu.controllers;
 
 import com.codedu.models.User;
+import com.codedu.models.InventoryItem;
+import com.codedu.models.UserGameState;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -36,6 +38,12 @@ public class ProfileController {
     private FlowPane avatarGrid;
 
     private User user;
+    private UserGameState gameState;
+
+    public void setGameState(UserGameState gameState) {
+        this.gameState = gameState;
+        bindStats();
+    }
 
     public void setUserModel(User user) {
         this.user = user;
@@ -43,18 +51,30 @@ public class ProfileController {
     }
 
     private void bindStats() {
-        String username = user.getUsername() != null ? user.getUsername() : "User";
+        String username = user != null && user.getUsername() != null ? user.getUsername() : "User";
         String initial = username.isEmpty() ? "C" : username.substring(0, 1).toUpperCase();
         avatarDisplay.setText(initial);
-        avatarDisplay.setStyle("-fx-font-size: 72px;");
         usernameDisplay.setText(username);
-        badgeDisplay.setText("Level 1");
+        int level = gameState != null ? gameState.getLevel() : 1;
+        badgeDisplay.setText("Level " + level);
 
-        profileXpBar.setProgress(0);
-        profileXpLabel.setText("0 / 1000 XP");
-        profileTokenLabel.setText(String.valueOf(user.getTokenBalance()));
-        profileBadgeLabel.setText("Level 1");
-        profileItemsLabel.setText("0");
+        int xp = gameState != null ? gameState.getXp() : 0;
+        int levelCap = Math.max(1, level * 1000);
+        double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
+        profileXpBar.setProgress(progress);
+        profileXpLabel.setText(xp + " / " + levelCap + " XP");
+
+        int tokens = user != null ? user.getTokenBalance() : 0;
+        profileTokenLabel.setText(String.valueOf(tokens));
+        profileBadgeLabel.setText("Level " + level);
+
+        int itemCount = 0;
+        if (user != null && user.getInventory() != null && user.getInventory().getItems() != null) {
+            for (InventoryItem inv : user.getInventory().getItems()) {
+                itemCount += Math.max(1, inv.getQuantity());
+            }
+        }
+        profileItemsLabel.setText(String.valueOf(itemCount));
 
         noAvatarsLabel.setVisible(true);
         noAvatarsLabel.setManaged(true);

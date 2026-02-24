@@ -20,6 +20,7 @@ module com.codedu {
     requires spring.data.commons;
     requires org.aspectj.weaver;
     requires static lombok;
+    requires atlantafx.base;
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;
