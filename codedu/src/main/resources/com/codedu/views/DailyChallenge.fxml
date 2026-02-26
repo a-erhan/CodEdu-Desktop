@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codedu.controllers.DailyChallengeController"
+      alignment="TOP_CENTER" spacing="20" maxWidth="900">
+
+    <padding>
+        <Insets top="10" right="0" bottom="10" left="0"/>
+    </padding>
+
+    <Label fx:id="titleLabel" text="Daily Challenges"/>
+    <Label fx:id="subtitleLabel"
+           text="Tackle today’s challenges. Each card is a separate task with its own rewards."
+           wrapText="true"/>
+
+    <VBox fx:id="challengeList" spacing="16" fillWidth="true"/>
+
+</VBox>
+

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codedu.controllers.AskAIController"
+      alignment="TOP_CENTER" spacing="20" maxWidth="800">
+
+    <padding>
+        <Insets top="10" right="0" bottom="10" left="0"/>
+    </padding>
+
+    <Label fx:id="titleLabel" text="Ask AI tutor"/>
+    <Label fx:id="subtitleLabel"
+           text="Type a question about your code or a concept you are learning. In a full version, an AI tutor would answer here."
+           wrapText="true"/>
+
+    <VBox fx:id="card" spacing="12">
+        <Label fx:id="promptLabel" text="Your question"/>
+        <TextArea fx:id="questionArea"
+                  promptText="For example: &quot;Why am I getting an index out of bounds error in this loop?&quot;"
+                  prefRowCount="5"/>
+        <Label fx:id="noteLabel"
+               text="Responses are not yet wired up in this prototype, but this is where explanations would appear."
+               wrapText="true"/>
+    </VBox>
+
+</VBox>
+
