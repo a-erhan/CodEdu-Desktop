@@ -44,7 +44,9 @@
                     <Image url="@../images/logo.png"/>
                 </image>
             </ImageView>
-            <Region prefHeight="20"/>
+            <VBox alignment="CENTER">
+                <Label fx:id="taglineLabel" text="CodEdu"/>
+            </VBox>            <Region prefHeight="20"/>
 
             <Button fx:id="btnLearningPath"    text="Learning Path"   maxWidth="Infinity"/>
             <Button fx:id="btnDailyChallenge"  text="Daily Challenge" maxWidth="Infinity"/>

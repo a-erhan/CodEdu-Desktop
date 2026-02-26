@@ -104,7 +104,7 @@ public class MainShellController {
 
         // Apply Nord typography and container styling
         if (taglineLabel != null) {
-            taglineLabel.getStyleClass().add(Styles.TITLE_3);
+            taglineLabel.getStyleClass().add(Styles.TITLE_2);
         }
         if (sidebar != null) {
             sidebar.setSpacing(16);
