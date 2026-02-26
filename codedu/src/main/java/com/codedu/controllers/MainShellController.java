@@ -410,6 +410,7 @@ public class MainShellController {
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
             controller.setTodayChallenge(todayChallenge);
+            controller.setOnStartChallenge(this::openChallengePage);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -528,6 +529,21 @@ public class MainShellController {
             ex.printStackTrace();
             showSectionPlaceholder("Profile",
                     "Error loading competitor profile: " + ex.getMessage());
+        }
+    }
+
+    private void openChallengePage(DailyChallenge challenge) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Challenge.fxml"));
+            Parent view = loader.load();
+            ChallengeController controller = loader.getController();
+            controller.setChallenge(challenge);
+            contentArea.getChildren().setAll(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Challenge",
+                    "Error opening challenge: " + ex.getMessage());
         }
     }
 

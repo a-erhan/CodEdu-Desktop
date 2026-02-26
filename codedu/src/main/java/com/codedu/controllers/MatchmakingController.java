@@ -1,6 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.models.DailyChallenge;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -66,6 +67,13 @@ public class MatchmakingController {
     private Label youAttempts;
     @FXML
     private Label opponentAttempts;
+
+    private DailyChallenge activeChallenge;
+
+    public void setChallenge(DailyChallenge challenge) {
+        this.activeChallenge = challenge;
+        applyChallenge();
+    }
 
     @FXML
     public void initialize() {
@@ -134,6 +142,16 @@ public class MatchmakingController {
         if (opponentAttempts != null) {
             opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
         }
+
+        applyChallenge();
+    }
+
+    private void applyChallenge() {
+        if (activeChallenge == null || problemTitle == null || problemDescription == null) {
+            return;
+        }
+        problemTitle.setText(activeChallenge.getName());
+        problemDescription.setText(activeChallenge.getDescription());
     }
 }
 

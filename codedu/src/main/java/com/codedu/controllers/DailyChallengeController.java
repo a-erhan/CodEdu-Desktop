@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Controller
 public class DailyChallengeController {
@@ -21,9 +22,15 @@ public class DailyChallengeController {
     private VBox challengeList;
 
     private DailyChallenge todayChallenge;
+    private Consumer<DailyChallenge> onStartChallenge;
 
     public void setTodayChallenge(DailyChallenge todayChallenge) {
         this.todayChallenge = todayChallenge;
+        buildChallenges();
+    }
+
+    public void setOnStartChallenge(Consumer<DailyChallenge> onStartChallenge) {
+        this.onStartChallenge = onStartChallenge;
         buildChallenges();
     }
 
@@ -85,6 +92,12 @@ public class DailyChallengeController {
             chMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
             card.getChildren().addAll(chTitle, chBody, chMeta);
+
+            if (onStartChallenge != null) {
+                card.getStyleClass().add(Styles.INTERACTIVE);
+                card.setOnMouseClicked(e -> onStartChallenge.accept(ch));
+            }
+
             challengeList.getChildren().add(card);
         }
     }

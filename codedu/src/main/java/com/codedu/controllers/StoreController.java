@@ -79,12 +79,9 @@ public class StoreController {
                 ItemType.POWER_UP));
 
         // AI Usage
-        allItems.add(new Item("AI Code Review", "Get AI-powered feedback on your code", "", 120,
+        allItems.add(new Item("AI Usage", "Get AI-powered feedback on your code", "", 120,
                 ItemType.AI_USAGE));
-        allItems.add(new Item("AI Debugging Assistant", "Let AI help you find and fix bugs", "", 150,
-                ItemType.AI_USAGE));
-        allItems.add(new Item("AI Solution Explainer", "Get step-by-step explanations from AI", "", 100,
-                ItemType.AI_USAGE));
+
     }
 
     private void buildGrid() {
