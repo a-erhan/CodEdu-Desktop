@@ -62,6 +62,8 @@ public class MainShellController {
     @FXML
     private Button btnDailyChallenge;
     @FXML
+    private Button btnAchievements;
+    @FXML
     private Button btnLeaderboard;
     @FXML
     private Button btnForum;
@@ -116,6 +118,7 @@ public class MainShellController {
         // Apply common Nord nav-button styling
         styleNavButton(btnLearningPath);
         styleNavButton(btnDailyChallenge);
+        styleNavButton(btnAchievements);
         styleNavButton(btnLeaderboard);
         styleNavButton(btnForum);
         styleNavButton(btnMatchmaking);
@@ -137,11 +140,18 @@ public class MainShellController {
             loadDailyChallenge();
         });
 
+        // Achievements
+        setupNavButtonWithHover(btnAchievements);
+        btnAchievements.setOnAction(e -> {
+            setActiveButton(btnAchievements);
+            loadAchievements();
+        });
+
         // Leaderboard
         setupNavButtonWithHover(btnLeaderboard);
         btnLeaderboard.setOnAction(e -> {
             setActiveButton(btnLeaderboard);
-            loadAchievements();
+            loadLeaderboard();
         });
 
         // Forum
@@ -366,6 +376,7 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/Profile.fxml"));
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
+            controller.setViewingSelf(true);
             controller.setUserModel(user);
             controller.setGameState(gameState);
             contentArea.getChildren().setAll(profileView);
@@ -460,6 +471,63 @@ public class MainShellController {
             ex.printStackTrace();
             showSectionPlaceholder("Ask AI",
                     "Error loading Ask AI module: " + ex.getMessage());
+        }
+    }
+
+    private void loadLeaderboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
+            Parent view = loader.load();
+            LeaderboardController controller = loader.getController();
+            controller.setLeaderboard(weeklyLeaderboard);
+            controller.setOnOpenProfile(this::openCompetitorProfile);
+            contentArea.getChildren().setAll(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Leaderboard",
+                    "Error loading leaderboard module: " + ex.getMessage());
+        }
+    }
+
+    private void openCompetitorProfile(Competitor competitor) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Profile.fxml"));
+            Parent profileView = loader.load();
+            ProfileController controller = loader.getController();
+
+            User profileUser = competitor.getUser();
+            if (profileUser == null) {
+                int idx = weeklyLeaderboard != null
+                        ? Math.max(0, weeklyLeaderboard.getCompetitors().indexOf(competitor))
+                        : 0;
+                profileUser = User.builder()
+                        .username("Player " + (idx + 1))
+                        .email("")
+                        .password("")
+                        .build();
+            }
+
+            int ranking = competitor.getRankingPoint();
+            int level = Math.max(1, ranking / 1000);
+
+            UserGameState otherState = UserGameState.builder()
+                    .user(profileUser)
+                    .level(level)
+                    .xp(ranking)
+                    .heartCount(3)
+                    .build();
+
+            controller.setViewingSelf(false);
+            controller.setUserModel(profileUser);
+            controller.setGameState(otherState);
+
+            contentArea.getChildren().setAll(profileView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Profile",
+                    "Error loading competitor profile: " + ex.getMessage());
         }
     }
 

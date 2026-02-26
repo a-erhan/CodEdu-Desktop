@@ -5,6 +5,7 @@ import com.codedu.models.InventoryItem;
 import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.FlowPane;
@@ -35,9 +36,7 @@ public class ProfileController {
     @FXML
     private Label profileItemsLabel;
     @FXML
-    private Label noAvatarsLabel;
-    @FXML
-    private FlowPane avatarGrid;
+    private VBox avatarsSection;
     @FXML
     private VBox avatarCard;
     @FXML
@@ -48,9 +47,16 @@ public class ProfileController {
     private VBox badgeCard;
     @FXML
     private VBox itemsCard;
+    @FXML
+    private Button addFriendButton;
+    @FXML
+    private Label noAvatarsLabel;
+    @FXML
+    private FlowPane avatarGrid;
 
     private User user;
     private UserGameState gameState;
+    private boolean viewingSelf = true;
 
     public void setGameState(UserGameState gameState) {
         this.gameState = gameState;
@@ -59,6 +65,11 @@ public class ProfileController {
 
     public void setUserModel(User user) {
         this.user = user;
+        bindStats();
+    }
+
+    public void setViewingSelf(boolean viewingSelf) {
+        this.viewingSelf = viewingSelf;
         bindStats();
     }
 
@@ -90,6 +101,39 @@ public class ProfileController {
         }
         profileItemsLabel.setText(String.valueOf(itemCount));
 
+        if (addFriendButton != null) {
+            if (viewingSelf) {
+                addFriendButton.setVisible(false);
+                addFriendButton.setManaged(false);
+            } else {
+                addFriendButton.setVisible(true);
+                addFriendButton.setManaged(true);
+                if (!addFriendButton.getStyleClass().contains(Styles.ACCENT)) {
+                    addFriendButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+                }
+                addFriendButton.setDisable(false);
+                addFriendButton.setText("Add friend");
+                addFriendButton.setOnAction(e -> {
+                    addFriendButton.setDisable(true);
+                    addFriendButton.setText("Request sent");
+                });
+            }
+        }
+
+        // Show "My avatars" only when viewing own profile
+        if (avatarsSection != null) {
+            boolean showAvatars = viewingSelf;
+            avatarsSection.setVisible(showAvatars);
+            avatarsSection.setManaged(showAvatars);
+        }
+        if (noAvatarsLabel != null) {
+            noAvatarsLabel.setVisible(true);
+            noAvatarsLabel.setManaged(true);
+        }
+        if (avatarGrid != null) {
+            avatarGrid.getChildren().clear();
+        }
+
         // Card-like styling for profile sections
         if (avatarCard != null) {
             avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
@@ -106,9 +150,5 @@ public class ProfileController {
         if (itemsCard != null) {
             itemsCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-
-        noAvatarsLabel.setVisible(true);
-        noAvatarsLabel.setManaged(true);
-        avatarGrid.getChildren().clear();
     }
 }

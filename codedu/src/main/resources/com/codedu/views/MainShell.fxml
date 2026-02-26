@@ -46,10 +46,11 @@
             </ImageView>
             <Region prefHeight="20"/>
 
-            <Button fx:id="btnLearningPath"   text="Learning Path"   maxWidth="Infinity"/>
-            <Button fx:id="btnDailyChallenge" text="Daily Challenge" maxWidth="Infinity"/>
-            <Button fx:id="btnLeaderboard"    text="Achievements"    maxWidth="Infinity"/>
-            <Button fx:id="btnForum"          text="Forum"           maxWidth="Infinity"/>
+            <Button fx:id="btnLearningPath"    text="Learning Path"   maxWidth="Infinity"/>
+            <Button fx:id="btnDailyChallenge"  text="Daily Challenge" maxWidth="Infinity"/>
+            <Button fx:id="btnAchievements"    text="Achievements"    maxWidth="Infinity"/>
+            <Button fx:id="btnLeaderboard"     text="Leaderboard"     maxWidth="Infinity"/>
+            <Button fx:id="btnForum"           text="Forum"           maxWidth="Infinity"/>
             <Button fx:id="btnMatchmaking"    text="Matchmaking"     maxWidth="Infinity"/>
             <Button fx:id="btnStore"          text="Store"           maxWidth="Infinity"/>
             <Button fx:id="btnAskAI"          text="Ask AI"          maxWidth="Infinity"/>

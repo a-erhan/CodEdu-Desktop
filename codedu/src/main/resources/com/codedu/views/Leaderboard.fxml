@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codedu.controllers.LeaderboardController"
+      alignment="TOP_CENTER" spacing="20" maxWidth="900">
+
+    <padding>
+        <Insets top="10" right="0" bottom="10" left="0"/>
+    </padding>
+
+    <Label fx:id="titleLabel" text="Leaderboard"/>
+    <Label fx:id="subtitleLabel"
+           text="See how you rank against other learners this week."
+           wrapText="true"/>
+
+    <!-- Card for the current user -->
+    <VBox fx:id="myCard" spacing="6" alignment="TOP_LEFT">
+        <Label fx:id="myTitle" text="Your position"/>
+        <Label fx:id="myRankLabel" text="#4 of 10 · You"/>
+        <Label fx:id="myScoreLabel" text="2000 XP · 60% wins"/>
+    </VBox>
+
+    <!-- Full leaderboard list -->
+    <VBox fx:id="boardList" spacing="8" alignment="TOP_LEFT"/>
+
+</VBox>
+
