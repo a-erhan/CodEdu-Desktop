@@ -37,17 +37,18 @@
 
     <left>
         <ScrollPane fx:id="sidebarScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-                   minWidth="200" prefWidth="220" maxWidth="280"
-                   style="-fx-background-color: transparent; -fx-background: transparent;">
+                   minWidth="200" prefWidth="220" maxWidth="280">
             <content>
                 <VBox fx:id="sidebar" spacing="12" alignment="TOP_LEFT" minHeight="-Infinity">
                     <padding><Insets top="20" right="16" bottom="20" left="16"/></padding>
 
-                    <ImageView fitHeight="120" preserveRatio="true" pickOnBounds="true">
-                        <image>
-                            <Image url="@../images/logo.png"/>
-                        </image>
-                    </ImageView>
+                    <StackPane prefHeight="100" maxHeight="100">
+                        <ImageView fitHeight="100" preserveRatio="true" pickOnBounds="true">
+                            <image>
+                                <Image url="@../images/logo.png"/>
+                            </image>
+                        </ImageView>
+                    </StackPane>
                     <VBox alignment="CENTER">
                         <Label fx:id="taglineLabel" text="CodEdu"/>
                     </VBox>

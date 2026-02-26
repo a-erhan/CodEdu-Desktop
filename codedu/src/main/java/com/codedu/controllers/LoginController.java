@@ -75,8 +75,11 @@ public class LoginController {
             controller.setUser(user);
 
             Stage stage = (Stage) emailField.getScene().getWindow();
-            Scene scene = new Scene(root, 1200, 750);
+            double w = Math.max(800, stage.getWidth());
+            double h = Math.max(600, stage.getHeight());
+            Scene scene = new Scene(root, w, h);
             stage.setScene(scene);
+            stage.setMaximized(true);
         } catch (Exception e) {
             errorLabel.setText("Failed to load application.");
             e.printStackTrace();

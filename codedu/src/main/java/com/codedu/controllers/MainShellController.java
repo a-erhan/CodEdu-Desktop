@@ -11,6 +11,7 @@ import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -18,6 +19,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -81,6 +83,9 @@ public class MainShellController {
     @FXML
     private StackPane contentArea;
 
+    @FXML
+    private ScrollPane sidebarScroll;
+
     // ========== Shared state (shell: header + profile) ==========
     private User user = new User();
     private UserGameState gameState;
@@ -102,8 +107,32 @@ public class MainShellController {
         updateHeader();
         initSidebarAndHeaderStyles();
         styleAndWireNavigation();
+        ensureShellFillsScene();
         setActiveButton(btnLearningPath);
         loadLearningPath();
+    }
+
+    /** Make root pane and sidebar fill available height so the shell reaches the bottom. */
+    private void ensureShellFillsScene() {
+        Platform.runLater(() -> {
+            if (contentArea == null || contentArea.getScene() == null) return;
+            javafx.scene.Node root = contentArea.getScene().getRoot();
+            if (root instanceof Region) {
+                Region r = (Region) root;
+                r.setMaxWidth(Double.MAX_VALUE);
+                r.setMaxHeight(Double.MAX_VALUE);
+            }
+        });
+    }
+
+    /** Set content area to the given view and make it fill the center. */
+    private void setContentAndFill(Parent view) {
+        contentArea.getChildren().setAll(view);
+        if (view instanceof Region) {
+            Region r = (Region) view;
+            r.setMaxWidth(Double.MAX_VALUE);
+            r.setMaxHeight(Double.MAX_VALUE);
+        }
     }
 
     /** Sidebar, tagline, welcome label, profile icon. */
@@ -115,6 +144,11 @@ public class MainShellController {
             sidebar.setSpacing(16);
             sidebar.setFillWidth(true);
             sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
+        }
+        if (sidebarScroll != null) {
+            sidebarScroll.setMaxHeight(Double.MAX_VALUE);
+            sidebarScroll.setMinHeight(0);
+            sidebarScroll.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
         }
         if (welcomeNavLabel != null) {
             welcomeNavLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
@@ -285,7 +319,7 @@ public class MainShellController {
             Parent learningPathView = loader.load();
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(chapter -> loadChapterView(chapter));
-            contentArea.getChildren().setAll(learningPathView);
+            setContentAndFill(learningPathView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Learning path",
@@ -301,7 +335,7 @@ public class MainShellController {
             ChapterViewController controller = loader.getController();
             controller.setChapter(chapter);
             controller.setOnBack(() -> loadLearningPath());
-            contentArea.getChildren().setAll(chapterView);
+            setContentAndFill(chapterView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Chapter",
@@ -316,7 +350,7 @@ public class MainShellController {
             Parent storeView = loader.load();
             StoreController controller = loader.getController();
             controller.setUserModel(user);
-            contentArea.getChildren().setAll(storeView);
+            setContentAndFill(storeView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Store",
@@ -333,7 +367,7 @@ public class MainShellController {
             controller.setViewingSelf(true);
             controller.setUserModel(user);
             controller.setGameState(gameState);
-            contentArea.getChildren().setAll(profileView);
+            setContentAndFill(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Profile",
@@ -349,7 +383,7 @@ public class MainShellController {
             SettingsController controller = loader.getController();
             controller.setUserModel(user);
             controller.setThemeToggleCallback(() -> toggleTheme());
-            contentArea.getChildren().setAll(settingsView);
+            setContentAndFill(settingsView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Settings",
@@ -364,7 +398,7 @@ public class MainShellController {
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
             controller.setOnStartChallenge(this::openChallengePage);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Daily challenges",
@@ -379,7 +413,7 @@ public class MainShellController {
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
             controller.setCurrentUser(user);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Achievements",
@@ -395,7 +429,7 @@ public class MainShellController {
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Forum",
@@ -408,7 +442,7 @@ public class MainShellController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
             Parent view = loader.load();
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Matchmaking",
@@ -423,7 +457,7 @@ public class MainShellController {
             Parent view = loader.load();
             AskAIController controller = loader.getController();
             controller.setRemainingRequests(3);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Ask AI",
@@ -439,7 +473,7 @@ public class MainShellController {
             LeaderboardController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setOnOpenProfile(this::openCompetitorProfile);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Leaderboard",
@@ -457,7 +491,7 @@ public class MainShellController {
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             controller.setCompetitor(competitor, competitorOrder);
-            contentArea.getChildren().setAll(profileView);
+            setContentAndFill(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Profile",
@@ -477,7 +511,7 @@ public class MainShellController {
                 setActiveButton(btnForum);
                 loadForum();
             });
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Forum post",
@@ -492,7 +526,7 @@ public class MainShellController {
             Parent view = loader.load();
             ChallengeController controller = loader.getController();
             controller.setChallenge(challenge);
-            contentArea.getChildren().setAll(view);
+            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Challenge",
@@ -529,6 +563,6 @@ public class MainShellController {
         comingSoon.getStyleClass().add("coming-soon");
 
         box.getChildren().addAll(titleLabel, descLabel, comingSoon);
-        contentArea.getChildren().setAll(box);
+        setContentAndFill(box);
     }
 }
