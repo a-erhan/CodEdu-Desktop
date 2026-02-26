@@ -25,6 +25,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import org.springframework.stereotype.Controller;
 
@@ -49,6 +50,8 @@ public class MainShellController {
     private Label xpLabel;
     @FXML
     private Label welcomeNavLabel;
+    @FXML
+    private Label profileIconLabel;
 
     // --- Sidebar ---
     @FXML
@@ -113,6 +116,15 @@ public class MainShellController {
         }
         if (welcomeNavLabel != null) {
             welcomeNavLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+        }
+        if (profileIconLabel != null) {
+            profileIconLabel.setMinSize(32, 32);
+            profileIconLabel.setPrefSize(32, 32);
+            profileIconLabel.setMaxSize(32, 32);
+            profileIconLabel.setAlignment(Pos.CENTER);
+            profileIconLabel.setShape(new Circle(16));
+            profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
+            profileIconLabel.setOnMouseClicked(e -> loadProfile());
         }
 
         // Apply common Nord nav-button styling
@@ -203,6 +215,10 @@ public class MainShellController {
             welcomeNavLabel.setText("Welcome @" + username);
             welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
         }
+        if (profileIconLabel != null) {
+            String initial = username.isEmpty() ? "U" : username.substring(0, 1).toUpperCase();
+            profileIconLabel.setText(initial);
+        }
 
         int level = gameState != null ? gameState.getLevel() : 1;
         int xp = gameState != null ? gameState.getXp() : 0;
@@ -276,8 +292,8 @@ public class MainShellController {
                     .author(author)
                     .build());
             forumThreads.add(ForumPost.builder()
-                    .title("Share your favorite resources for learning SQL")
-                    .content("Looking for interactive resources that teach SQL with real-world examples.")
+                    .title("Share your favorite resources for learning Java")
+                    .content("Looking for interactive resources that teach Java with real-world examples.")
                     .author(author)
                     .build());
         }
@@ -441,6 +457,8 @@ public class MainShellController {
             Parent view = loader.load();
             ForumController controller = loader.getController();
             controller.setPosts(forumThreads);
+            controller.setCurrentUser(user);
+            controller.setOnOpenPost(this::openForumPost);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -467,6 +485,8 @@ public class MainShellController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/AskAI.fxml"));
             Parent view = loader.load();
+            AskAIController controller = loader.getController();
+            controller.setRemainingRequests(3);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -529,6 +549,26 @@ public class MainShellController {
             ex.printStackTrace();
             showSectionPlaceholder("Profile",
                     "Error loading competitor profile: " + ex.getMessage());
+        }
+    }
+
+    private void openForumPost(ForumPost post) {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/ForumPost.fxml"));
+            Parent view = loader.load();
+            ForumPostController controller = loader.getController();
+            controller.setCurrentUser(user);
+            controller.setPost(post);
+            controller.setOnBack(() -> {
+                setActiveButton(btnForum);
+                loadForum();
+            });
+            contentArea.getChildren().setAll(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Forum post",
+                    "Error loading post: " + ex.getMessage());
         }
     }
 

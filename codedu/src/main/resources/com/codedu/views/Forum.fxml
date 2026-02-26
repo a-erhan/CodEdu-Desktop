@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.ForumController"
-      alignment="TOP_CENTER" spacing="20" maxWidth="900">
+      alignment="TOP_CENTER" spacing="20" maxWidth="1100">
 
     <padding>
         <Insets top="10" right="0" bottom="10" left="0"/>
@@ -18,7 +24,34 @@
            text="Ask questions, share tips, and read what other learners are working on."
            wrapText="true"/>
 
-    <VBox fx:id="threadList" spacing="16" fillWidth="true"/>
+    <!-- New post composer -->
+    <VBox fx:id="newPostCard" spacing="8">
+        <Label fx:id="newPostTitleLabel" text="Start a new discussion"/>
+        <TextField fx:id="newPostTitleField" promptText="Title" />
+        <TextArea fx:id="newPostBodyArea"
+                  promptText="Share your question or tip..."
+                  prefRowCount="4"/>
+        <HBox alignment="CENTER_RIGHT" spacing="8">
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="postButton" text="Post" disable="true"/>
+        </HBox>
+    </VBox>
+
+    <!-- Main content: thread list + selected post viewer -->
+    <HBox spacing="16" alignment="TOP_LEFT">
+
+        <ScrollPane fitToWidth="true" prefWidth="480">
+            <VBox fx:id="threadList" spacing="16" fillWidth="true">
+                <padding><Insets top="4" right="4" bottom="4" left="0"/></padding>
+            </VBox>
+        </ScrollPane>
+
+        <VBox fx:id="selectedPostCard" spacing="8" prefWidth="520">
+            <Label fx:id="selectedTitle" text=""/>
+            <Label fx:id="selectedMeta" text="" wrapText="true"/>
+            <TextArea fx:id="selectedContent" editable="false" wrapText="true" prefRowCount="10"/>
+        </VBox>
+    </HBox>
 
 </VBox>
 

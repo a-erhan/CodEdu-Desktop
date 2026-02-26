@@ -5,11 +5,13 @@ import com.codedu.models.InventoryItem;
 import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -77,6 +79,11 @@ public class ProfileController {
         String username = user != null && user.getUsername() != null ? user.getUsername() : "User";
         String initial = username.isEmpty() ? "C" : username.substring(0, 1).toUpperCase();
         avatarDisplay.setText(initial);
+        avatarDisplay.setAlignment(Pos.CENTER);
+        avatarDisplay.setMinSize(80, 80);
+        avatarDisplay.setPrefSize(80, 80);
+        avatarDisplay.setMaxSize(80, 80);
+        avatarDisplay.setShape(new Circle(40));
         avatarDisplay.getStyleClass().add(Styles.TITLE_2);
         usernameDisplay.setText(username);
         usernameDisplay.getStyleClass().add(Styles.TITLE_3);

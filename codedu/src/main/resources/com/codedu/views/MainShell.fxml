@@ -32,6 +32,7 @@
             </VBox>
 
             <Label fx:id="welcomeNavLabel" text="Welcome @User"/>
+            <Label fx:id="profileIconLabel" text="U"/>
         </HBox>
     </top>
 

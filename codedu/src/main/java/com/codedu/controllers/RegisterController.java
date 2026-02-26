@@ -25,8 +25,6 @@ public class RegisterController {
     @FXML
     private Label titleLabel;
     @FXML
-    private TextField usernameField;
-    @FXML
     private TextField emailField;
     @FXML
     private PasswordField passwordField;
@@ -49,12 +47,11 @@ public class RegisterController {
 
     @FXML
     private void handleRegister() {
-        String username = usernameField.getText().trim();
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
         String confirm = confirmPasswordField.getText().trim();
 
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
+        if (email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             errorLabel.setText("Please fill in all fields.");
             return;
         }
@@ -65,6 +62,8 @@ public class RegisterController {
 
         // Mock user creation (no persistence yet)
         User user = new User();
+        String username =
+                email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(password);
@@ -80,7 +79,7 @@ public class RegisterController {
             MainShellController controller = loader.getController();
             controller.setUser(user);
 
-            Stage stage = (Stage) usernameField.getScene().getWindow();
+            Stage stage = (Stage) emailField.getScene().getWindow();
             Scene scene = new Scene(root, 1200, 750);
             stage.setScene(scene);
         } catch (Exception e) {
@@ -96,7 +95,7 @@ public class RegisterController {
                     getClass().getResource("/com/codedu/views/Login.fxml"));
             Parent root = loader.load();
 
-            Stage stage = (Stage) usernameField.getScene().getWindow();
+            Stage stage = (Stage) emailField.getScene().getWindow();
             Scene scene = new Scene(root, 1200, 750);
             stage.setScene(scene);
         } catch (Exception e) {

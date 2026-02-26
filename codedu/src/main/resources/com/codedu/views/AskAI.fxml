@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.AskAIController"
-      alignment="TOP_CENTER" spacing="20" maxWidth="800">
+      alignment="TOP_CENTER" spacing="20" maxWidth="1100">
 
     <padding>
         <Insets top="10" right="0" bottom="10" left="0"/>
@@ -16,18 +21,57 @@
 
     <Label fx:id="titleLabel" text="Ask AI tutor"/>
     <Label fx:id="subtitleLabel"
-           text="Type a question about your code or a concept you are learning. In a full version, an AI tutor would answer here."
+           text="Describe your question, paste the relevant code, and add tags so the AI understands the context."
            wrapText="true"/>
 
-    <VBox fx:id="card" spacing="12">
-        <Label fx:id="promptLabel" text="Your question"/>
-        <TextArea fx:id="questionArea"
-                  promptText="For example: &quot;Why am I getting an index out of bounds error in this loop?&quot;"
-                  prefRowCount="5"/>
-        <Label fx:id="noteLabel"
-               text="Responses are not yet wired up in this prototype, but this is where explanations would appear."
-               wrapText="true"/>
-    </VBox>
+    <HBox alignment="TOP_LEFT" spacing="16">
+
+        <!-- Left column: chat + question + tags -->
+        <VBox fx:id="leftColumn" spacing="12" prefWidth="620">
+
+            <!-- Chat history -->
+            <VBox fx:id="chatCard" spacing="8">
+                <Label text="Conversation"/>
+                <ScrollPane fitToWidth="true" prefViewportHeight="180">
+                    <VBox fx:id="chatList" spacing="8">
+                        <padding><Insets top="4" right="4" bottom="4" left="0"/></padding>
+                    </VBox>
+                </ScrollPane>
+            </VBox>
+
+            <!-- Question + tags -->
+            <VBox fx:id="card" spacing="12">
+                <Label fx:id="promptLabel" text="Your question"/>
+                <TextArea fx:id="questionArea"
+                          promptText="For example: &quot;Why am I getting an index out of bounds error in this loop?&quot;"
+                          prefRowCount="4"/>
+
+                <Label text="Tags (optional)"/>
+                <TextField fx:id="tagsField"
+                           promptText="e.g. arrays, loops, performance"/>
+
+                <HBox alignment="CENTER_RIGHT" spacing="8">
+                    <Label fx:id="requestsLabel" text="0 AI requests left"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="askButton" text="Ask" disable="true"
+                            onAction="#handleAsk"/>
+                </HBox>
+
+                <Label fx:id="noteLabel"
+                       text="Each question uses one AI request. When you run out, you can buy more in the Store."
+                       wrapText="true"/>
+            </VBox>
+        </VBox>
+
+        <!-- Right column: code snippet viewer -->
+        <VBox fx:id="codeCard" spacing="8" prefWidth="420">
+            <Label text="Code snippet"/>
+            <TextArea fx:id="codeArea"
+                      promptText="Paste the relevant code here so the AI can see what you are working on."
+                      prefRowCount="18"/>
+        </VBox>
+
+    </HBox>
 
 </VBox>
 

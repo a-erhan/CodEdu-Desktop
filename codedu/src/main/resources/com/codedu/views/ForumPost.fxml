@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.codedu.controllers.ForumPostController"
+      alignment="TOP_CENTER" spacing="16" maxWidth="900">
+
+    <padding>
+        <Insets top="16" right="24" bottom="24" left="24"/>
+    </padding>
+
+    <!-- Header with back button -->
+    <HBox alignment="CENTER_LEFT" spacing="8">
+        <Button fx:id="backButton" text="← Back to forum"/>
+        <Region HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Post content -->
+    <VBox fx:id="postCard" spacing="8">
+        <Label fx:id="titleLabel" text="Post title"/>
+        <Label fx:id="metaLabel" text="Posted by User" wrapText="true"/>
+        <ScrollPane fitToWidth="true" prefViewportHeight="200">
+            <TextArea fx:id="contentArea" editable="false" wrapText="true"/>
+        </ScrollPane>
+    </VBox>
+
+    <!-- Replies -->
+    <VBox fx:id="repliesCard" spacing="8">
+        <Label text="Replies"/>
+        <VBox fx:id="repliesList" spacing="8"/>
+    </VBox>
+
+    <!-- Add reply -->
+    <VBox fx:id="replyEditor" spacing="8">
+        <Label text="Add a reply"/>
+        <TextArea fx:id="replyArea" prefRowCount="4"
+                  promptText="Write your reply here..."/>
+        <HBox alignment="CENTER_RIGHT" spacing="8">
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="replyButton" text="Reply" disable="true"/>
+        </HBox>
+    </VBox>
+
+</VBox>
+
