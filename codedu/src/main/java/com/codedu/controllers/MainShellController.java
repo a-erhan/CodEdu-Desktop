@@ -85,6 +85,8 @@ public class MainShellController {
 
     @FXML
     private ScrollPane sidebarScroll;
+    @FXML
+    private VBox sidebarContainer;
 
     // ========== Shared state (shell: header + profile) ==========
     private User user = new User();
@@ -116,11 +118,19 @@ public class MainShellController {
     private void ensureShellFillsScene() {
         Platform.runLater(() -> {
             if (contentArea == null || contentArea.getScene() == null) return;
-            javafx.scene.Node root = contentArea.getScene().getRoot();
+            javafx.scene.Scene scene = contentArea.getScene();
+            javafx.scene.Node root = scene.getRoot();
             if (root instanceof Region) {
                 Region r = (Region) root;
                 r.setMaxWidth(Double.MAX_VALUE);
                 r.setMaxHeight(Double.MAX_VALUE);
+            }
+            // Force sidebar to match center height so it fills the full left column
+            if (sidebarScroll != null && contentArea != null) {
+                sidebarScroll.prefHeightProperty().unbind();
+                sidebarScroll.prefHeightProperty().bind(contentArea.heightProperty());
+                sidebarScroll.minHeightProperty().unbind();
+                sidebarScroll.minHeightProperty().bind(contentArea.heightProperty());
             }
         });
     }
@@ -145,10 +155,16 @@ public class MainShellController {
             sidebar.setFillWidth(true);
             sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
         }
+        if (sidebarContainer != null) {
+            sidebarContainer.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
+        }
         if (sidebarScroll != null) {
             sidebarScroll.setMaxHeight(Double.MAX_VALUE);
             sidebarScroll.setMinHeight(0);
-            sidebarScroll.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
+        }
+        // So the spacer (VBox.vgrow=ALWAYS) can expand and push version to bottom
+        if (sidebar != null && sidebarScroll != null) {
+            sidebar.minHeightProperty().bind(sidebarScroll.heightProperty());
         }
         if (welcomeNavLabel != null) {
             welcomeNavLabel.getStyleClass().add(Styles.TEXT_SUBTLE);

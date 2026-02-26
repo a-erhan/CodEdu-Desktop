@@ -36,9 +36,10 @@
     </top>
 
     <left>
-        <ScrollPane fx:id="sidebarScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
-                   minWidth="200" prefWidth="220" maxWidth="280">
-            <content>
+        <VBox fx:id="sidebarContainer" alignment="TOP_LEFT" fillWidth="true">
+            <ScrollPane fx:id="sidebarScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                       minWidth="200" prefWidth="220" maxWidth="280" VBox.vgrow="ALWAYS">
+                <content>
                 <VBox fx:id="sidebar" spacing="12" alignment="TOP_LEFT" minHeight="-Infinity">
                     <padding><Insets top="20" right="16" bottom="20" left="16"/></padding>
 
@@ -67,11 +68,12 @@
 
                     <Button fx:id="btnSettings"      text="Settings"          maxWidth="Infinity"/>
 
-                    <Region prefHeight="20"/>
+                    <Region prefHeight="12" VBox.vgrow="ALWAYS"/>
                     <Label text="v1.0.0-alpha"/>
                 </VBox>
-            </content>
-        </ScrollPane>
+                </content>
+            </ScrollPane>
+        </VBox>
     </left>
 
     <center>
