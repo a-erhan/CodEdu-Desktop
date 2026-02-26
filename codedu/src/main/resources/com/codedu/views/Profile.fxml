@@ -45,17 +45,26 @@
                 <Label text="Tokens"/>
                 <Label fx:id="profileTokenLabel"/>
             </VBox>
-            <VBox fx:id="badgeCard" spacing="6" alignment="CENTER">
-                <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Badge"/>
-                <Label fx:id="profileBadgeLabel"/>
-            </VBox>
             <VBox fx:id="itemsCard" spacing="6" alignment="CENTER">
                 <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
                 <Label text="Items owned"/>
                 <Label fx:id="profileItemsLabel"/>
             </VBox>
         </HBox>
+
+        <!-- Badges section (showcase earned badges – visible to owner and visitors) -->
+        <VBox fx:id="badgesSection" spacing="12" alignment="TOP_LEFT">
+            <Label text="Badges" fx:id="badgesSectionTitle"/>
+            <Label fx:id="noBadgesLabel" wrapText="true" text="No badges yet. Complete challenges and achievements to earn badges!"/>
+            <FlowPane fx:id="badgesContainer" hgap="12" vgap="12"/>
+        </VBox>
+
+        <!-- Friends section (only visible for own profile) -->
+        <VBox fx:id="friendsSection" spacing="12" alignment="TOP_LEFT">
+            <Label text="Friends" fx:id="friendsSectionTitle"/>
+            <Label fx:id="noFriendsLabel" text="No friends yet. Add friends from the Leaderboard or Forum!"/>
+            <VBox fx:id="friendsList" spacing="8"/>
+        </VBox>
 
         <!-- My avatars section (only visible for own profile) -->
         <VBox fx:id="avatarsSection" spacing="12" alignment="CENTER_LEFT">
