@@ -7,7 +7,6 @@ import com.codedu.models.Chapter;
 import com.codedu.models.Competitor;
 import com.codedu.models.DailyChallenge;
 import com.codedu.models.ForumPost;
-import com.codedu.models.LeaderBoard;
 import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.animation.ScaleTransition;
@@ -19,9 +18,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -32,14 +29,15 @@ import org.springframework.stereotype.Controller;
 import java.io.IOException;
 
 /**
- * Controller for the main application shell.
- * Manages sidebar navigation, header data binding, and center content
- * switching.
+ * Shell-only controller: sidebar/nav wiring, header (tokens, XP, profile icon, theme),
+ * high-level routing (loadLearningPath, loadDailyChallenge, loadForum, loadAskAI, etc.),
+ * and initialization of shared models (user, gameState) for header and profile.
+ * Feature-specific UI logic lives in the respective page controllers.
  */
 @Controller
 public class MainShellController {
 
-    // --- Header elements ---
+    // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
     @FXML
@@ -53,13 +51,13 @@ public class MainShellController {
     @FXML
     private Label profileIconLabel;
 
-    // --- Sidebar ---
+    // ========== FXML: Sidebar ==========
     @FXML
     private VBox sidebar;
     @FXML
     private Label taglineLabel;
 
-    // --- Sidebar buttons ---
+    // ========== FXML: Sidebar buttons ==========
     @FXML
     private Button btnLearningPath;
     @FXML
@@ -79,20 +77,19 @@ public class MainShellController {
     @FXML
     private Button btnSettings;
 
-    // --- Center content area ---
+    // ========== FXML: Content area ==========
     @FXML
     private StackPane contentArea;
 
+    // ========== Shared state (shell: header + profile) ==========
     private User user = new User();
     private UserGameState gameState;
-    private DailyChallenge todayChallenge;
-    private LeaderBoard weeklyLeaderboard;
-    private java.util.List<ForumPost> forumThreads = new java.util.ArrayList<>();
     private Button activeButton;
+    private boolean darkTheme = true;
 
-    /**
-     * Set the authenticated user from the login screen.
-     */
+    // ========== Lifecycle ==========
+
+    /** Called from login/register when user is set. */
     public void setUser(User user) {
         this.user = user;
         initDemoModelsIfNeeded();
@@ -101,11 +98,16 @@ public class MainShellController {
 
     @FXML
     public void initialize() {
-        // Bind header to user model
         initDemoModelsIfNeeded();
         updateHeader();
+        initSidebarAndHeaderStyles();
+        styleAndWireNavigation();
+        setActiveButton(btnLearningPath);
+        loadLearningPath();
+    }
 
-        // Apply Nord typography and container styling
+    /** Sidebar, tagline, welcome label, profile icon. */
+    private void initSidebarAndHeaderStyles() {
         if (taglineLabel != null) {
             taglineLabel.getStyleClass().add(Styles.TITLE_2);
         }
@@ -126,8 +128,10 @@ public class MainShellController {
             profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
             profileIconLabel.setOnMouseClicked(e -> loadProfile());
         }
+    }
 
-        // Apply common Nord nav-button styling
+    /** Style all nav buttons and set their actions. */
+    private void styleAndWireNavigation() {
         styleNavButton(btnLearningPath);
         styleNavButton(btnDailyChallenge);
         styleNavButton(btnAchievements);
@@ -200,11 +204,9 @@ public class MainShellController {
             setActiveButton(btnSettings);
             loadSettings();
         });
-
-        // Default to Journey (Learning Path) instead of welcome hero page
-        setActiveButton(btnLearningPath);
-        loadLearningPath();
     }
+
+    // ========== Header ==========
 
     private void updateHeader() {
         String username = user.getUsername() != null ? user.getUsername() : "User";
@@ -228,6 +230,8 @@ public class MainShellController {
         xpLabel.setText("XP: " + xp + " / " + levelCap);
     }
 
+    // ========== Shared demo data (shell: header + profile only) ==========
+
     private void initDemoModelsIfNeeded() {
         if (gameState == null) {
             gameState = UserGameState.builder()
@@ -236,66 +240,6 @@ public class MainShellController {
                     .xp(0)
                     .heartCount(3)
                     .build();
-        }
-
-        if (todayChallenge == null) {
-            todayChallenge = DailyChallenge.builder()
-                    .name("Loops & counters")
-                    .description("Write a function that prints the numbers from 1 to 100 and counts how many are even.")
-                    .xpRewards(50)
-                    .tokenRewards(25)
-                    .build();
-        }
-
-        if (weeklyLeaderboard == null) {
-            // Create mock competitors, assigning one to the current user
-            Competitor me = Competitor.builder()
-                    .user(user)
-                    .rankingPoint(2180)
-                    .totalWins(12)
-                    .totalLosses(8)
-                    .totalMatches(20)
-                    .build();
-            Competitor c1 = Competitor.builder().rankingPoint(2840).totalWins(20).totalLosses(5).totalMatches(25).build();
-            Competitor c2 = Competitor.builder().rankingPoint(2650).totalWins(18).totalLosses(6).totalMatches(24).build();
-            Competitor c3 = Competitor.builder().rankingPoint(2420).totalWins(15).totalLosses(7).totalMatches(22).build();
-            Competitor c5 = Competitor.builder().rankingPoint(1950).totalWins(10).totalLosses(9).totalMatches(19).build();
-
-            weeklyLeaderboard = LeaderBoard.builder()
-                    .name("Weekly XP")
-                    .userRank(4) // 4th place
-                    .requiredLevel(1)
-                    .build();
-            weeklyLeaderboard.addCompetitor(c1);
-            weeklyLeaderboard.addCompetitor(c2);
-            weeklyLeaderboard.addCompetitor(c3);
-            weeklyLeaderboard.addCompetitor(me);
-            weeklyLeaderboard.addCompetitor(c5);
-        }
-
-        if (forumThreads.isEmpty()) {
-            String authorName = user.getUsername() != null ? user.getUsername() : "You";
-            User author = User.builder()
-                    .username(authorName)
-                    .email(authorName.toLowerCase() + "@example.com")
-                    .password("")
-                    .build();
-
-            forumThreads.add(ForumPost.builder()
-                    .title("How do I fix a NullPointerException in Java?")
-                    .content("I am looping over a list and sometimes get a NullPointerException. How can I debug this?")
-                    .author(author)
-                    .build());
-            forumThreads.add(ForumPost.builder()
-                    .title("Best way to understand loops as a beginner?")
-                    .content("I get confused with indices in for-loops. Any mental models that helped you?")
-                    .author(author)
-                    .build());
-            forumThreads.add(ForumPost.builder()
-                    .title("Share your favorite resources for learning Java")
-                    .content("Looking for interactive resources that teach Java with real-world examples.")
-                    .author(author)
-                    .build());
         }
     }
 
@@ -314,13 +258,7 @@ public class MainShellController {
         });
     }
 
-    private void setupNavButton(Button button, String sectionTitle, String sectionDescription) {
-        setupNavButtonWithHover(button);
-        button.setOnAction(e -> {
-            setActiveButton(button);
-            showSectionPlaceholder(sectionTitle, sectionDescription);
-        });
-    }
+    // ========== Navigation helpers ==========
 
     private void styleNavButton(Button button) {
         if (button == null) return;
@@ -338,7 +276,7 @@ public class MainShellController {
         }
     }
 
-    // --- Module loaders ---
+    // ========== Page loaders ==========
 
     private void loadLearningPath() {
         try {
@@ -425,7 +363,6 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
-            controller.setTodayChallenge(todayChallenge);
             controller.setOnStartChallenge(this::openChallengePage);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
@@ -441,7 +378,7 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/Achievements.fxml"));
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
-            controller.setLeaderboard(weeklyLeaderboard);
+            controller.setCurrentUser(user);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -456,7 +393,6 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/Forum.fxml"));
             Parent view = loader.load();
             ForumController controller = loader.getController();
-            controller.setPosts(forumThreads);
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
             contentArea.getChildren().setAll(view);
@@ -501,7 +437,7 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
             Parent view = loader.load();
             LeaderboardController controller = loader.getController();
-            controller.setLeaderboard(weeklyLeaderboard);
+            controller.setCurrentUser(user);
             controller.setOnOpenProfile(this::openCompetitorProfile);
             contentArea.getChildren().setAll(view);
         } catch (IOException ex) {
@@ -511,39 +447,16 @@ public class MainShellController {
         }
     }
 
-    private void openCompetitorProfile(Competitor competitor) {
+    // ========== Routing: open* (from child controllers) ==========
+    // Shell only loads view and passes data/callbacks; no feature logic here.
+
+    private void openCompetitorProfile(Competitor competitor, java.util.List<Competitor> competitorOrder) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Profile.fxml"));
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
-
-            User profileUser = competitor.getUser();
-            if (profileUser == null) {
-                int idx = weeklyLeaderboard != null
-                        ? Math.max(0, weeklyLeaderboard.getCompetitors().indexOf(competitor))
-                        : 0;
-                profileUser = User.builder()
-                        .username("Player " + (idx + 1))
-                        .email("")
-                        .password("")
-                        .build();
-            }
-
-            int ranking = competitor.getRankingPoint();
-            int level = Math.max(1, ranking / 1000);
-
-            UserGameState otherState = UserGameState.builder()
-                    .user(profileUser)
-                    .level(level)
-                    .xp(ranking)
-                    .heartCount(3)
-                    .build();
-
-            controller.setViewingSelf(false);
-            controller.setUserModel(profileUser);
-            controller.setGameState(otherState);
-
+            controller.setCompetitor(competitor, competitorOrder);
             contentArea.getChildren().setAll(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -587,8 +500,7 @@ public class MainShellController {
         }
     }
 
-    // Track theme explicitly instead of inspecting the UA string
-    private boolean darkTheme = true;
+    // ========== Theme ==========
 
     private void toggleTheme() {
         darkTheme = !darkTheme;
@@ -599,128 +511,7 @@ public class MainShellController {
         }
     }
 
-    // --- Content helpers ---
-
-    private void showWelcome() {
-        VBox root = new VBox(24);
-        root.setAlignment(Pos.CENTER);
-        root.setMaxWidth(900);
-
-        String username = user.getUsername() != null ? user.getUsername() : "User";
-
-        Label welcome = new Label("Welcome " + username);
-        welcome.getStyleClass().add(Styles.TITLE_3);
-
-        // --- Hero section ---
-        VBox heroBox = new VBox(12);
-        heroBox.setAlignment(Pos.CENTER);
-
-        Label tagline = new Label("CODE MAKES PERFECT");
-        tagline.getStyleClass().add("hero-tagline");
-
-        Label title = new Label("The free, fun, and effective way to learn to code!");
-        title.getStyleClass().addAll("welcome-title", "hero-main-title");
-        title.setWrapText(true);
-
-        Label subtitle = new Label(
-                "Write real code from day one, track your streak, and compete with other learners \u2014 all inside CodEdu.");
-        subtitle.getStyleClass().add("hero-subtitle");
-        subtitle.setWrapText(true);
-
-        Label metric = new Label("Join over 3,165,792 codders");
-        metric.getStyleClass().addAll("welcome-stats", "hero-metric");
-
-        HBox ctaRow = new HBox(12);
-        ctaRow.setAlignment(Pos.CENTER);
-
-        Button btnGetStarted = new Button("GET STARTED");
-        btnGetStarted.getStyleClass().add("hero-cta-primary");
-        btnGetStarted.setOnAction(e -> {
-            setActiveButton(btnLearningPath);
-            loadLearningPath();
-        });
-
-        Button btnContinue = new Button("CONTINUE WHERE I LEFT OFF");
-        btnContinue.getStyleClass().add("hero-cta-secondary");
-        btnContinue.setOnAction(e -> {
-            setActiveButton(btnAskAI);
-            loadProfile();
-        });
-
-        ctaRow.getChildren().addAll(btnGetStarted, btnContinue);
-
-        HBox languagesRow = new HBox(8);
-        languagesRow.setAlignment(Pos.CENTER);
-
-        String[] languages = {"Python", "HTML", "JavaScript", "Java", "C++", "SQL", "C", "CSS"};
-        for (int i = 0; i < languages.length; i++) {
-            Label pill = new Label(languages[i]);
-            pill.getStyleClass().add("hero-language-pill");
-            if (i == 0) {
-                pill.getStyleClass().add("hero-language-pill-featured");
-            }
-            languagesRow.getChildren().add(pill);
-        }
-
-        heroBox.getChildren().addAll(tagline, title, subtitle, metric, ctaRow, languagesRow);
-
-        // --- Feature cards row (mirrors Coddy sections) ---
-        HBox sectionsRow = new HBox(16);
-        sectionsRow.setAlignment(Pos.CENTER);
-        sectionsRow.getStyleClass().add("hero-section-row");
-
-        VBox learnByDoing = new VBox(8);
-        learnByDoing.setAlignment(Pos.TOP_LEFT);
-        learnByDoing.getStyleClass().add("hero-section-card");
-        learnByDoing.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-
-        Label learnTitle = new Label("Learn by Doing");
-        learnTitle.getStyleClass().add("hero-section-title");
-        Label learnBody = new Label(
-                "Solve bite-sized interactive challenges and see instant feedback in the built-in code editor.");
-        learnBody.getStyleClass().add("hero-section-body");
-        learnBody.setWrapText(true);
-        Label learnBadge = new Label("PLAYGROUND & TEST CASES");
-        learnBadge.getStyleClass().add("hero-section-badge");
-        learnByDoing.getChildren().addAll(learnTitle, learnBody, learnBadge);
-
-        VBox streakCard = new VBox(8);
-        streakCard.setAlignment(Pos.TOP_LEFT);
-        streakCard.getStyleClass().add("hero-section-card");
-        streakCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-
-        Label streakTitle = new Label("Build Your Coding Streak");
-        streakTitle.getStyleClass().add("hero-section-title");
-        Label streakBody = new Label(
-                "Keep your daily habit alive with streaks, freeze days, and friendly competition on leaderboards.");
-        streakBody.getStyleClass().add("hero-section-body");
-        streakBody.setWrapText(true);
-        Label streakBadge = new Label("DAILY CHALLENGES");
-        streakBadge.getStyleClass().add("hero-section-badge");
-        streakCard.getChildren().addAll(streakTitle, streakBody, streakBadge);
-
-        VBox proveCard = new VBox(8);
-        proveCard.setAlignment(Pos.TOP_LEFT);
-        proveCard.getStyleClass().add("hero-section-card");
-        proveCard.setPadding(new javafx.geometry.Insets(16, 18, 16, 18));
-
-        Label proveTitle = new Label("Prove Your Skills");
-        proveTitle.getStyleClass().add("hero-section-title");
-        Label proveBody = new Label(
-                "Earn achievements and certificates as you complete learning paths and master new concepts.");
-        proveBody.getStyleClass().add("hero-section-body");
-        proveBody.setWrapText(true);
-        Label proveBadge = new Label("CERTIFICATES & BADGES");
-        proveBadge.getStyleClass().add("hero-section-badge");
-        proveCard.getChildren().addAll(proveTitle, proveBody, proveBadge);
-
-        sectionsRow.getChildren().addAll(learnByDoing, streakCard, proveCard);
-
-        root.getChildren().addAll(welcome, heroBox, sectionsRow);
-        contentArea.getChildren().setAll(root);
-    }
-
-    // showSectionPlaceholder remains as a generic fallback for loader errors
+    // ========== Fallback (loader errors) ==========
 
     private void showSectionPlaceholder(String title, String description) {
         VBox box = new VBox(12);

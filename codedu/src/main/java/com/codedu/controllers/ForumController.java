@@ -48,11 +48,41 @@ public class ForumController {
 
     public void setPosts(List<ForumPost> posts) {
         this.posts = posts != null ? posts : new ArrayList<>();
+        ensureDemoPosts();
         buildThreads();
+    }
+
+    /** Create demo forum threads in this controller if list is empty (demo data lives here). */
+    private void ensureDemoPosts() {
+        if (!posts.isEmpty()) return;
+        if (currentUser == null) return;
+        String authorName = currentUser.getUsername() != null ? currentUser.getUsername() : "You";
+        User author = User.builder()
+                .username(authorName)
+                .email(authorName.toLowerCase() + "@example.com")
+                .password("")
+                .build();
+        posts.add(ForumPost.builder()
+                .title("How do I fix a NullPointerException in Java?")
+                .content("I am looping over a list and sometimes get a NullPointerException. How can I debug this?")
+                .author(author)
+                .build());
+        posts.add(ForumPost.builder()
+                .title("Best way to understand loops as a beginner?")
+                .content("I get confused with indices in for-loops. Any mental models that helped you?")
+                .author(author)
+                .build());
+        posts.add(ForumPost.builder()
+                .title("Share your favorite resources for learning Java")
+                .content("Looking for interactive resources that teach Java with real-world examples.")
+                .author(author)
+                .build());
     }
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        ensureDemoPosts();
+        buildThreads();
     }
 
     public void setOnOpenPost(Consumer<ForumPost> onOpenPost) {
@@ -130,6 +160,7 @@ public class ForumController {
     }
 
     private void buildThreads() {
+        ensureDemoPosts();
         if (threadList == null) {
             return;
         }

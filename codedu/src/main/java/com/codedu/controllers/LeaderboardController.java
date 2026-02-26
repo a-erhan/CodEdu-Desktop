@@ -3,13 +3,15 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.Competitor;
 import com.codedu.models.LeaderBoard;
+import com.codedu.models.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.springframework.stereotype.Controller;
 
-import java.util.function.Consumer;
+import java.util.List;
+import java.util.function.BiConsumer;
 
 @Controller
 public class LeaderboardController {
@@ -32,17 +34,51 @@ public class LeaderboardController {
     private VBox boardList;
 
     private LeaderBoard leaderboard;
-    private Consumer<Competitor> onOpenProfile;
+    private User currentUser;
+    private BiConsumer<Competitor, List<Competitor>> onOpenProfile;
 
-    public void setLeaderboard(LeaderBoard leaderboard) {
-        this.leaderboard = leaderboard;
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        ensureDemoLeaderboard();
         buildLeaderboard();
     }
 
-    public void setOnOpenProfile(Consumer<Competitor> onOpenProfile) {
-        this.onOpenProfile = onOpenProfile;
-        // Rebuild so existing name labels get wired with click handlers
+    public void setLeaderboard(LeaderBoard leaderboard) {
+        this.leaderboard = leaderboard;
+        ensureDemoLeaderboard();
         buildLeaderboard();
+    }
+
+    public void setOnOpenProfile(BiConsumer<Competitor, List<Competitor>> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
+        buildLeaderboard();
+    }
+
+    /** Create demo leaderboard in this controller if none set (demo data lives here). */
+    private void ensureDemoLeaderboard() {
+        if (leaderboard != null) return;
+        if (currentUser == null) return;
+        Competitor me = Competitor.builder()
+                .user(currentUser)
+                .rankingPoint(2180)
+                .totalWins(12)
+                .totalLosses(8)
+                .totalMatches(20)
+                .build();
+        Competitor c1 = Competitor.builder().rankingPoint(2840).totalWins(20).totalLosses(5).totalMatches(25).build();
+        Competitor c2 = Competitor.builder().rankingPoint(2650).totalWins(18).totalLosses(6).totalMatches(24).build();
+        Competitor c3 = Competitor.builder().rankingPoint(2420).totalWins(15).totalLosses(7).totalMatches(22).build();
+        Competitor c5 = Competitor.builder().rankingPoint(1950).totalWins(10).totalLosses(9).totalMatches(19).build();
+        leaderboard = LeaderBoard.builder()
+                .name("Weekly XP")
+                .userRank(4)
+                .requiredLevel(1)
+                .build();
+        leaderboard.addCompetitor(c1);
+        leaderboard.addCompetitor(c2);
+        leaderboard.addCompetitor(c3);
+        leaderboard.addCompetitor(me);
+        leaderboard.addCompetitor(c5);
     }
 
     @FXML
@@ -54,6 +90,7 @@ public class LeaderboardController {
     }
 
     private void buildLeaderboard() {
+        ensureDemoLeaderboard();
         if (leaderboard == null || boardList == null || myCard == null) {
             return;
         }
@@ -118,7 +155,8 @@ public class LeaderboardController {
 
             if (onOpenProfile != null) {
                 name.getStyleClass().add(Styles.INTERACTIVE);
-                name.setOnMouseClicked(e -> onOpenProfile.accept(c));
+                java.util.List<Competitor> list = leaderboard.getCompetitors();
+                name.setOnMouseClicked(e -> onOpenProfile.accept(c, list));
             }
 
             Label score = new Label(

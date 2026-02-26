@@ -1,9 +1,12 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.models.Competitor;
 import com.codedu.models.InventoryItem;
 import com.codedu.models.User;
 import com.codedu.models.UserGameState;
+
+import java.util.List;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -72,6 +75,37 @@ public class ProfileController {
 
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
+        bindStats();
+    }
+
+    /**
+     * Show another user's profile from a leaderboard competitor.
+     * Builds display user and game state from competitor; use when opening profile from Leaderboard.
+     */
+    public void setCompetitor(Competitor competitor, List<Competitor> leaderboardOrder) {
+        if (competitor == null) return;
+        User profileUser = competitor.getUser();
+        if (profileUser == null && leaderboardOrder != null) {
+            int idx = Math.max(0, leaderboardOrder.indexOf(competitor));
+            profileUser = User.builder()
+                    .username("Player " + (idx + 1))
+                    .email("")
+                    .password("")
+                    .build();
+        } else if (profileUser == null) {
+            profileUser = User.builder().username("Player").email("").password("").build();
+        }
+        int ranking = competitor.getRankingPoint();
+        int level = Math.max(1, ranking / 1000);
+        UserGameState otherState = UserGameState.builder()
+                .user(profileUser)
+                .level(level)
+                .xp(ranking)
+                .heartCount(3)
+                .build();
+        this.user = profileUser;
+        this.gameState = otherState;
+        this.viewingSelf = false;
         bindStats();
     }
 
