@@ -5,6 +5,5 @@ package com.codedu.models;
  */
 public enum Role {
     STUDENT,
-    INSTRUCTOR,
     ADMIN
 }

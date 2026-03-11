@@ -14,11 +14,10 @@ public abstract class BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private int id;
 
-    // Soft delete bayrağı
     @Column(name = "is_deleted", nullable = false)
-    private boolean deleted = false;
+    private boolean isDeleted = false;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

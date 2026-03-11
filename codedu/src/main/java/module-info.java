@@ -21,6 +21,7 @@ module com.codedu {
     requires org.aspectj.weaver;
     requires static lombok;
     requires atlantafx.base;
+    requires jakarta.transaction;
 
     // --- JavaFX FXML İzinleri ---
     opens com.codedu.views to javafx.fxml;
