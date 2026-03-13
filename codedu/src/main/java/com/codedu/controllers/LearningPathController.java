@@ -5,6 +5,7 @@ import com.codedu.models.Chapter.Difficulty;
 import com.codedu.models.ChapterContent;
 import com.codedu.models.Question;
 import com.codedu.models.QuestionType;
+import com.codedu.models.Reward;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -77,19 +78,39 @@ public class LearningPathController {
 
         /** Shorthand for a multiple-choice question. */
         private static Question mc(String title, String content, String solution, String hint) {
-                return new Question(QuestionType.MULTIPLE_CHOICES, content, title, solution, hint, 5, 10);
+                return new Question(
+                        QuestionType.MULTIPLE_CHOICES,
+                        content,
+                        title,
+                        solution,
+                        hint,
+                        new Reward(5, 10)
+                );
         }
 
         /** Shorthand for a fill-in-the-blanks question. */
         private static Question fb(String title, String content, String solution, String hint) {
-                return new Question(QuestionType.FILL_IN_THE_BLANKS, content, title, solution, hint, 5, 10);
+                return new Question(
+                        QuestionType.FILL_IN_THE_BLANKS,
+                        content,
+                        title,
+                        solution,
+                        hint,
+                        new Reward(5, 10)
+                );
         }
 
         /** Shorthand for a code-implementation question. */
         private static Question code(String title, String content, String solution, String hint) {
-                return new Question(QuestionType.CODE_IMPLEMENTATION, content, title, solution, hint, 10, 20);
+                return new Question(
+                        QuestionType.CODE_IMPLEMENTATION,
+                        content,
+                        title,
+                        solution,
+                        hint,
+                        new Reward(10, 20)
+                );
         }
-
         // ══════════════════════════════════════════════════════════════════
         // CHAPTER DATA + MOCK CONTENT
         // ══════════════════════════════════════════════════════════════════

@@ -21,10 +21,9 @@ public class DailyChallenge extends BaseEntity {
     @JoinColumn(name = "question_id")
     private Question question;
 
-    private int xpRewards;
-    private int tokenRewards;
+    private Reward reward;
 
     public int calculateTotalXp(int userMultiplier) {
-        return this.xpRewards * userMultiplier;
+        return this.reward.getXp() * userMultiplier;
     }
 }

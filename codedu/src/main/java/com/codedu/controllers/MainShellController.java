@@ -261,25 +261,38 @@ public class MainShellController {
     private void updateHeader() {
         String username = user.getUsername() != null ? user.getUsername() : "User";
         badgeLabel.setText("");
-        tokenLabel.setText("Tokens: " + user.getTokenBalance());
+
+        int tokens = 0;
+        int level = 1;
+        int xp = 0;
+
+        if (gameState != null) {
+            tokens = gameState.getTokenBalance();
+            level = gameState.getLevel();
+            xp = gameState.getXp();
+        } else if (user != null && user.getGameState() != null) {
+            tokens = user.getGameState().getTokenBalance();
+            level = user.getGameState().getLevel();
+            xp = user.getGameState().getXp();
+        }
+
+        tokenLabel.setText("Tokens: " + tokens);
 
         if (welcomeNavLabel != null) {
             welcomeNavLabel.setText("Welcome @" + username);
             welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
         }
+
         if (profileIconLabel != null) {
             String initial = username.isEmpty() ? "U" : username.substring(0, 1).toUpperCase();
             profileIconLabel.setText(initial);
         }
 
-        int level = gameState != null ? gameState.getLevel() : 1;
-        int xp = gameState != null ? gameState.getXp() : 0;
         int levelCap = Math.max(1, level * 1000);
         double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
         xpProgressBar.setProgress(progress);
         xpLabel.setText("XP: " + xp + " / " + levelCap);
     }
-
     // ========== Shared demo data (shell: header + profile only) ==========
 
     private void initDemoModelsIfNeeded() {

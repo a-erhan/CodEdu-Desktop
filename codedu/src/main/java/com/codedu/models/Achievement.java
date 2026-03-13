@@ -14,12 +14,19 @@ import java.util.List;
 @NoArgsConstructor
 public class Achievement extends BaseEntity {
 
-    private String badgeName;
-    private String description;
-    private int tokenReward;
+    private String name;
+
+    @Embedded
+    private Reward reward;
+
+    private String criteria;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "badge_id")
+    private Badge badge;
 
     @ManyToMany(mappedBy = "achievements", fetch = FetchType.LAZY)
-    private List<UserGameState> usersAchieved = new ArrayList<>();
+    private List<UserGameState> users = new ArrayList<>();
 
-    private String iconPath;
+
 }

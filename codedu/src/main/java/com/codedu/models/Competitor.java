@@ -16,6 +16,7 @@ public class Competitor extends BaseEntity {
     private User user;
 
     private int rankingPoint;
+    private int userRank;
     private int totalWins;
     private int totalLosses;
     private int totalMatches;

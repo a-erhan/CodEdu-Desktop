@@ -24,17 +24,21 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role = Role.STUDENT;
 
-    private int tokenBalance;
+    private boolean isActive = true;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")
     private Competitor competitor;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_state_id")
+    private UserGameState gameState;
+
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "inventory_id")
     private UserInventory inventory;
 
-    public boolean hasEnoughTokens(int amount) {
-        return this.tokenBalance >= amount;
+    public boolean login(String email, String password){
+        return this.email.equals(email) && this.password.equals(password) && isActive;
     }
 }

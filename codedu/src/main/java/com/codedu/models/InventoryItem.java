@@ -2,6 +2,8 @@ package com.codedu.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,5 +21,9 @@ public class InventoryItem extends BaseEntity {
 
     private int quantity;
     private boolean isEquipped;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_inventory_id")
+    private UserInventory inventory;
 
 }

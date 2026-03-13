@@ -6,8 +6,5 @@ package com.codedu.models;
 public enum ItemType {
     BOOSTER,
     AI_USAGE,
-    AVATAR,
-    THEME,
-    POWER_UP,
-    BUNDLE
+    AVATAR
 }

@@ -3,6 +3,10 @@ package com.codedu.models;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 /**
  * Model representing a single chapter/lesson in a learning path.
  */
@@ -36,9 +40,31 @@ public class Chapter extends BaseEntity {
     @JoinColumn(name = "content_id")
     private ChapterContent content;
 
-    public Chapter(String title, String description, String iconEmoji, String iconImage,
-                   Difficulty difficulty, int totalLessons, int completedLessons,
-                   int xpReward, boolean locked) {
+
+    public boolean isCompleted() {
+        return !locked && completedLessons >= totalLessons;
+    }
+
+    public double getProgress() {
+        if (totalLessons == 0) return 0;
+        return (double) completedLessons / totalLessons;
+    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "path_id")
+    private LearningPath path;
+
+    private String topicName;
+
+    public Chapter(String title,
+                   String description,
+                   String iconEmoji,
+                   String iconImage,
+                   Difficulty difficulty,
+                   int totalLessons,
+                   int completedLessons,
+                   int xpReward,
+                   boolean locked) {
+
         this.title = title;
         this.description = description;
         this.iconEmoji = iconEmoji;
@@ -50,12 +76,14 @@ public class Chapter extends BaseEntity {
         this.locked = locked;
     }
 
-    public boolean isCompleted() {
-        return !locked && completedLessons >= totalLessons;
-    }
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "chapter_id")
+    @Builder.Default
+    private List<Question> questions = new ArrayList<>();
 
-    public double getProgress() {
-        if (totalLessons == 0) return 0;
-        return (double) completedLessons / totalLessons;
+    private int tokenReward;
+
+    public boolean isCompleted(User user) {
+        return questions != null && !questions.isEmpty();
     }
 }

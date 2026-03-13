@@ -41,7 +41,7 @@ public class StoreController {
 
     public void setUserModel(User user) {
         this.user = user;
-        storeTokenLabel.setText("Tokens: " + user.getTokenBalance());
+        storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
         loadMockItems();
         markOwnedItemsFromInventory();
         buildGrid();
@@ -72,11 +72,11 @@ public class StoreController {
         allItems.add(new Item("Dragon Master", "Legendary beast tamer", "", 500, ItemType.AVATAR));
 
         // Power-ups
-        allItems.add(new Item("Double XP (1h)", "Earn double XP for 1 hour", "", 150, ItemType.POWER_UP));
+        allItems.add(new Item("Double XP (1h)", "Earn double XP for 1 hour", "", 150, ItemType.BOOSTER));
         allItems.add(new Item("Hint Token", "Get a free hint on any challenge", "", 100,
-                ItemType.POWER_UP));
+                ItemType.BOOSTER));
         allItems.add(new Item("Streak Shield", "Protect your streak for one day", "", 200,
-                ItemType.POWER_UP));
+                ItemType.BOOSTER));
 
         // AI Usage
         allItems.add(new Item("AI Usage", "Get AI-powered feedback on your code", "", 120,
@@ -90,7 +90,7 @@ public class StoreController {
         // Group items by type
         Map<ItemType, List<Item>> grouped = new LinkedHashMap<>();
         grouped.put(ItemType.AVATAR, new ArrayList<>());
-        grouped.put(ItemType.POWER_UP, new ArrayList<>());
+        grouped.put(ItemType.BOOSTER, new ArrayList<>());
         grouped.put(ItemType.AI_USAGE, new ArrayList<>());
         for (Item item : allItems) {
             grouped.get(item.getType()).add(item);
@@ -153,14 +153,21 @@ public class StoreController {
 
         if (!item.isOwned()) {
             buyBtn.setOnAction(e -> {
-                if (user.getTokenBalance() >= item.getPrice()) {
-                    user.setTokenBalance(user.getTokenBalance() - item.getPrice());
+                if (user != null &&
+                        user.getGameState() != null &&
+                        user.getGameState().hasEnoughTokens(item.getPrice())) {
+
+                    user.getGameState().setTokenBalance(
+                            user.getGameState().getTokenBalance() - item.getPrice()
+                    );
+
                     item.setOwned(true);
                     buyBtn.setText("Owned");
                     buyBtn.getStyleClass().clear();
                     buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
                     buyBtn.setOnAction(null);
-                    storeTokenLabel.setText("Tokens: " + user.getTokenBalance());
+
+                    storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
 
                     // Purchase animation
                     ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
@@ -194,7 +201,7 @@ public class StoreController {
     private String categoryTitle(ItemType c) {
         return switch (c) {
             case AVATAR -> "Avatars";
-            case POWER_UP -> "Power-ups";
+            case BOOSTER -> "Power-ups";
             case AI_USAGE -> "AI features";
             default -> c.name();
         };

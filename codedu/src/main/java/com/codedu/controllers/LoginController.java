@@ -4,6 +4,7 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.Role;
 import com.codedu.models.User;
 import com.codedu.models.UserInventory;
+import com.codedu.models.UserGameState;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -52,7 +53,7 @@ public class LoginController {
 
         // Basic validation
         if (email.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("Please fill in both email and password.");
+            errorLabel.setText("fill in both email and password.");
             return;
         }
 
@@ -62,8 +63,18 @@ public class LoginController {
         user.setUsername(email.contains("@") ? email.substring(0, email.indexOf('@')) : email);
         user.setPassword(password);
         user.setRole(Role.STUDENT);
-        user.setTokenBalance(500);
         user.setInventory(UserInventory.builder().build());
+
+        UserGameState gameState = UserGameState.builder()
+                .tokenBalance(500)
+                .heartCount(5)
+                .level(1)
+                .xp(0)
+                .currentStreak(0)
+                .build();
+
+        gameState.setUser(user);
+        user.setGameState(gameState);
 
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -85,7 +96,6 @@ public class LoginController {
             e.printStackTrace();
         }
     }
-
     @FXML
     private void handleOpenRegister() {
         try {

@@ -2,6 +2,9 @@ package com.codedu.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +24,8 @@ public class UserGameState extends BaseEntity {
     private int heartCount;
     private int level;
     private int xp;
+    private int tokenBalance;
+    private int currentStreak;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -35,9 +40,17 @@ public class UserGameState extends BaseEntity {
         return (this.level * 1000) - this.xp;
     }
 
+    public boolean hasEnoughTokens(int amount) {
+        return this.tokenBalance >= amount;
+    }
+
     public void addHeart() {
         if (this.heartCount < 5) {
             this.heartCount++;
         }
     }
+
+    @UpdateTimestamp
+    @Column(name = "last_activity_date")
+    private LocalDateTime lastActivityDate;
 }

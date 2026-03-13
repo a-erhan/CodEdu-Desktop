@@ -68,7 +68,7 @@ public class RegisterController {
         user.setEmail(email);
         user.setPassword(password);
         user.setRole(Role.STUDENT);
-        user.setTokenBalance(500);
+        user.getGameState().setTokenBalance(500);
         user.setInventory(UserInventory.builder().build());
 
         try {

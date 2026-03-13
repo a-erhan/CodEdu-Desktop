@@ -81,10 +81,20 @@ public class ChallengeController {
         if (challenge == null || problemTitle == null || problemDescription == null) {
             return;
         }
+
         problemTitle.setText(challenge.getName());
         problemDescription.setText(challenge.getDescription());
+
         if (metaLabel != null) {
-            metaLabel.setText(challenge.getXpRewards() + " XP · " + challenge.getTokenRewards() + " tokens");
+            int xp = 0;
+            int token = 0;
+
+            if (challenge.getReward() != null) {
+                xp = challenge.getReward().getXp();
+                token = challenge.getReward().getToken();
+            }
+
+            metaLabel.setText(xp + " XP · " + token + " tokens");
             metaLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
         }
     }

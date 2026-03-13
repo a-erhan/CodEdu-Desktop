@@ -2,6 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.DailyChallenge;
+import com.codedu.models.Reward;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -57,8 +58,10 @@ public class DailyChallengeController {
             challenges.add(DailyChallenge.builder()
                     .name("Loops & counters")
                     .description("Write a function that prints the numbers from 1 to 100 and counts how many are even.")
-                    .xpRewards(50)
-                    .tokenRewards(25)
+                    .reward(Reward.builder()
+                            .token(25)
+                            .xp(50)
+                            .build())
                     .build());
         }
 
@@ -66,14 +69,19 @@ public class DailyChallengeController {
         challenges.add(DailyChallenge.builder()
                 .name("Array practice")
                 .description("Work with arrays: sum numbers, find max, and reverse the list.")
-                .xpRewards(40)
-                .tokenRewards(15)
+                .reward(Reward.builder()
+                        .token(15)
+                        .xp(40)
+                        .build())
                 .build());
+
         challenges.add(DailyChallenge.builder()
                 .name("Debug the loop")
                 .description("Fix an off-by-one error in a for-loop and make tests pass.")
-                .xpRewards(35)
-                .tokenRewards(10)
+                .reward(Reward.builder()
+                        .token(10)
+                        .xp(35)
+                        .build())
                 .build());
 
         for (DailyChallenge ch : challenges) {
@@ -88,7 +96,14 @@ public class DailyChallengeController {
             Label chBody = new Label(ch.getDescription());
             chBody.setWrapText(true);
 
-            Label chMeta = new Label(ch.getXpRewards() + " XP · " + ch.getTokenRewards() + " tokens");
+            int xp = 0;
+            int token = 0;
+            if (ch.getReward() != null) {
+                xp = ch.getReward().getXp();
+                token = ch.getReward().getToken();
+            }
+
+            Label chMeta = new Label(xp + " XP · " + token + " tokens");
             chMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
             card.getChildren().addAll(chTitle, chBody, chMeta);

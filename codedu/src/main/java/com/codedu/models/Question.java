@@ -2,6 +2,7 @@ package com.codedu.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "questions")
@@ -9,10 +10,12 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+
 public class Question extends BaseEntity {
 
-    private int difficulty;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_difficulity")
+    private QuestionDifficulity questionDifficulity;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "question_type")
@@ -29,21 +32,21 @@ public class Question extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String hint;
 
-    private int tokenReward;
-    private int xpReward;
+    private Reward reward;
 
-    public Question(QuestionType type, String content, String title, String solution, String hint, int tokenReward, int xpReward) {
-        this.questionType = type;
+    public Question(QuestionType questionType,
+                    String content,
+                    String title,
+                    String solution,
+                    String hint,
+                    Reward reward) {
+
+        this.questionType = questionType;
         this.content = content;
         this.title = title;
         this.solution = solution;
         this.hint = hint;
-        this.tokenReward = tokenReward;
-        this.xpReward = xpReward;
-    }
-
-    public void setDifficulty(int difficulty) {
-        this.difficulty = (difficulty > 0 && difficulty <= 100) ? difficulty : 1;
+        this.reward = reward;
     }
 
     public boolean validateAnswer(String userAnswer) {

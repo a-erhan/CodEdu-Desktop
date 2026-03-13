@@ -14,7 +14,7 @@ public class Item extends BaseEntity {
 
     private String name;
     private String description;
-    private String emoji;
+    private String iconURL;
     private int price;
 
     @Enumerated(EnumType.STRING)
@@ -23,10 +23,10 @@ public class Item extends BaseEntity {
     @Transient
     private boolean owned;
 
-    public Item(String name, String description, String emoji, int price, ItemType type) {
+    public Item(String name, String description, String iconURL, int price, ItemType type) {
         this.name = name;
         this.description = description;
-        this.emoji = emoji;
+        this.iconURL = iconURL;
         this.price = price;
         this.type = type;
     }

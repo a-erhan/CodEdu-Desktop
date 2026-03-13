@@ -143,7 +143,7 @@ public class ProfileController {
         profileXpBar.setProgress(progress);
         profileXpLabel.setText(xp + " / " + levelCap + " XP");
 
-        int tokens = user != null ? user.getTokenBalance() : 0;
+        int tokens = user != null ? user.getGameState().getTokenBalance() : 0;
         profileTokenLabel.setText(String.valueOf(tokens));
 
         int itemCount = 0;

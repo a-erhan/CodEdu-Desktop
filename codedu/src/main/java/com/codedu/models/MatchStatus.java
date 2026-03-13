@@ -2,7 +2,7 @@ package com.codedu.models;
 
 public enum MatchStatus {
     IN_PROGRESS,
-    FINISHED,
-    CANCELLED,
-    PENDING
+    COMPLETED,
+    PENDING,
+    ABORTED
 }

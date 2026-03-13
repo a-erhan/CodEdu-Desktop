@@ -28,9 +28,11 @@ public class ForumPost extends BaseEntity {
     @Builder.Default
     private List<ForumPost> replies = new ArrayList<>();
 
-    private Long relatedQuestionId;
-
     public void addReply(ForumPost reply) {
         this.replies.add(reply);
     }
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name =  "related_question_id")
+    private Question relatedQuestion;
 }
