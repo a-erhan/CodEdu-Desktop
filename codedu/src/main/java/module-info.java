@@ -25,7 +25,13 @@ module com.codedu {
     opens com.codedu.controllers to javafx.fxml, spring.core, spring.beans, spring.context;
     opens com.codedu.models to org.hibernate.orm.core, spring.core, spring.beans;
     opens com.codedu to spring.core, spring.beans, spring.context;
+    opens com.codedu.repositories.interfaces to spring.core, spring.beans, spring.context;
+    opens com.codedu.repositories.implementations to spring.core, spring.beans, spring.context, org.hibernate.orm.core;
+    opens com.codedu.services to spring.core, spring.beans, spring.context;
+
     exports com.codedu;
     exports com.codedu.models;
     exports com.codedu.controllers;
+    exports com.codedu.repositories.interfaces;
+    exports com.codedu.services;
 }

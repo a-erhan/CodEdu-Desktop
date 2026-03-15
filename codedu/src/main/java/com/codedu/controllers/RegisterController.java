@@ -4,6 +4,7 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.Role;
 import com.codedu.models.User;
 import com.codedu.models.UserInventory;
+import com.codedu.services.AuthService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -13,6 +14,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -34,6 +36,10 @@ public class RegisterController {
     private Label errorLabel;
     @FXML
     private Button registerButton;
+    @Autowired
+    private AuthService authService;
+    @Autowired
+    private org.springframework.context.ApplicationContext context;
 
     @FXML
     public void initialize() {
@@ -60,24 +66,33 @@ public class RegisterController {
             return;
         }
 
-        // Mock user creation (no persistence yet)
-        User user = new User();
-        String username =
-                email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPassword(password);
-        user.setRole(Role.STUDENT);
-        user.getGameState().setTokenBalance(500);
-        user.setInventory(UserInventory.builder().build());
+        // Derive username from email (e.g., "john.doe" from "john.doe@example.com")
+        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+
+        // Attempt to register the user via AuthService
+        String registrationResult = authService.register(username, email, password);
+
+        // If registration fails (e.g., email already exists), show the error and stop
+        if (!"SUCCESS".equals(registrationResult)) {
+            errorLabel.setText(registrationResult);
+            return;
+        }
+
+        // Registration successful! Now let's automatically log them in to fetch the real User entity from DB
+        User loggedInUser = authService.login(email, password);
+        if (loggedInUser == null) {
+            errorLabel.setText("Account created, but automatic login failed. Please go to Login page.");
+            return;
+        }
 
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/MainShell.fxml"));
+            loader.setControllerFactory(context::getBean);
             Parent root = loader.load();
 
             MainShellController controller = loader.getController();
-            controller.setUser(user);
+            controller.setUser(loggedInUser);
 
             Stage stage = (Stage) emailField.getScene().getWindow();
             double w = Math.max(800, stage.getWidth());
@@ -96,6 +111,7 @@ public class RegisterController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Login.fxml"));
+            loader.setControllerFactory(context::getBean);
             Parent root = loader.load();
 
             Stage stage = (Stage) emailField.getScene().getWindow();

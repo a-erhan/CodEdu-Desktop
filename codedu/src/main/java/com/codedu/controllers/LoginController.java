@@ -14,8 +14,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
+import com.codedu.services.AuthService;
 /**
  * Controller for the Login screen.
  * Validates credentials and transitions to MainShell on success.
@@ -33,6 +34,11 @@ public class LoginController {
     private Label titleLabel;
     @FXML
     private Button loginButton;
+    @Autowired
+    private AuthService authService;
+    @Autowired
+    private org.springframework.context.ApplicationContext context;
+
 
     @FXML
     public void initialize() {
@@ -57,33 +63,22 @@ public class LoginController {
             return;
         }
 
-        // Create user and transition to main shell
-        User user = new User();
-        user.setEmail(email);
-        user.setUsername(email.contains("@") ? email.substring(0, email.indexOf('@')) : email);
-        user.setPassword(password);
-        user.setRole(Role.STUDENT);
-        user.setInventory(UserInventory.builder().build());
+        User loggedInUser = authService.login(email, password);
+        if (loggedInUser == null) {
+            errorLabel.setText("Invalid email or password. Please try again or create an account.");
+            return;
+        }
 
-        UserGameState gameState = UserGameState.builder()
-                .tokenBalance(500)
-                .heartCount(5)
-                .level(1)
-                .xp(0)
-                .currentStreak(0)
-                .build();
-
-        gameState.setUser(user);
-        user.setGameState(gameState);
 
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/MainShell.fxml"));
+            loader.setControllerFactory(context::getBean);
             Parent root = loader.load();
 
             // Pass user to main shell controller
             MainShellController controller = loader.getController();
-            controller.setUser(user);
+            controller.setUser(loggedInUser);
 
             Stage stage = (Stage) emailField.getScene().getWindow();
             double w = Math.max(800, stage.getWidth());
@@ -101,6 +96,7 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Register.fxml"));
+            loader.setControllerFactory(context::getBean);
             Parent root = loader.load();
 
             Stage stage = (Stage) emailField.getScene().getWindow();

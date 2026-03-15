@@ -32,11 +32,13 @@ public class Main extends Application {
                 ConfigurableApplicationContext ctx = new SpringApplicationBuilder(Main.class).run();
                 Platform.runLater(() -> {
                     springContext = ctx;
-                    if (primaryStage != null) showLogin();
+                    if (primaryStage != null)
+                        showLogin();
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    if (primaryStage != null) showError(e.getMessage());
+                    if (primaryStage != null)
+                        showError(e.getMessage());
                 });
             }
         });
@@ -92,7 +94,11 @@ public class Main extends Application {
             Scene scene = new Scene(root, 1200, 750);
             primaryStage.setScene(scene);
         } catch (Exception e) {
-            showError(e.getMessage());
+            e.printStackTrace();
+            Throwable root = e;
+            while (root.getCause() != null)
+                root = root.getCause();
+            showError(root.getClass().getSimpleName() + ": " + root.getMessage());
         }
     }
 
@@ -105,7 +111,8 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        // If DB is disabled (system property -Dapp.db.enabled=false OR app.db.enabled=false in application.properties),
+        // If DB is disabled (system property -Dapp.db.enabled=false OR
+        // app.db.enabled=false in application.properties),
         // exclude DataSource/JPA before Spring starts so no connection is made.
         String dbEnabled = System.getProperty("app.db.enabled");
         if (dbEnabled == null) {
@@ -120,10 +127,14 @@ public class Main extends Application {
         Application.launch(Main.class, args);
     }
 
-    /** Read app.db.enabled from application.properties so file-based disable works before Spring loads. */
+    /**
+     * Read app.db.enabled from application.properties so file-based disable works
+     * before Spring loads.
+     */
     private static String readAppDbEnabledFromProperties() {
         try (InputStream in = Main.class.getResourceAsStream("/application.properties")) {
-            if (in == null) return "true";
+            if (in == null)
+                return "true";
             Properties p = new Properties();
             p.load(in);
             return p.getProperty("app.db.enabled", "true");

@@ -106,6 +106,18 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.codedu/com.codedu.Main</mainClass>
+                    <options>
+                        <option>--add-reads</option>
+                        <option>com.codedu=ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang=spring.core,com.codedu,ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang.reflect=spring.core,ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.util=spring.core,ALL-UNNAMED</option>
+                        <option>--add-opens</option>
+                        <option>java.base/java.lang.invoke=spring.core,ALL-UNNAMED</option>
+                    </options>
                 </configuration>
             </plugin>
         </plugins>

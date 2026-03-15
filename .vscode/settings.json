@@ -6,5 +6,6 @@
             "path": "/Users/ahmeterhanavci/Library/Java/JavaVirtualMachines/temurin-21.0.10/Contents/Home",
             "default": true
         }
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
