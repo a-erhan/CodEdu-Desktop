@@ -15,9 +15,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CodeImplementationQuestion extends Question {
+    //Required for Judge0 API
+    @Column(columnDefinition = "TEXT")
+    private String boilerplateCode;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "code_question_id")
+    @OneToMany(mappedBy = "ques", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestCase> testCases = new ArrayList<>();
 
     @Override

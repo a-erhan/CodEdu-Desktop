@@ -20,7 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -484,7 +483,7 @@ public class MainShellController {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/AskAI.fxml"));
             Parent view = loader.load();
-            AskAIController controller = loader.getController();
+            AIChatbotController controller = loader.getController();
             controller.setRemainingRequests(3);
             setContentAndFill(view);
         } catch (IOException ex) {

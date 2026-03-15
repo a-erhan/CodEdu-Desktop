@@ -12,7 +12,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.codedu.controllers.AskAIController"
+      fx:controller="com.codedu.controllers.AIChatbotController"
       alignment="TOP_CENTER" spacing="20" maxWidth="1100">
 
     <padding>
@@ -53,8 +53,7 @@
                 <HBox alignment="CENTER_RIGHT" spacing="8">
                     <Label fx:id="requestsLabel" text="0 AI requests left"/>
                     <Region HBox.hgrow="ALWAYS"/>
-                    <Button fx:id="askButton" text="Ask" disable="true"
-                            onAction="#handleAsk"/>
+                    <Button fx:id="askButton" text="Ask" disable="true"/>
                 </HBox>
 
                 <Label fx:id="noteLabel"

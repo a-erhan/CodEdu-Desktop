@@ -1,3 +1,10 @@
 {
-    "java.jdt.ls.java.home": "/Library/Java/JavaVirtualMachines/microsoft-25.jdk/Contents/Home"
+    "java.jdt.ls.java.home": "/Users/ahmeterhanavci/Library/Java/JavaVirtualMachines/temurin-21.0.10/Contents/Home",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-21",
+            "path": "/Users/ahmeterhanavci/Library/Java/JavaVirtualMachines/temurin-21.0.10/Contents/Home",
+            "default": true
+        }
+    ]
 }

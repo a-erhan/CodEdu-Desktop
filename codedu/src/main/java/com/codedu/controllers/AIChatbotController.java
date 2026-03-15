@@ -1,6 +1,8 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.services.AIChatbotService;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,10 +11,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import org.springframework.stereotype.Controller;
 
-@Controller
-public class AskAIController {
+public class AIChatbotController {
 
     @FXML
     private Label titleLabel;
@@ -43,6 +43,9 @@ public class AskAIController {
 
     private int remainingRequests = 3;
 
+    // --- Backend Service ---
+    private final AIChatbotService geminiAiService = new AIChatbotService();
+
     public void setRemainingRequests(int remainingRequests) {
         this.remainingRequests = remainingRequests;
         updateRequestsLabel();
@@ -51,9 +54,8 @@ public class AskAIController {
 
     @FXML
     public void initialize() {
-        if (titleLabel != null) {
+        if (titleLabel != null)
             titleLabel.getStyleClass().add(Styles.TITLE_3);
-        }
         if (chatCard != null) {
             chatCard.setPadding(new Insets(12, 14, 12, 14));
             chatCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
@@ -66,14 +68,15 @@ public class AskAIController {
             codeCard.setPadding(new Insets(16, 18, 16, 18));
             codeCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-        if (promptLabel != null) {
+        if (promptLabel != null)
             promptLabel.getStyleClass().add(Styles.TEXT_BOLD);
-        }
-        if (noteLabel != null) {
+        if (noteLabel != null)
             noteLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
-        }
+
         if (askButton != null) {
             askButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+            // Link the button to our handleAsk method
+            askButton.setOnAction(e -> handleAsk());
         }
 
         if (questionArea != null && askButton != null) {
@@ -91,12 +94,12 @@ public class AskAIController {
     }
 
     private void updateAskButtonState() {
-        if (askButton == null || questionArea == null) return;
+        if (askButton == null || questionArea == null)
+            return;
         boolean hasQuestion = !questionArea.getText().trim().isEmpty();
         askButton.setDisable(!hasQuestion || remainingRequests <= 0);
     }
 
-    @FXML
     private void handleAsk() {
         if (remainingRequests <= 0 || chatList == null || questionArea == null) {
             updateAskButtonState();
@@ -112,52 +115,81 @@ public class AskAIController {
             return;
         }
 
-        // Add user message to chat
+        // 1. Disable button while processing to prevent multiple requests
+        askButton.setDisable(true);
+
+        // 2. Add user message to chat UI
         VBox userBubble = new VBox(2);
         userBubble.setAlignment(Pos.TOP_LEFT);
 
         Label who = new Label("You");
         who.getStyleClass().add(Styles.TEXT_BOLD);
 
-        StringBuilder summary = new StringBuilder(question);
-        if (!tags.isEmpty()) {
-            summary.append("\n\nTags: ").append(tags);
-        }
-        if (!code.isEmpty()) {
-            summary.append("\n\n[Code snippet attached]");
-        }
+        StringBuilder userDisplay = new StringBuilder(question);
+        if (!tags.isEmpty())
+            userDisplay.append("\n\nTags: ").append(tags);
+        if (!code.isEmpty())
+            userDisplay.append("\n\n[Code snippet attached]");
 
-        Label body = new Label(summary.toString());
+        Label body = new Label(userDisplay.toString());
         body.setWrapText(true);
-
         userBubble.getChildren().addAll(who, body);
         chatList.getChildren().add(userBubble);
 
-        // Placeholder AI response
+        // 3. Create AI bubble with a "Thinking..." state
         VBox aiBubble = new VBox(2);
         aiBubble.setAlignment(Pos.TOP_LEFT);
         aiBubble.setPadding(new Insets(6, 0, 0, 0));
 
-        Label aiWho = new Label("AI tutor");
+        Label aiWho = new Label("AI Tutor");
         aiWho.getStyleClass().add(Styles.TEXT_BOLD);
 
-        Label aiBody = new Label("In the full version, the AI would analyse your question"
-                + " (and any code you pasted on the right) and respond here.");
+        Label aiBody = new Label("Thinking...");
         aiBody.setWrapText(true);
         aiBody.getStyleClass().add(Styles.TEXT_SUBTLE);
-
         aiBubble.getChildren().addAll(aiWho, aiBody);
         chatList.getChildren().add(aiBubble);
 
-        // Consume one request
-        remainingRequests = Math.max(0, remainingRequests - 1);
-        updateRequestsLabel();
+        // 4. Construct the full prompt for the API
+        StringBuilder fullPrompt = new StringBuilder();
+        fullPrompt.append("User Question: ").append(question).append("\n\n");
+        if (!tags.isEmpty())
+            fullPrompt.append("Relevant Topics/Tags: ").append(tags).append("\n\n");
+        if (!code.isEmpty())
+            fullPrompt.append("Provided Code:\n```java\n").append(code).append("\n```\n");
+        fullPrompt.append("\nPlease provide a helpful, educational response.");
 
-        // Keep the question but clear tags for the next refinement
-        if (tagsField != null) {
-            tagsField.clear();
-        }
-        updateAskButtonState();
+        // 5. Run the API call in a background thread
+        Task<String> aiTask = new Task<>() {
+            @Override
+            protected String call() {
+                return geminiAiService.askAi(fullPrompt.toString());
+            }
+        };
+
+        // 6. When the response arrives, update the UI
+        aiTask.setOnSucceeded(event -> {
+            aiBody.setText(aiTask.getValue()); // Set the real answer
+
+            // Consume one request only on success
+            remainingRequests = Math.max(0, remainingRequests - 1);
+            updateRequestsLabel();
+
+            // Clear inputs for the next question
+            questionArea.clear();
+            if (tagsField != null)
+                tagsField.clear();
+
+            updateAskButtonState();
+        });
+
+        // 7. Handle network or API errors
+        aiTask.setOnFailed(event -> {
+            aiBody.setText("Connection Error: Could not reach the AI Tutor.");
+            updateAskButtonState(); // Re-enable button so they can try again
+        });
+
+        // Start the background thread
+        new Thread(aiTask).start();
     }
 }
-
