@@ -1,0 +1,9 @@
+package com.codedu.repositories.interfaces;
+
+import com.codedu.models.DailyChallenge;
+
+import java.util.Optional;
+
+public interface DailyChallengeRepository extends GenericRepository<DailyChallenge> {
+    Optional<DailyChallenge> findByName(String name);
+}
