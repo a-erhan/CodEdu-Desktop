@@ -17,7 +17,6 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     @PersistenceContext
     private EntityManager entityManager;
 
-    // Passing the User.class to the parent GenericRepositoryImpl constructor
     public UserRepositoryImpl() {
         super(User.class);
     }
@@ -25,7 +24,6 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     @Override
     public Optional<User> findByEmail(String email) {
         try {
-            // Using JPQL to query the database. Checking if isDeleted is false (soft delete logic)
             User user = entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = false", User.class)
                     .setParameter("email", email)
                     .getSingleResult();
