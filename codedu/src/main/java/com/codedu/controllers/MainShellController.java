@@ -177,6 +177,40 @@ public class MainShellController {
             profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
             profileIconLabel.setOnMouseClicked(e -> loadProfile());
         }
+        if (xpProgressBar != null) {
+            xpProgressBar.setMinHeight(14);
+            xpProgressBar.setPrefHeight(14);
+            xpProgressBar.setMaxHeight(14);
+
+            xpProgressBar.setMinWidth(280);
+            xpProgressBar.setPrefWidth(280);
+            xpProgressBar.setMaxWidth(280);
+
+            xpProgressBar.getStyleClass().addAll(Styles.MEDIUM, Styles.ROUNDED);
+            xpProgressBar.setStyle("-fx-background-radius: 20; -fx-border-radius: 20;");
+
+            VBox.setMargin(xpProgressBar, new javafx.geometry.Insets(10, 0, 0, 0));
+
+            if (xpProgressBar.getParent() instanceof VBox) {
+                ((VBox) xpProgressBar.getParent()).setAlignment(Pos.CENTER);
+            }
+        }
+
+        if (tokenLabel != null) {
+            tokenLabel.setPadding(new javafx.geometry.Insets(6, 16, 6, 16));
+            tokenLabel.setStyle("-fx-background-color: rgba(184, 134, 11, 0.12); " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-font-size: 15px;");
+        }
+
+        if (badgeLabel != null) {
+            badgeLabel.setPadding(new javafx.geometry.Insets(2, 10, 2, 10));
+            badgeLabel.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_BOLD, Styles.ROUNDED);
+            badgeLabel.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); " +
+                    "-fx-border-color: rgba(255, 255, 255, 0.15); " +
+                    "-fx-border-radius: 10; -fx-background-radius: 10; " +
+                    "-fx-text-fill: -color-fg-muted;");
+        }
     }
 
     /** Style all nav buttons and set their actions. */
@@ -258,14 +292,12 @@ public class MainShellController {
     // ========== Header ==========
 
     private void updateHeader() {
-        String username = user.getUsername() != null ? user.getUsername() : "User";
-        badgeLabel.setText("");
+        String username = user.getUsername() != null && !user.getUsername().isEmpty()
+                ? user.getUsername() : "User";
 
-        int tokens = 0;
-        int level = 1;
-        int xp = 0;
+        int tokens = 0, level = 1, xp = 0;
 
-        if (gameState != null) {
+        if (this.gameState != null) {
             tokens = gameState.getTokenBalance();
             level = gameState.getLevel();
             xp = gameState.getXp();
@@ -276,21 +308,40 @@ public class MainShellController {
         }
 
         tokenLabel.setText("Tokens: " + tokens);
+        tokenLabel.setStyle(tokenLabel.getStyle() + "-fx-text-fill: #B8860B; -fx-font-weight: bold;");
 
-        if (welcomeNavLabel != null) {
-            welcomeNavLabel.setText("Welcome @" + username);
-            welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
-        }
+        javafx.scene.shape.Circle goldCircle = new javafx.scene.shape.Circle(5);
+        goldCircle.setFill(javafx.scene.paint.Color.web("#B8860B"));
+        goldCircle.setStroke(javafx.scene.paint.Color.web("#8B6508"));
+        goldCircle.setStrokeWidth(1.2);
+        tokenLabel.setGraphic(goldCircle);
+        tokenLabel.setGraphicTextGap(10);
 
-        if (profileIconLabel != null) {
-            String initial = username.isEmpty() ? "U" : username.substring(0, 1).toUpperCase();
-            profileIconLabel.setText(initial);
+        if (badgeLabel != null) {
+            badgeLabel.setText("Lvl " + level);
         }
 
         int levelCap = Math.max(1, level * 1000);
-        double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
+        double progress = (double) xp / levelCap;
         xpProgressBar.setProgress(progress);
+
+        xpProgressBar.getStyleClass().removeAll("success", "danger", "warning");
+        if (!xpProgressBar.getStyleClass().contains(Styles.ACCENT)) {
+            xpProgressBar.getStyleClass().add(Styles.ACCENT);
+        }
+        if (!xpProgressBar.getStyleClass().contains(Styles.ROUNDED)) {
+            xpProgressBar.getStyleClass().add(Styles.ROUNDED);
+        }
+
         xpLabel.setText("XP: " + xp + " / " + levelCap);
+        xpLabel.setStyle("-fx-text-fill: #3498db; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+        if (welcomeNavLabel != null) welcomeNavLabel.setText("@" + username);
+        if (profileIconLabel != null) {
+            String initial = username.isEmpty() ? "U" : username.substring(0, 1).toUpperCase();
+            profileIconLabel.setText(initial);
+            profileIconLabel.setStyle("-fx-background-color: -color-accent-emphasis; -fx-text-fill: white;");
+        }
     }
     // ========== Shared demo data (shell: header + profile only) ==========
 
