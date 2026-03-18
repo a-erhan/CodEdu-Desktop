@@ -39,4 +39,11 @@ public class QuestionRepositoryImpl extends GenericRepositoryImpl<Question> impl
                 .setParameter("difficulity", difficulity)
                 .getResultList();
     }
+    @Override
+    public List<Question> getRandomQuestions(int limit) {
+        return entityManager.createNativeQuery(
+                        "SELECT * FROM questions WHERE is_deleted = false ORDER BY RANDOM() LIMIT :limit", Question.class)
+                .setParameter("limit", limit)
+                .getResultList();
+    }
 }

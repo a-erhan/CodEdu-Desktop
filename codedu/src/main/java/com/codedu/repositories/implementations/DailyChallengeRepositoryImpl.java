@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
@@ -30,6 +31,19 @@ public class DailyChallengeRepositoryImpl extends GenericRepositoryImpl<DailyCha
                     .setParameter("name", name)
                     .getSingleResult();
             return Optional.of(dc);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<DailyChallenge> findByTargetDate(LocalDate date) {
+        try {
+            DailyChallenge challenge = entityManager.createQuery(
+                            "SELECT d FROM DailyChallenge d WHERE d.targetDate = :date AND d.isDeleted = false", DailyChallenge.class)
+                    .setParameter("date", date)
+                    .getSingleResult();
+            return Optional.of(challenge);
         } catch (NoResultException e) {
             return Optional.empty();
         }

@@ -9,4 +9,5 @@ import java.util.List;
 public interface QuestionRepository extends GenericRepository<Question> {
     List<Question> findByQuestionType(QuestionType type);
     List<Question> findByQuestionDifficulity(QuestionDifficulity difficulity);
+    List<Question> getRandomQuestions(int count);
 }

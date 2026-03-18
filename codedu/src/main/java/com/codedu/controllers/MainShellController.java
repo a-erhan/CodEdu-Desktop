@@ -7,6 +7,7 @@ import com.codedu.models.Chapter;
 import com.codedu.models.Competitor;
 import com.codedu.models.DailyChallenge;
 import com.codedu.models.ForumPost;
+import com.codedu.models.Question;
 import com.codedu.models.User;
 import com.codedu.models.UserGameState;
 import javafx.animation.ScaleTransition;
@@ -30,8 +31,10 @@ import org.springframework.stereotype.Controller;
 import java.io.IOException;
 
 /**
- * Shell-only controller: sidebar/nav wiring, header (tokens, XP, profile icon, theme),
- * high-level routing (loadLearningPath, loadDailyChallenge, loadForum, loadAskAI, etc.),
+ * Shell-only controller: sidebar/nav wiring, header (tokens, XP, profile icon,
+ * theme),
+ * high-level routing (loadLearningPath, loadDailyChallenge, loadForum,
+ * loadAskAI, etc.),
  * and initialization of shared models (user, gameState) for header and profile.
  * Feature-specific UI logic lives in the respective page controllers.
  */
@@ -113,10 +116,14 @@ public class MainShellController {
         loadLearningPath();
     }
 
-    /** Make root pane and sidebar fill available height so the shell reaches the bottom. */
+    /**
+     * Make root pane and sidebar fill available height so the shell reaches the
+     * bottom.
+     */
     private void ensureShellFillsScene() {
         Platform.runLater(() -> {
-            if (contentArea == null || contentArea.getScene() == null) return;
+            if (contentArea == null || contentArea.getScene() == null)
+                return;
             javafx.scene.Scene scene = contentArea.getScene();
             javafx.scene.Node root = scene.getRoot();
             if (root instanceof Region) {
@@ -323,7 +330,8 @@ public class MainShellController {
     // ========== Navigation helpers ==========
 
     private void styleNavButton(Button button) {
-        if (button == null) return;
+        if (button == null)
+            return;
         button.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DENSE, Styles.INTERACTIVE);
         button.setMaxWidth(Double.MAX_VALUE);
     }
@@ -425,7 +433,7 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
-            controller.setOnStartChallenge(this::openChallengePage);
+            controller.setOnStartQuestion(this::openChallengePage);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -547,13 +555,13 @@ public class MainShellController {
         }
     }
 
-    private void openChallengePage(DailyChallenge challenge) {
+    private void openChallengePage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Challenge.fxml"));
             Parent view = loader.load();
             ChallengeController controller = loader.getController();
-            controller.setChallenge(challenge);
+            controller.setChallenge(question);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
