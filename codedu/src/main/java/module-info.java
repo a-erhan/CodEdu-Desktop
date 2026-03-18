@@ -20,6 +20,7 @@ module com.codedu {
     requires atlantafx.base;
     requires jakarta.transaction;
     requires spring.web;
+    requires spring.tx;
 
     opens com.codedu.views to javafx.fxml;
     opens com.codedu.controllers to javafx.fxml, spring.core, spring.beans, spring.context;

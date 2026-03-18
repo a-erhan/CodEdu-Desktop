@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.DailyChallenge;
+import com.codedu.models.Question;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -41,9 +41,9 @@ public class ChallengeController {
     @FXML
     private TextArea outputArea;
 
-    private DailyChallenge challenge;
+    private Question challenge;
 
-    public void setChallenge(DailyChallenge challenge) {
+    public void setChallenge(Question challenge) {
         this.challenge = challenge;
         applyChallenge();
     }
@@ -82,8 +82,8 @@ public class ChallengeController {
             return;
         }
 
-        problemTitle.setText(challenge.getName());
-        problemDescription.setText(challenge.getDescription());
+        problemTitle.setText(challenge.getTitle());
+        problemDescription.setText(challenge.getContent());
 
         if (metaLabel != null) {
             int xp = 0;
@@ -99,4 +99,3 @@ public class ChallengeController {
         }
     }
 }
-

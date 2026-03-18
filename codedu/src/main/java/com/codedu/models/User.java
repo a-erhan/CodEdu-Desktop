@@ -22,9 +22,15 @@ public class User extends BaseEntity {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private Role role = Role.STUDENT;
 
+    @Builder.Default
     private boolean isActive = true;
+
+    @Column(name = "token_balance")
+    @Builder.Default
+    private int tokenBalance = 0;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")
@@ -38,7 +44,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "inventory_id")
     private UserInventory inventory;
 
-    public boolean login(String email, String password){
+    public boolean login(String email, String password) {
         return this.email.equals(email) && this.password.equals(password) && isActive;
     }
 }
