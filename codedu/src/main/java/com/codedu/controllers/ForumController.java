@@ -3,6 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.user.User;
+import com.codedu.services.ForumService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -11,12 +12,17 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import javafx.application.Platform;
+import java.util.concurrent.CompletableFuture;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 @Controller
+@Scope("prototype")
 public class ForumController {
 
     @FXML
@@ -45,50 +51,53 @@ public class ForumController {
     private List<ForumPost> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<ForumPost> onOpenPost;
+    @Autowired
+    private ForumService forumService;
 
     public void setPosts(List<ForumPost> posts) {
-        this.posts = posts != null ? posts : new ArrayList<>();
-        ensureDemoPosts();
-        buildThreads();
+        if (posts != null && !posts.isEmpty()) {
+            this.posts = posts;
+            buildThreads(false);
+        } else {
+            loadPostsFromDatabase(() -> buildThreads(false));
+        }
     }
 
-    /** Create demo forum threads in this controller if list is empty (demo data lives here). */
-    private void ensureDemoPosts() {
-        if (!posts.isEmpty()) return;
-        if (currentUser == null) return;
-        String authorName = currentUser.getUsername() != null ? currentUser.getUsername() : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email(authorName.toLowerCase() + "@example.com")
-                .password("")
-                .build();
-        posts.add(ForumPost.builder()
-                .title("How do I fix a NullPointerException in Java?")
-                .content("I am looping over a list and sometimes get a NullPointerException. How can I debug this?")
-                .author(author)
-                .build());
-        posts.add(ForumPost.builder()
-                .title("Best way to understand loops as a beginner?")
-                .content("I get confused with indices in for-loops. Any mental models that helped you?")
-                .author(author)
-                .build());
-        posts.add(ForumPost.builder()
-                .title("Share your favorite resources for learning Java")
-                .content("Looking for interactive resources that teach Java with real-world examples.")
-                .author(author)
-                .build());
+    private void loadPostsFromDatabase(Runnable onSuccess) {
+        if (forumService != null) {
+            CompletableFuture.supplyAsync(() -> forumService.getAllMainPosts())
+                    .thenAccept(result -> {
+                        Platform.runLater(() -> {
+                            this.posts = result;
+                            if (onSuccess != null)
+                                onSuccess.run();
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        Platform.runLater(() -> {
+                            this.posts = new ArrayList<>();
+                            if (onSuccess != null)
+                                onSuccess.run();
+                        });
+                        return null;
+                    });
+        } else {
+            this.posts = new ArrayList<>();
+            if (onSuccess != null)
+                onSuccess.run();
+        }
     }
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        ensureDemoPosts();
-        buildThreads();
+        loadPostsFromDatabase(() -> buildThreads(false));
     }
 
     public void setOnOpenPost(Consumer<ForumPost> onOpenPost) {
         this.onOpenPost = onOpenPost;
         // Rebuild thread cards so click handlers open the dedicated post page
-        buildThreads();
+        buildThreads(false);
     }
 
     @FXML
@@ -116,51 +125,63 @@ public class ForumController {
             selectedContent.setWrapText(true);
         }
 
-        buildThreads();
+        buildThreads(true);
     }
 
     private void updatePostButtonState() {
-        if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
+        if (postButton == null || newPostTitleField == null || newPostBodyArea == null)
+            return;
         boolean disable = newPostTitleField.getText().trim().isEmpty()
                 || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
     }
 
     private void handleCreatePost() {
-        if (newPostTitleField == null || newPostBodyArea == null) return;
+        if (newPostTitleField == null || newPostBodyArea == null)
+            return;
         String title = newPostTitleField.getText().trim();
         String body = newPostBodyArea.getText().trim();
-        if (title.isEmpty() || body.isEmpty()) return;
+        if (title.isEmpty() || body.isEmpty())
+            return;
 
-        String authorName = currentUser != null && currentUser.getUsername() != null
-                ? currentUser.getUsername()
-                : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email("")
-                .password("")
-                .build();
-
+        if (this.currentUser == null) {
+            System.out.println("Error: You need to be logged in first!");
+            return;
+        }
         ForumPost newPost = ForumPost.builder()
                 .title(title)
                 .content(body)
-                .author(author)
+                .author(this.currentUser)
                 .build();
+        if (forumService != null) {
+            CompletableFuture.supplyAsync(() -> forumService.createPost(newPost))
+                    .thenAccept(created -> {
+                        Platform.runLater(() -> {
+                            newPostTitleField.clear();
+                            newPostBodyArea.clear();
+                            updatePostButtonState();
 
-        posts.add(0, newPost);
-        newPostTitleField.clear();
-        newPostBodyArea.clear();
-        updatePostButtonState();
-        buildThreads();
-        if (onOpenPost != null) {
-            onOpenPost.accept(newPost);
-        } else {
-            showPost(newPost);
+                            loadPostsFromDatabase(() -> {
+                                buildThreads(false);
+                                if (onOpenPost != null) {
+                                    onOpenPost.accept(created);
+                                } else {
+                                    showPost(created);
+                                }
+                            });
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
         }
     }
 
-    private void buildThreads() {
-        ensureDemoPosts();
+    private void buildThreads(boolean loadFromDb) {
+        if (loadFromDb) {
+            loadPostsFromDatabase(() -> buildThreads(false));
+            return;
+        }
         if (threadList == null) {
             return;
         }
@@ -195,7 +216,8 @@ public class ForumController {
     }
 
     private void showPost(ForumPost post) {
-        if (selectedTitle == null || selectedContent == null || selectedMeta == null) return;
+        if (selectedTitle == null || selectedContent == null || selectedMeta == null)
+            return;
 
         selectedTitle.setText(post.getTitle());
         String authorName = (post.getAuthor() != null && post.getAuthor().getUsername() != null)
@@ -207,10 +229,11 @@ public class ForumController {
     }
 
     private String snippet(String content) {
-        if (content == null) return "";
+        if (content == null)
+            return "";
         String trimmed = content.trim();
-        if (trimmed.length() <= 140) return trimmed;
+        if (trimmed.length() <= 140)
+            return trimmed;
         return trimmed.substring(0, 137) + "...";
     }
 }
-

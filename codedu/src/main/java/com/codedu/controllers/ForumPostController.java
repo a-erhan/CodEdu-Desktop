@@ -3,14 +3,20 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.user.User;
+import com.codedu.services.ForumService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import javafx.application.Platform;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
+@Scope("prototype")
 public class ForumPostController {
 
     @FXML
@@ -37,10 +43,25 @@ public class ForumPostController {
     private ForumPost post;
     private User currentUser;
     private Runnable onBack;
+    @Autowired
+    private ForumService forumService;
 
     public void setPost(ForumPost post) {
-        this.post = post;
-        renderPost();
+        if (forumService != null && post != null && post.getId() > 0) {
+            CompletableFuture.supplyAsync(() -> forumService.getPostWithReplies(post.getId()))
+                    .thenAccept(resolvedPost -> {
+                        Platform.runLater(() -> {
+                            this.post = resolvedPost;
+                            renderPost();
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        } else {
+            this.post = post;
+            renderPost();
+        }
     }
 
     public void setCurrentUser(User currentUser) {
@@ -127,28 +148,37 @@ public class ForumPostController {
     }
 
     private void handleAddReply() {
-        if (replyArea == null || replyArea.getText().trim().isEmpty() || post == null) return;
+        if (replyArea == null || replyArea.getText().trim().isEmpty() || post == null)
+            return;
         String body = replyArea.getText().trim();
-
-        String authorName = currentUser != null && currentUser.getUsername() != null
-                ? currentUser.getUsername()
-                : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email("")
-                .password("")
-                .build();
-
+        if (this.currentUser == null) {
+            System.out.println("Error: You are not logged in!");
+            return;
+        }
         ForumPost reply = ForumPost.builder()
-                .title("")
+                .title("") // No title for replies
                 .content(body)
-                .author(author)
+                .author(this.currentUser)
                 .build();
 
-        post.addReply(reply);
-        replyArea.clear();
-        replyButton.setDisable(true);
-        renderPost();
+        if (forumService != null) {
+            CompletableFuture.supplyAsync(() -> forumService.addReply(this.post.getId(), reply))
+                    .thenAccept(updatedPost -> {
+                        Platform.runLater(() -> {
+                            this.post = updatedPost;
+                            replyArea.clear();
+                            replyButton.setDisable(true);
+                            renderPost();
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        } else {
+            this.post.addReply(reply);
+            replyArea.clear();
+            replyButton.setDisable(true);
+            renderPost();
+        }
     }
 }
-

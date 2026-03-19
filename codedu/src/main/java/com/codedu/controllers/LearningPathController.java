@@ -3,6 +3,9 @@ package com.codedu.controllers;
 import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.Chapter.Difficulty;
 import com.codedu.models.learning.ChapterContent;
+import com.codedu.models.learning.CodeImplementationQuestion;
+import com.codedu.models.learning.FillInBlankQuestion;
+import com.codedu.models.learning.MultipleChoiceQuestion;
 import com.codedu.models.learning.Question;
 import com.codedu.models.learning.QuestionType;
 import com.codedu.models.learning.Reward;
@@ -78,38 +81,38 @@ public class LearningPathController {
 
         /** Shorthand for a multiple-choice question. */
         private static Question mc(String title, String content, String solution, String hint) {
-                return new Question(
-                        QuestionType.MULTIPLE_CHOICES,
-                        content,
-                        title,
-                        solution,
-                        hint,
-                        new Reward(5, 10)
-                );
+                MultipleChoiceQuestion q = new MultipleChoiceQuestion();
+                q.setQuestionType(QuestionType.MULTIPLE_CHOICES);
+                q.setContent(content);
+                q.setTitle(title);
+                q.setSolution(solution);
+                q.setHint(hint);
+                q.setReward(new Reward(5, 10));
+                return q;
         }
 
         /** Shorthand for a fill-in-the-blanks question. */
         private static Question fb(String title, String content, String solution, String hint) {
-                return new Question(
-                        QuestionType.FILL_IN_THE_BLANKS,
-                        content,
-                        title,
-                        solution,
-                        hint,
-                        new Reward(5, 10)
-                );
+                FillInBlankQuestion q = new FillInBlankQuestion();
+                q.setQuestionType(QuestionType.FILL_IN_THE_BLANKS);
+                q.setContent(content);
+                q.setTitle(title);
+                q.setSolution(solution);
+                q.setHint(hint);
+                q.setReward(new Reward(5, 10));
+                return q;
         }
 
         /** Shorthand for a code-implementation question. */
         private static Question code(String title, String content, String solution, String hint) {
-                return new Question(
-                        QuestionType.CODE_IMPLEMENTATION,
-                        content,
-                        title,
-                        solution,
-                        hint,
-                        new Reward(10, 20)
-                );
+                CodeImplementationQuestion q = new CodeImplementationQuestion();
+                q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
+                q.setContent(content);
+                q.setTitle(title);
+                q.setSolution(solution);
+                q.setHint(hint);
+                q.setReward(new Reward(10, 20));
+                return q;
         }
         // ══════════════════════════════════════════════════════════════════
         // CHAPTER DATA + MOCK CONTENT
