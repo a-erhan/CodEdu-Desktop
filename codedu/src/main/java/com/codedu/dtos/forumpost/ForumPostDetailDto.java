@@ -1,0 +1,19 @@
+package com.codedu.dtos.forumpost;
+
+import lombok.Builder;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Builder
+
+public record ForumPostDetailDto (
+     int id,
+     String title,
+     String content,
+     String authorUsername,
+     LocalDateTime createdAt,
+     LocalDateTime updatedAt,
+     List<ForumReplyDto> replies
+){}
+

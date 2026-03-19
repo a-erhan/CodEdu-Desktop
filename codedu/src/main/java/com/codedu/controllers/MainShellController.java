@@ -532,7 +532,9 @@ public class MainShellController {
             Parent view = loader.load();
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
+
             controller.setOnOpenPost(this::openForumPost);
+
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -607,15 +609,18 @@ public class MainShellController {
         }
     }
 
-    private void openForumPost(ForumPost post) {
+    private void openForumPost(Integer postId) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/ForumPost.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
+
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
-            controller.setPost(post);
+
+            controller.setPostId(postId);
+
             controller.setOnBack(() -> {
                 setActiveButton(btnForum);
                 loadForum();
@@ -627,7 +632,6 @@ public class MainShellController {
                     "Error loading post: " + ex.getMessage());
         }
     }
-
     private void openChallengePage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(

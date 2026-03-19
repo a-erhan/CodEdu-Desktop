@@ -123,8 +123,16 @@ public class ProfileController {
     }
 
     private void bindStats() {
-        String username = user != null && user.getUsername() != null ? user.getUsername() : "User";
-        String initial = username.isEmpty() ? "C" : username.substring(0, 1).toUpperCase();
+        // 1. Initial Null Check for User
+        if (user == null) {
+            return;
+        }
+
+        // 2. Username and Avatar Display
+        String username = (user.getUsername() != null && !user.getUsername().isEmpty())
+                ? user.getUsername() : "User";
+        String initial = username.substring(0, 1).toUpperCase();
+
         avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(80, 80);
@@ -132,28 +140,35 @@ public class ProfileController {
         avatarDisplay.setMaxSize(80, 80);
         avatarDisplay.setShape(new Circle(40));
         avatarDisplay.getStyleClass().add(Styles.TITLE_2);
+
         usernameDisplay.setText(username);
         usernameDisplay.getStyleClass().add(Styles.TITLE_3);
-        int level = gameState != null ? gameState.getLevel() : 1;
+
+        // 3. Level and XP Logic (Using the controller's gameState field)
+        int level = (gameState != null) ? gameState.getLevel() : 1;
         badgeDisplay.setText("Level " + level);
 
-        int xp = gameState != null ? gameState.getXp() : 0;
+        int xp = (gameState != null) ? gameState.getXp() : 0;
         int levelCap = Math.max(1, level * 1000);
         double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
+
         profileXpBar.setProgress(progress);
         profileXpLabel.setText(xp + " / " + levelCap + " XP");
 
-        int tokens = user != null ? user.getGameState().getTokenBalance() : 0;
+        // 4. Token Balance Logic (FIX: Avoiding the NPE by checking gameState)
+        int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
         profileTokenLabel.setText(String.valueOf(tokens));
 
+        // 5. Inventory Items Logic
         int itemCount = 0;
-        if (user != null && user.getInventory() != null && user.getInventory().getItems() != null) {
+        if (user.getInventory() != null && user.getInventory().getItems() != null) {
             for (InventoryItem inv : user.getInventory().getItems()) {
-                itemCount += Math.max(1, inv.getQuantity());
+                itemCount += Math.max(0, inv.getQuantity());
             }
         }
         profileItemsLabel.setText(String.valueOf(itemCount));
 
+        // 6. "Add Friend" Button Visibility Logic
         if (addFriendButton != null) {
             if (viewingSelf) {
                 addFriendButton.setVisible(false);
@@ -173,7 +188,7 @@ public class ProfileController {
             }
         }
 
-        // Badges section: visible to everyone (showcase to friends)
+        // 7. Sections Visibility (Badges, Friends, Avatars)
         if (badgesSection != null) {
             badgesSection.setVisible(true);
             badgesSection.setManaged(true);
@@ -182,7 +197,6 @@ public class ProfileController {
             buildBadgesList();
         }
 
-        // Friends section: only when viewing own profile
         if (friendsSection != null) {
             friendsSection.setVisible(viewingSelf);
             friendsSection.setManaged(viewingSelf);
@@ -192,33 +206,22 @@ public class ProfileController {
             }
         }
 
-        // Show "My avatars" only when viewing own profile
         if (avatarsSection != null) {
-            boolean showAvatars = viewingSelf;
-            avatarsSection.setVisible(showAvatars);
-            avatarsSection.setManaged(showAvatars);
-        }
-        if (noAvatarsLabel != null) {
-            noAvatarsLabel.setVisible(true);
-            noAvatarsLabel.setManaged(true);
-        }
-        if (avatarGrid != null) {
-            avatarGrid.getChildren().clear();
+            avatarsSection.setVisible(viewingSelf);
+            avatarsSection.setManaged(viewingSelf);
         }
 
-        // Card-like styling for profile sections
-        if (avatarCard != null) {
-            avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
-        }
-        if (xpCard != null) {
-            xpCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (tokensCard != null) {
-            tokensCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (itemsCard != null) {
-            itemsCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
+        // 8. Card Styling (Ensures UI consistency)
+        applyCardStyles();
+    }
+
+    /** * Helper to keep bindStats clean: applies AtlantaFX styles to the VBox cards
+     */
+    private void applyCardStyles() {
+        if (avatarCard != null) avatarCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
+        if (xpCard != null) xpCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        if (tokensCard != null) tokensCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        if (itemsCard != null) itemsCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
     }
 
     /** Build the friends list (demo data when viewing self). */

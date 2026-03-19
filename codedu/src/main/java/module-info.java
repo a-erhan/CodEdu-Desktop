@@ -21,6 +21,7 @@ module com.codedu {
     requires jakarta.transaction;
     requires spring.web;
     requires spring.tx;
+    requires com.fasterxml.jackson.databind;
 
     opens com.codedu.views to javafx.fxml;
     opens com.codedu.controllers to javafx.fxml, spring.core, spring.beans, spring.context;
@@ -35,6 +36,8 @@ module com.codedu {
     exports com.codedu.controllers;
     exports com.codedu.repositories.interfaces;
     exports com.codedu.services;
+    exports com.codedu.dtos.forumpost;
+    opens com.codedu.dtos.forumpost to spring.core, com.fasterxml.jackson.databind, org.hibernate.orm.core;
     exports com.codedu.models.matchmaking;
     opens com.codedu.models.matchmaking to org.hibernate.orm.core, spring.beans, spring.core;
     exports com.codedu.models.social;
