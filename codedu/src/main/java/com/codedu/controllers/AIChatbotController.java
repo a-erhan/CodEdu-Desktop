@@ -11,7 +11,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.springframework.stereotype.Controller;
 
+@Controller
 public class AIChatbotController {
 
     @FXML
