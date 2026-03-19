@@ -3,11 +3,13 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.user.User;
+import com.codedu.services.ForumService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -37,6 +39,8 @@ public class ForumPostController {
     private ForumPost post;
     private User currentUser;
     private Runnable onBack;
+    @Autowired
+    private ForumService forumService;
 
     public void setPost(ForumPost post) {
         this.post = post;
@@ -129,23 +133,22 @@ public class ForumPostController {
     private void handleAddReply() {
         if (replyArea == null || replyArea.getText().trim().isEmpty() || post == null) return;
         String body = replyArea.getText().trim();
-
-        String authorName = currentUser != null && currentUser.getUsername() != null
-                ? currentUser.getUsername()
-                : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email("")
-                .password("")
-                .build();
-
+        if (this.currentUser == null) {
+            System.out.println("Error: You are not logged in!");
+            return;
+        }
         ForumPost reply = ForumPost.builder()
-                .title("")
+                .title("") //No title for replies
                 .content(body)
-                .author(author)
+                .author(this.currentUser)
                 .build();
 
-        post.addReply(reply);
+        if (forumService != null) {
+            this.post = forumService.addReply(this.post.getId(), reply);
+        } else {
+            this.post.addReply(reply);
+        }
+        //Reload the screen
         replyArea.clear();
         replyButton.setDisable(true);
         renderPost();

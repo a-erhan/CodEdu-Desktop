@@ -3,6 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.user.User;
+import com.codedu.services.ForumService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -45,43 +46,25 @@ public class ForumController {
     private List<ForumPost> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<ForumPost> onOpenPost;
+    private ForumService forumService;
 
     public void setPosts(List<ForumPost> posts) {
         this.posts = posts != null ? posts : new ArrayList<>();
-        ensureDemoPosts();
+        loadPostsFromDatabase();
         buildThreads();
     }
 
-    /** Create demo forum threads in this controller if list is empty (demo data lives here). */
-    private void ensureDemoPosts() {
-        if (!posts.isEmpty()) return;
-        if (currentUser == null) return;
-        String authorName = currentUser.getUsername() != null ? currentUser.getUsername() : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email(authorName.toLowerCase() + "@example.com")
-                .password("")
-                .build();
-        posts.add(ForumPost.builder()
-                .title("How do I fix a NullPointerException in Java?")
-                .content("I am looping over a list and sometimes get a NullPointerException. How can I debug this?")
-                .author(author)
-                .build());
-        posts.add(ForumPost.builder()
-                .title("Best way to understand loops as a beginner?")
-                .content("I get confused with indices in for-loops. Any mental models that helped you?")
-                .author(author)
-                .build());
-        posts.add(ForumPost.builder()
-                .title("Share your favorite resources for learning Java")
-                .content("Looking for interactive resources that teach Java with real-world examples.")
-                .author(author)
-                .build());
+    private void loadPostsFromDatabase() {
+        if (forumService != null) {
+            this.posts = forumService.getAllMainPosts();
+        } else {
+            this.posts = new ArrayList<>();
+        }
     }
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        ensureDemoPosts();
+        loadPostsFromDatabase();
         buildThreads();
     }
 
@@ -132,22 +115,18 @@ public class ForumController {
         String body = newPostBodyArea.getText().trim();
         if (title.isEmpty() || body.isEmpty()) return;
 
-        String authorName = currentUser != null && currentUser.getUsername() != null
-                ? currentUser.getUsername()
-                : "You";
-        User author = User.builder()
-                .username(authorName)
-                .email("")
-                .password("")
-                .build();
-
+        if (this.currentUser == null) {
+            System.out.println("Error: You need to be logged in first!");
+            return;
+        }
         ForumPost newPost = ForumPost.builder()
                 .title(title)
                 .content(body)
-                .author(author)
+                .author(this.currentUser)
                 .build();
-
-        posts.add(0, newPost);
+        if (forumService != null) {
+            forumService.createPost(newPost);
+        }
         newPostTitleField.clear();
         newPostBodyArea.clear();
         updatePostButtonState();
@@ -160,7 +139,7 @@ public class ForumController {
     }
 
     private void buildThreads() {
-        ensureDemoPosts();
+        loadPostsFromDatabase();
         if (threadList == null) {
             return;
         }
