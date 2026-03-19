@@ -12,12 +12,17 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import org.springframework.stereotype.Controller;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import javafx.application.Platform;
+import java.util.concurrent.CompletableFuture;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 @Controller
+@Scope("prototype")
 public class ForumController {
 
     @FXML
@@ -46,32 +51,53 @@ public class ForumController {
     private List<ForumPost> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<ForumPost> onOpenPost;
+    @Autowired
     private ForumService forumService;
 
     public void setPosts(List<ForumPost> posts) {
-        this.posts = posts != null ? posts : new ArrayList<>();
-        loadPostsFromDatabase();
-        buildThreads();
+        if (posts != null && !posts.isEmpty()) {
+            this.posts = posts;
+            buildThreads(false);
+        } else {
+            loadPostsFromDatabase(() -> buildThreads(false));
+        }
     }
 
-    private void loadPostsFromDatabase() {
+    private void loadPostsFromDatabase(Runnable onSuccess) {
         if (forumService != null) {
-            this.posts = forumService.getAllMainPosts();
+            CompletableFuture.supplyAsync(() -> forumService.getAllMainPosts())
+                    .thenAccept(result -> {
+                        Platform.runLater(() -> {
+                            this.posts = result;
+                            if (onSuccess != null)
+                                onSuccess.run();
+                        });
+                    })
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        Platform.runLater(() -> {
+                            this.posts = new ArrayList<>();
+                            if (onSuccess != null)
+                                onSuccess.run();
+                        });
+                        return null;
+                    });
         } else {
             this.posts = new ArrayList<>();
+            if (onSuccess != null)
+                onSuccess.run();
         }
     }
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        loadPostsFromDatabase();
-        buildThreads();
+        loadPostsFromDatabase(() -> buildThreads(false));
     }
 
     public void setOnOpenPost(Consumer<ForumPost> onOpenPost) {
         this.onOpenPost = onOpenPost;
         // Rebuild thread cards so click handlers open the dedicated post page
-        buildThreads();
+        buildThreads(false);
     }
 
     @FXML
@@ -99,21 +125,24 @@ public class ForumController {
             selectedContent.setWrapText(true);
         }
 
-        buildThreads();
+        buildThreads(true);
     }
 
     private void updatePostButtonState() {
-        if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
+        if (postButton == null || newPostTitleField == null || newPostBodyArea == null)
+            return;
         boolean disable = newPostTitleField.getText().trim().isEmpty()
                 || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
     }
 
     private void handleCreatePost() {
-        if (newPostTitleField == null || newPostBodyArea == null) return;
+        if (newPostTitleField == null || newPostBodyArea == null)
+            return;
         String title = newPostTitleField.getText().trim();
         String body = newPostBodyArea.getText().trim();
-        if (title.isEmpty() || body.isEmpty()) return;
+        if (title.isEmpty() || body.isEmpty())
+            return;
 
         if (this.currentUser == null) {
             System.out.println("Error: You need to be logged in first!");
@@ -125,21 +154,34 @@ public class ForumController {
                 .author(this.currentUser)
                 .build();
         if (forumService != null) {
-            forumService.createPost(newPost);
-        }
-        newPostTitleField.clear();
-        newPostBodyArea.clear();
-        updatePostButtonState();
-        buildThreads();
-        if (onOpenPost != null) {
-            onOpenPost.accept(newPost);
-        } else {
-            showPost(newPost);
+            CompletableFuture.supplyAsync(() -> forumService.createPost(newPost))
+                    .thenAccept(created -> {
+                        Platform.runLater(() -> {
+                            newPostTitleField.clear();
+                            newPostBodyArea.clear();
+                            updatePostButtonState();
+
+                            loadPostsFromDatabase(() -> {
+                                buildThreads(false);
+                                if (onOpenPost != null) {
+                                    onOpenPost.accept(created);
+                                } else {
+                                    showPost(created);
+                                }
+                            });
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
         }
     }
 
-    private void buildThreads() {
-        loadPostsFromDatabase();
+    private void buildThreads(boolean loadFromDb) {
+        if (loadFromDb) {
+            loadPostsFromDatabase(() -> buildThreads(false));
+            return;
+        }
         if (threadList == null) {
             return;
         }
@@ -174,7 +216,8 @@ public class ForumController {
     }
 
     private void showPost(ForumPost post) {
-        if (selectedTitle == null || selectedContent == null || selectedMeta == null) return;
+        if (selectedTitle == null || selectedContent == null || selectedMeta == null)
+            return;
 
         selectedTitle.setText(post.getTitle());
         String authorName = (post.getAuthor() != null && post.getAuthor().getUsername() != null)
@@ -186,10 +229,11 @@ public class ForumController {
     }
 
     private String snippet(String content) {
-        if (content == null) return "";
+        if (content == null)
+            return "";
         String trimmed = content.trim();
-        if (trimmed.length() <= 140) return trimmed;
+        if (trimmed.length() <= 140)
+            return trimmed;
         return trimmed.substring(0, 137) + "...";
     }
 }
-

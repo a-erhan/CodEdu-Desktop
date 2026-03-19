@@ -19,6 +19,8 @@ public class DatabaseFix {
         try (Connection c = dataSource.getConnection(); Statement s = c.createStatement()) {
             s.execute("ALTER TABLE users ALTER COLUMN token_balance DROP NOT NULL");
             System.out.println("SUCCESSFULLY DROPPED NOT NULL CONSTRAINT ON token_balance!");
+            int updated = s.executeUpdate("UPDATE users SET is_active = true WHERE is_active = false");
+            System.out.println("Restored " + updated + " old user accounts that had is_active=false.");
         } catch (Exception e) {
             System.out.println("Failed to drop NOT NULL constraint: " + e.getMessage());
         }

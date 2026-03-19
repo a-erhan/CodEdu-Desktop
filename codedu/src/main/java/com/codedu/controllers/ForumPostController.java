@@ -10,9 +10,13 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import javafx.application.Platform;
+import java.util.concurrent.CompletableFuture;
 
 @Controller
+@Scope("prototype")
 public class ForumPostController {
 
     @FXML
@@ -43,8 +47,21 @@ public class ForumPostController {
     private ForumService forumService;
 
     public void setPost(ForumPost post) {
-        this.post = post;
-        renderPost();
+        if (forumService != null && post != null && post.getId() > 0) {
+            CompletableFuture.supplyAsync(() -> forumService.getPostWithReplies(post.getId()))
+                    .thenAccept(resolvedPost -> {
+                        Platform.runLater(() -> {
+                            this.post = resolvedPost;
+                            renderPost();
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        } else {
+            this.post = post;
+            renderPost();
+        }
     }
 
     public void setCurrentUser(User currentUser) {
@@ -131,27 +148,37 @@ public class ForumPostController {
     }
 
     private void handleAddReply() {
-        if (replyArea == null || replyArea.getText().trim().isEmpty() || post == null) return;
+        if (replyArea == null || replyArea.getText().trim().isEmpty() || post == null)
+            return;
         String body = replyArea.getText().trim();
         if (this.currentUser == null) {
             System.out.println("Error: You are not logged in!");
             return;
         }
         ForumPost reply = ForumPost.builder()
-                .title("") //No title for replies
+                .title("") // No title for replies
                 .content(body)
                 .author(this.currentUser)
                 .build();
 
         if (forumService != null) {
-            this.post = forumService.addReply(this.post.getId(), reply);
+            CompletableFuture.supplyAsync(() -> forumService.addReply(this.post.getId(), reply))
+                    .thenAccept(updatedPost -> {
+                        Platform.runLater(() -> {
+                            this.post = updatedPost;
+                            replyArea.clear();
+                            replyButton.setDisable(true);
+                            renderPost();
+                        });
+                    }).exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
         } else {
             this.post.addReply(reply);
+            replyArea.clear();
+            replyButton.setDisable(true);
+            renderPost();
         }
-        //Reload the screen
-        replyArea.clear();
-        replyButton.setDisable(true);
-        renderPost();
     }
 }
-

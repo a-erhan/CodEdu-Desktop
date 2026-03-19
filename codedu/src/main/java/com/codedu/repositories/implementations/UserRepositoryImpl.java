@@ -24,7 +24,8 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     @Override
     public Optional<User> findByEmail(String email) {
         try {
-            User user = entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = false", User.class)
+            User user = entityManager
+                    .createQuery("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = false", User.class)
                     .setParameter("email", email)
                     .getSingleResult();
             return Optional.of(user);
@@ -36,7 +37,9 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     @Override
     public Optional<User> findByUsername(String username) {
         try {
-            User user = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username AND u.isDeleted = false", User.class)
+            User user = entityManager
+                    .createQuery("SELECT u FROM User u WHERE u.username = :username AND u.isDeleted = false",
+                            User.class)
                     .setParameter("username", username)
                     .getSingleResult();
             return Optional.of(user);
@@ -47,7 +50,7 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByEmail(String email) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email AND u.isDeleted = false", Long.class)
+        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
                 .setParameter("email", email)
                 .getSingleResult();
         return count > 0;
@@ -55,7 +58,7 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByUsername(String username) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username AND u.isDeleted = false", Long.class)
+        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
                 .setParameter("username", username)
                 .getSingleResult();
         return count > 0;
