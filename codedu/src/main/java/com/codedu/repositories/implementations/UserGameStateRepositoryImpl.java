@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.UserGameState;
+import com.codedu.models.user.UserGameState;
 import com.codedu.repositories.interfaces.UserGameStateRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

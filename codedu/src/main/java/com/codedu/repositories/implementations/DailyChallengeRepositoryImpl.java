@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.DailyChallenge;
+import com.codedu.models.learning.DailyChallenge;
 import com.codedu.repositories.interfaces.DailyChallengeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

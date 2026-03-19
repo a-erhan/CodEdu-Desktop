@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Competitor;
+import com.codedu.models.matchmaking.Competitor;
 import com.codedu.repositories.interfaces.CompetitorRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.LeaderBoard;
+import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.repositories.interfaces.LeaderBoardRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

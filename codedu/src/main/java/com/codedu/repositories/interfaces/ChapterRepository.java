@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.Chapter;
+import com.codedu.models.learning.Chapter;
 
 import java.util.List;
 

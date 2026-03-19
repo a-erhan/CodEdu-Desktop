@@ -1,9 +1,9 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Question;
+import com.codedu.models.learning.Question;
 import com.codedu.repositories.interfaces.QuestionRepository;
-import com.codedu.models.QuestionDifficulity;
-import com.codedu.models.QuestionType;
+import com.codedu.models.learning.QuestionDifficulity;
+import com.codedu.models.learning.QuestionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;

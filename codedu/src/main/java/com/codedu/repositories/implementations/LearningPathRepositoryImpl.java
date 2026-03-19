@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.LearningPath;
+import com.codedu.models.learning.LearningPath;
 import com.codedu.repositories.interfaces.LearningPathRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

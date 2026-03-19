@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.DailyChallenge;
+import com.codedu.models.learning.DailyChallenge;
 
 import java.time.LocalDate;
 import java.util.Optional;

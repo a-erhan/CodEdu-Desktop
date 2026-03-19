@@ -1,10 +1,10 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.Competitor;
-import com.codedu.models.InventoryItem;
-import com.codedu.models.User;
-import com.codedu.models.UserGameState;
+import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.user.InventoryItem;
+import com.codedu.models.user.User;
+import com.codedu.models.user.UserGameState;
 
 import java.util.List;
 import javafx.fxml.FXML;

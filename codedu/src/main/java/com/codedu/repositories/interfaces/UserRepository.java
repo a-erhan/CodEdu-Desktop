@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.User;
+import com.codedu.models.user.User;
 
 import java.util.Optional;
 

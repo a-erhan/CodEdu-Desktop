@@ -1,8 +1,8 @@
 package com.codedu.services;
 
-import com.codedu.models.CodeImplementationQuestion;
-import com.codedu.models.Question;
-import com.codedu.models.TestCase;
+import com.codedu.models.learning.CodeImplementationQuestion;
+import com.codedu.models.learning.Question;
+import com.codedu.models.learning.TestCase;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

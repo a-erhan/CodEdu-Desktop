@@ -1,11 +1,11 @@
 package com.codedu.controllers;
 
-import com.codedu.models.Chapter;
-import com.codedu.models.Chapter.Difficulty;
-import com.codedu.models.ChapterContent;
-import com.codedu.models.Question;
-import com.codedu.models.QuestionType;
-import com.codedu.models.Reward;
+import com.codedu.models.learning.Chapter;
+import com.codedu.models.learning.Chapter.Difficulty;
+import com.codedu.models.learning.ChapterContent;
+import com.codedu.models.learning.Question;
+import com.codedu.models.learning.QuestionType;
+import com.codedu.models.learning.Reward;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;

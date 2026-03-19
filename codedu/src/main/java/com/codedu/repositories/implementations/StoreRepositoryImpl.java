@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Store;
+import com.codedu.models.user.Store;
 import com.codedu.repositories.interfaces.StoreRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

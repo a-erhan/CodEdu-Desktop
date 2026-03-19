@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.Badge;
+import com.codedu.models.gamification.Badge;
 
 import java.util.Optional;
 

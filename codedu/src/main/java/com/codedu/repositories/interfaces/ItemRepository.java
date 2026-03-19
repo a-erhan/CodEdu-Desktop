@@ -1,7 +1,7 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.Item;
-import com.codedu.models.ItemType;
+import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.DailyChallenge;
+import com.codedu.models.learning.DailyChallenge;
 import com.codedu.services.CodeExecutionService;
 import com.codedu.services.MatchmakingService;
 import javafx.concurrent.Task;

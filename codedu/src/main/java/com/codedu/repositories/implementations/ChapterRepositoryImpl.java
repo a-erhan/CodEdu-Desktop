@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Chapter;
+import com.codedu.models.learning.Chapter;
 import com.codedu.repositories.interfaces.ChapterRepository;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityManager;

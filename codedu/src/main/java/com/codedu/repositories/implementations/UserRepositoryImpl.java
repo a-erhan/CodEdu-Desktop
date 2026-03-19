@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.User;
+import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

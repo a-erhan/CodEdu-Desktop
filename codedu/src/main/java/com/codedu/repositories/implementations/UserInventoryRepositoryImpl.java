@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.UserInventory;
+import com.codedu.models.user.UserInventory;
 import com.codedu.repositories.interfaces.UserInventoryRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

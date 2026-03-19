@@ -1,10 +1,10 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.InventoryItem;
-import com.codedu.models.Item;
-import com.codedu.models.ItemType;
-import com.codedu.models.User;
+import com.codedu.models.user.InventoryItem;
+import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
+import com.codedu.models.user.User;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

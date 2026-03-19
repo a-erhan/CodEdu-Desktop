@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Badge;
+import com.codedu.models.gamification.Badge;
 import com.codedu.repositories.interfaces.BadgeRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

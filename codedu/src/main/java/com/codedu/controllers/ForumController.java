@@ -1,8 +1,8 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.ForumPost;
-import com.codedu.models.User;
+import com.codedu.models.social.ForumPost;
+import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

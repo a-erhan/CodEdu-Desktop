@@ -1,7 +1,7 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Item;
-import com.codedu.models.ItemType;
+import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
 import com.codedu.repositories.interfaces.ItemRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;

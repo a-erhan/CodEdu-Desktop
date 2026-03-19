@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.MatchTask;
+import com.codedu.models.matchmaking.MatchTask;
 import com.codedu.repositories.interfaces.MatchTaskRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

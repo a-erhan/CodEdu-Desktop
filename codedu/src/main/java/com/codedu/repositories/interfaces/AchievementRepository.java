@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.Achievement;
+import com.codedu.models.gamification.Achievement;
 
 import java.util.Optional;
 

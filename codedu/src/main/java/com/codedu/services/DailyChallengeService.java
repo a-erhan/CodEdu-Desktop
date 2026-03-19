@@ -1,9 +1,9 @@
 package com.codedu.services;
 
-import com.codedu.models.DailyChallenge;
-import com.codedu.models.Question;
-import com.codedu.models.Reward;
-import com.codedu.models.UserGameState;
+import com.codedu.models.learning.DailyChallenge;
+import com.codedu.models.learning.Question;
+import com.codedu.models.learning.Reward;
+import com.codedu.models.user.UserGameState;
 import com.codedu.repositories.interfaces.DailyChallengeRepository;
 import com.codedu.repositories.interfaces.QuestionRepository;
 import com.codedu.repositories.interfaces.UserGameStateRepository;

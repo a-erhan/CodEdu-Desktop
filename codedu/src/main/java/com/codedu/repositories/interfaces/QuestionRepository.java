@@ -1,9 +1,9 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.Question;
+import com.codedu.models.learning.Question;
 
-import com.codedu.models.QuestionDifficulity;
-import com.codedu.models.QuestionType;
+import com.codedu.models.learning.QuestionDifficulity;
+import com.codedu.models.learning.QuestionType;
 import java.util.List;
 
 public interface QuestionRepository extends GenericRepository<Question> {

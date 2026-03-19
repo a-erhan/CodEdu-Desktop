@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.ForumPost;
+import com.codedu.models.social.ForumPost;
 import com.codedu.repositories.interfaces.ForumPostRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

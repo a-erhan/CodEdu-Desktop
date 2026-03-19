@@ -1,6 +1,6 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.Reply;
+import com.codedu.models.social.Reply;
 import com.codedu.repositories.interfaces.ReplyRepository;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;

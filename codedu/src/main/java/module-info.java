@@ -35,4 +35,14 @@ module com.codedu {
     exports com.codedu.controllers;
     exports com.codedu.repositories.interfaces;
     exports com.codedu.services;
+    exports com.codedu.models.matchmaking;
+    opens com.codedu.models.matchmaking to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.models.social;
+    opens com.codedu.models.social to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.models.learning;
+    opens com.codedu.models.learning to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.models.gamification;
+    opens com.codedu.models.gamification to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.models.user;
+    opens com.codedu.models.user to org.hibernate.orm.core, spring.beans, spring.core;
 }
