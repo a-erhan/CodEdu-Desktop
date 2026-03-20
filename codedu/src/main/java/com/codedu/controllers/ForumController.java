@@ -51,6 +51,7 @@ public class ForumController {
     private List<ForumPost> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<ForumPost> onOpenPost;
+    private Consumer<User> onOpenProfile;
     @Autowired
     private ForumService forumService;
 
@@ -98,6 +99,10 @@ public class ForumController {
         this.onOpenPost = onOpenPost;
         // Rebuild thread cards so click handlers open the dedicated post page
         buildThreads(false);
+    }
+
+    public void setOnOpenProfile(Consumer<User> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
     }
 
     @FXML
@@ -201,6 +206,16 @@ public class ForumController {
                     : "Anonymous";
             Label meta = new Label("Posted by " + authorName);
             meta.getStyleClass().add(Styles.TEXT_SUBTLE);
+
+            if (post.getAuthor() != null) {
+                meta.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null)
+                        onOpenProfile.accept(post.getAuthor());
+                    e.consume();
+                });
+                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            }
 
             Label snippet = new Label(snippet(post.getContent()));
             snippet.setWrapText(true);

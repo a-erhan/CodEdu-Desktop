@@ -11,7 +11,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import com.codedu.services.UserService;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 public class AIChatbotController {
@@ -171,7 +175,14 @@ public class AIChatbotController {
 
         // 6. When the response arrives, update the UI
         aiTask.setOnSucceeded(event -> {
-            aiBody.setText(aiTask.getValue()); // Set the real answer
+            String responseTxt = aiTask.getValue();
+            aiBody.setText(responseTxt); // Set the real answer
+
+            // Extract and set code if present
+            String codeBlock = extractCode(responseTxt);
+            if (codeBlock != null && codeArea != null) {
+                codeArea.setText(codeBlock);
+            }
 
             // Consume one request only on success
             remainingRequests = Math.max(0, remainingRequests - 1);
@@ -193,5 +204,18 @@ public class AIChatbotController {
 
         // Start the background thread
         new Thread(aiTask).start();
+    }
+
+    private String extractCode(String response) {
+        if (response == null)
+            return null;
+        // Match ```java ... ``` or ``` ... ```
+        Pattern pattern = Pattern.compile("```(?:java)?\\n?(.*?)```",
+                Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+        return null;
     }
 }

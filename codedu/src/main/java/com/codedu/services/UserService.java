@@ -37,4 +37,11 @@ public class UserService {
         user.setDeleted(true);
         userRepository.update(user);
     }
+
+    @Transactional
+    public void saveUser(User user) {
+        if (user != null) {
+            userRepository.update(user);
+        }
+    }
 }

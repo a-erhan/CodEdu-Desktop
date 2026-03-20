@@ -93,10 +93,12 @@ public class ProfileController {
 
     /**
      * Show another user's profile from a leaderboard competitor.
-     * Builds display user and game state from competitor; use when opening profile from Leaderboard.
+     * Builds display user and game state from competitor; use when opening profile
+     * from Leaderboard.
      */
     public void setCompetitor(Competitor competitor, List<Competitor> leaderboardOrder) {
-        if (competitor == null) return;
+        if (competitor == null)
+            return;
         User profileUser = competitor.getUser();
         if (profileUser == null && leaderboardOrder != null) {
             int idx = Math.max(0, leaderboardOrder.indexOf(competitor));
@@ -143,7 +145,16 @@ public class ProfileController {
         profileXpBar.setProgress(progress);
         profileXpLabel.setText(xp + " / " + levelCap + " XP");
 
-        int tokens = user != null ? user.getGameState().getTokenBalance() : 0;
+        int tokens = 0;
+        if (user != null) {
+            try {
+                if (user.getGameState() != null) {
+                    tokens = user.getGameState().getTokenBalance();
+                }
+            } catch (Exception ignored) {
+                // Ignore lazy init exception
+            }
+        }
         profileTokenLabel.setText(String.valueOf(tokens));
 
         int itemCount = 0;
@@ -177,8 +188,10 @@ public class ProfileController {
         if (badgesSection != null) {
             badgesSection.setVisible(true);
             badgesSection.setManaged(true);
-            if (badgesSectionTitle != null) badgesSectionTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
-            if (noBadgesLabel != null) noBadgesLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+            if (badgesSectionTitle != null)
+                badgesSectionTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
+            if (noBadgesLabel != null)
+                noBadgesLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
             buildBadgesList();
         }
 
@@ -187,7 +200,8 @@ public class ProfileController {
             friendsSection.setVisible(viewingSelf);
             friendsSection.setManaged(viewingSelf);
             if (viewingSelf) {
-                if (friendsSectionTitle != null) friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
+                if (friendsSectionTitle != null)
+                    friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
                 buildFriendsList();
             }
         }
@@ -223,7 +237,8 @@ public class ProfileController {
 
     /** Build the friends list (demo data when viewing self). */
     private void buildFriendsList() {
-        if (friendsList == null) return;
+        if (friendsList == null)
+            return;
         friendsList.getChildren().clear();
 
         java.util.List<User> friends = getFriendsForCurrentUser();
@@ -259,16 +274,21 @@ public class ProfileController {
     /** Demo friends list (replace with real data when backend exists). */
     private java.util.List<User> getFriendsForCurrentUser() {
         java.util.List<User> list = new java.util.ArrayList<>();
-        if (!viewingSelf || user == null) return list;
+        if (!viewingSelf || user == null)
+            return list;
         list.add(User.builder().username("CodeMaster").email("").password("").build());
         list.add(User.builder().username("ByteNinja").email("").password("").build());
         list.add(User.builder().username("DevExplorer").email("").password("").build());
         return list;
     }
 
-    /** Build the badges list (demo data; replace with user's achievements when wired to backend). */
+    /**
+     * Build the badges list (demo data; replace with user's achievements when wired
+     * to backend).
+     */
     private void buildBadgesList() {
-        if (badgesContainer == null) return;
+        if (badgesContainer == null)
+            return;
         badgesContainer.getChildren().clear();
 
         java.util.List<BadgeDisplay> badges = getBadgesForUser();
@@ -302,7 +322,8 @@ public class ProfileController {
     /** Demo badges (replace with user achievements from backend). */
     private java.util.List<BadgeDisplay> getBadgesForUser() {
         java.util.List<BadgeDisplay> list = new java.util.ArrayList<>();
-        if (user == null) return list;
+        if (user == null)
+            return list;
         list.add(new BadgeDisplay("\uD83C\uDFC6", "First Steps", "Complete your first lesson"));
         list.add(new BadgeDisplay("🔥", "Streak Master", "7-day coding streak"));
         list.add(new BadgeDisplay("\uD83E\uDDE9", "Code Explorer", "Finish 5 chapters"));

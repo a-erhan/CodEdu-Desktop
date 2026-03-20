@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import javafx.application.Platform;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Controller
 @Scope("prototype")
@@ -43,6 +44,7 @@ public class ForumPostController {
     private ForumPost post;
     private User currentUser;
     private Runnable onBack;
+    private Consumer<User> onOpenProfile;
     @Autowired
     private ForumService forumService;
 
@@ -66,6 +68,10 @@ public class ForumPostController {
 
     public void setCurrentUser(User currentUser) {
         this.currentUser = currentUser;
+    }
+
+    public void setOnOpenProfile(Consumer<User> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
     }
 
     public void setOnBack(Runnable onBack) {
@@ -120,6 +126,14 @@ public class ForumPostController {
             if (!metaLabel.getStyleClass().contains(Styles.TEXT_SUBTLE)) {
                 metaLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
             }
+            if (post.getAuthor() != null) {
+                metaLabel.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null)
+                        onOpenProfile.accept(post.getAuthor());
+                });
+                metaLabel.setOnMouseEntered(e -> metaLabel.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                metaLabel.setOnMouseExited(e -> metaLabel.setStyle("-fx-underline: false;"));
+            }
         }
 
         contentArea.setText(post.getContent());
@@ -137,6 +151,14 @@ public class ForumPostController {
 
                 Label meta = new Label(replyAuthor);
                 meta.getStyleClass().add(Styles.TEXT_BOLD);
+                if (reply.getAuthor() != null) {
+                    meta.setOnMouseClicked(e -> {
+                        if (onOpenProfile != null)
+                            onOpenProfile.accept(reply.getAuthor());
+                    });
+                    meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                    meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+                }
 
                 Label body = new Label(reply.getContent());
                 body.setWrapText(true);

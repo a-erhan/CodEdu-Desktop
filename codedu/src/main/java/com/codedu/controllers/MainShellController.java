@@ -302,7 +302,8 @@ public class MainShellController {
 
     private void updateHeader() {
         String username = user.getUsername() != null && !user.getUsername().isEmpty()
-                ? user.getUsername() : "User";
+                ? user.getUsername()
+                : "User";
 
         int tokens = 0, level = 1, xp = 0;
 
@@ -345,7 +346,8 @@ public class MainShellController {
         xpLabel.setText("XP: " + xp + " / " + levelCap);
         xpLabel.setStyle("-fx-text-fill: #3498db; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-        if (welcomeNavLabel != null) welcomeNavLabel.setText("@" + username);
+        if (welcomeNavLabel != null)
+            welcomeNavLabel.setText("@" + username);
         if (profileIconLabel != null) {
             String initial = username.isEmpty() ? "U" : username.substring(0, 1).toUpperCase();
             profileIconLabel.setText(initial);
@@ -533,6 +535,7 @@ public class MainShellController {
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
+            controller.setOnOpenProfile(this::openUserProfile);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -607,6 +610,45 @@ public class MainShellController {
         }
     }
 
+    private void openUserProfile(User profileUser) {
+        if (profileUser == null)
+            return;
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Profile.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent profileView = loader.load();
+            ProfileController controller = loader.getController();
+
+            boolean isSelf = (user != null && user.getId() > 0
+                    && profileUser != null && user.getId() == profileUser.getId());
+            controller.setViewingSelf(isSelf);
+            controller.setUserModel(profileUser);
+
+            UserGameState state = null;
+            try {
+                // Try reading gameState (might throw LazyInitializationException)
+                state = profileUser.getGameState();
+            } catch (Exception ignored) {
+            }
+            if (state == null) {
+                state = UserGameState.builder()
+                        .user(profileUser)
+                        .level(1)
+                        .xp(0)
+                        .heartCount(3)
+                        .build();
+            }
+            controller.setGameState(state);
+
+            setContentAndFill(profileView);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Profile",
+                    "Error loading profile view: " + ex.getMessage());
+        }
+    }
+
     private void openForumPost(ForumPost post) {
         try {
             FXMLLoader loader = new FXMLLoader(
@@ -616,6 +658,7 @@ public class MainShellController {
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setPost(post);
+            controller.setOnOpenProfile(this::openUserProfile);
             controller.setOnBack(() -> {
                 setActiveButton(btnForum);
                 loadForum();

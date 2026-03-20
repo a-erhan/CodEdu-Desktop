@@ -58,7 +58,6 @@ public class LeaderboardController {
         buildLeaderboard();
     }
 
-
     @FXML
     public void initialize() {
         if (titleLabel != null) {
@@ -111,8 +110,7 @@ public class LeaderboardController {
                 Styles.BORDERED,
                 Styles.ROUNDED,
                 Styles.BG_ACCENT_SUBTLE,
-                Styles.ELEVATED_1
-        );
+                Styles.ELEVATED_1);
 
         VBox gapContainer = new VBox(5);
         gapContainer.setAlignment(javafx.geometry.Pos.CENTER);
@@ -190,7 +188,6 @@ public class LeaderboardController {
             line.setStyle(baseStyle);
             final String finalBaseStyle = baseStyle;
 
-
             int levelVal = (c.getRankingPoint() / 1000) + 1;
             Label levelBadge = new Label("Lvl " + levelVal);
             levelBadge.setStyle(
@@ -200,8 +197,7 @@ public class LeaderboardController {
                             "-fx-background-radius: 10; " +
                             "-fx-font-size: 9px; " +
                             "-fx-font-weight: bold; " +
-                            "-fx-opacity: 0.8;"
-            );
+                            "-fx-opacity: 0.8;");
 
             line.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
                 @Override
@@ -221,6 +217,12 @@ public class LeaderboardController {
                 }
             });
 
+            line.setOnMouseClicked(e -> {
+                if (onOpenProfile != null) {
+                    onOpenProfile.accept(c, competitors);
+                }
+            });
+
             Label pos = new Label("#" + String.valueOf(i + 1));
             pos.getStyleClass().add(Styles.TEXT_BOLD);
 
@@ -228,11 +230,9 @@ public class LeaderboardController {
             posIcon.setMinWidth(30);
             if (i == 0) {
                 pos.setStyle("-fx-text-fill: #FFD700;");
-            }
-            else if (i == 1) {
+            } else if (i == 1) {
                 pos.setStyle("-fx-text-fill: #C0C0C0;");
-            }
-            else if (i == 2) {
+            } else if (i == 2) {
                 pos.setStyle("-fx-text-fill: #CD7F32;");
             }
 
@@ -259,4 +259,3 @@ public class LeaderboardController {
         }
     }
 }
-
