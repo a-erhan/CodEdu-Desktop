@@ -75,31 +75,93 @@ public class AchievementsController {
         }
         achievementList.getChildren().clear();
 
+        final String baseStyle =
+                "-fx-background-radius: 15; " + "-fx-border-radius: 15; " + "-fx-border-width: 2.5; " +
+                        "-fx-border-color: -color-border-default;";
+
+        final String hoverStyle =
+                "-fx-background-radius: 15; " + "-fx-border-radius: 15; " + "-fx-border-width: 2.5; " +
+                        "-fx-border-color: -color-accent-emphasis;";
+
         for (int i = 0; i < leaderboard.getCompetitors().size(); i++) {
             Competitor c = leaderboard.getCompetitors().get(i);
 
-            VBox goalCard = new VBox(6);
-            goalCard.setAlignment(javafx.geometry.Pos.TOP_LEFT);
-            goalCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
-            goalCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+            final javafx.scene.layout.HBox goalCard = new javafx.scene.layout.HBox(20);
+            goalCard.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            goalCard.setPadding(new javafx.geometry.Insets(20));
+            goalCard.getStyleClass().add(Styles.BG_DEFAULT);
+            goalCard.setStyle(baseStyle);
 
-            String nameText = c.getUser() != null && c.getUser().getUsername() != null
-                    ? c.getUser().getUsername()
-                    : "Goal " + (i + 1);
+            javafx.scene.layout.StackPane badgeContainer = new javafx.scene.layout.StackPane();
+            badgeContainer.setMinWidth(80);
+            badgeContainer.setMinHeight(80);
+            badgeContainer.setMaxWidth(80);
+            badgeContainer.setMaxHeight(80);
 
+            badgeContainer.setStyle(
+                    "-fx-background-color: -color-bg-subtle; " + "-fx-background-radius: 40; "
+                            + "-fx-border-color: -color-border-muted; " + "-fx-border-radius: 40; " + "-fx-border-width: 1;"
+            );
+
+
+            javafx.scene.image.ImageView badgeIcon = new javafx.scene.image.ImageView();
+            badgeIcon.setFitWidth(50);
+            badgeIcon.setFitHeight(50);
+            badgeIcon.setPreserveRatio(true);
+
+            // when we use icon url, use this after cleaning the placeholder:
+            // badgeIcon.setImage(new javafx.scene.image.Image(c.getBadge().getIconURL()));
+
+            Label placeholderText = new Label("CODE");
+            placeholderText.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_MUTED);
+            badgeContainer.getChildren().add(placeholderText);
+
+            javafx.scene.layout.VBox textContainer = new javafx.scene.layout.VBox(6);
+            javafx.scene.layout.HBox.setHgrow(textContainer, javafx.scene.layout.Priority.ALWAYS);
+
+            String nameText = "Achievement " + (i + 1);
+            if (c.getUser() != null && c.getUser().getUsername() != null) {
+                nameText = c.getUser().getUsername();
+            }
             Label goalTitle = new Label(nameText);
-            goalTitle.getStyleClass().add(Styles.TEXT_BOLD);
+            goalTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
+
+            goalTitle.setStyle("-fx-text-fill: #E67E22;");
+
+            Label goalMeta = new Label("COMPLETION GOAL");
+            goalMeta.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_CAPTION, Styles.SUCCESS);
 
             Label goalBody = new Label("Reach " + c.getRankingPoint() + " XP with at least "
                     + String.format("%.0f", c.getWinRate()) + "% win rate.");
             goalBody.setWrapText(true);
+            goalBody.getStyleClass().add(Styles.TEXT_MUTED);
 
-            Label goalMeta = new Label("Progress goal");
-            goalMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
+            javafx.scene.control.ProgressBar progressBar = new javafx.scene.control.ProgressBar(0.65);
+            progressBar.setMaxWidth(Double.MAX_VALUE);
+            progressBar.getStyleClass().add(Styles.SMALL);
+            progressBar.setStyle("-fx-min-height: 12; " + "-fx-max-height: 12; " +
+                    "-fx-background-radius: 10; " + "-fx-border-radius: 10;");
 
-            goalCard.getChildren().addAll(goalTitle, goalBody, goalMeta);
+            textContainer.getChildren().addAll(goalTitle, goalMeta, goalBody, progressBar);
+
+            goalCard.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
+                @Override
+                public void handle(javafx.scene.input.MouseEvent event) {
+                    goalCard.setStyle(hoverStyle);
+                }
+            });
+
+            goalCard.setOnMouseExited(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
+                @Override
+                public void handle(javafx.scene.input.MouseEvent event) {
+                    goalCard.setStyle(baseStyle);
+                }
+            });
+
+            goalCard.getChildren().addAll(badgeContainer, textContainer);
             achievementList.getChildren().add(goalCard);
         }
     }
+
 }
 
