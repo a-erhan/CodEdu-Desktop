@@ -1,9 +1,9 @@
 package com.codedu.controllers;
 
-import com.codedu.models.Chapter;
-import com.codedu.models.ChapterContent;
-import com.codedu.models.Question;
-import com.codedu.models.QuestionType;
+import com.codedu.models.learning.Chapter;
+import com.codedu.models.learning.ChapterContent;
+import com.codedu.models.learning.Question;
+import com.codedu.models.learning.QuestionType;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

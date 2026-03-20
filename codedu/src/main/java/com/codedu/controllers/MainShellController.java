@@ -3,12 +3,12 @@ package com.codedu.controllers;
 import atlantafx.base.theme.NordDark;
 import atlantafx.base.theme.NordLight;
 import atlantafx.base.theme.Styles;
-import com.codedu.models.Chapter;
-import com.codedu.models.Competitor;
-import com.codedu.models.DailyChallenge;
-import com.codedu.models.ForumPost;
-import com.codedu.models.User;
-import com.codedu.models.UserGameState;
+import com.codedu.models.learning.Chapter;
+import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.social.ForumPost;
+import com.codedu.models.learning.Question;
+import com.codedu.models.user.User;
+import com.codedu.models.user.UserGameState;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -30,13 +30,18 @@ import org.springframework.stereotype.Controller;
 import java.io.IOException;
 
 /**
- * Shell-only controller: sidebar/nav wiring, header (tokens, XP, profile icon, theme),
- * high-level routing (loadLearningPath, loadDailyChallenge, loadForum, loadAskAI, etc.),
+ * Shell-only controller: sidebar/nav wiring, header (tokens, XP, profile icon,
+ * theme),
+ * high-level routing (loadLearningPath, loadDailyChallenge, loadForum,
+ * loadAskAI, etc.),
  * and initialization of shared models (user, gameState) for header and profile.
  * Feature-specific UI logic lives in the respective page controllers.
  */
 @Controller
 public class MainShellController {
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.context.ApplicationContext applicationContext;
 
     // ========== FXML: Header ==========
     @FXML
@@ -113,10 +118,14 @@ public class MainShellController {
         loadLearningPath();
     }
 
-    /** Make root pane and sidebar fill available height so the shell reaches the bottom. */
+    /**
+     * Make root pane and sidebar fill available height so the shell reaches the
+     * bottom.
+     */
     private void ensureShellFillsScene() {
         Platform.runLater(() -> {
-            if (contentArea == null || contentArea.getScene() == null) return;
+            if (contentArea == null || contentArea.getScene() == null)
+                return;
             javafx.scene.Scene scene = contentArea.getScene();
             javafx.scene.Node root = scene.getRoot();
             if (root instanceof Region) {
@@ -353,6 +362,9 @@ public class MainShellController {
                     .xp(0)
                     .heartCount(3)
                     .build();
+            if (user != null) {
+                user.setGameState(gameState);
+            }
         }
     }
 
@@ -374,7 +386,8 @@ public class MainShellController {
     // ========== Navigation helpers ==========
 
     private void styleNavButton(Button button) {
-        if (button == null) return;
+        if (button == null)
+            return;
         button.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DENSE, Styles.INTERACTIVE);
         button.setMaxWidth(Double.MAX_VALUE);
     }
@@ -395,6 +408,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/LearningPath.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent learningPathView = loader.load();
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(chapter -> loadChapterView(chapter));
@@ -410,6 +424,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/ChapterView.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent chapterView = loader.load();
             ChapterViewController controller = loader.getController();
             controller.setChapter(chapter);
@@ -426,6 +441,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Store.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent storeView = loader.load();
             StoreController controller = loader.getController();
             controller.setUserModel(user);
@@ -441,6 +457,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Profile.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             controller.setViewingSelf(true);
@@ -458,10 +475,15 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Settings.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent settingsView = loader.load();
             SettingsController controller = loader.getController();
             controller.setUserModel(user);
             controller.setThemeToggleCallback(() -> toggleTheme());
+
+            // Logout and Account Removal callback
+            controller.setOnLogoutCallback(() -> logout());
+
             setContentAndFill(settingsView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -474,9 +496,10 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
-            controller.setOnStartChallenge(this::openChallengePage);
+            controller.setOnStartQuestion(this::openChallengePage);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -489,6 +512,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Achievements.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
             controller.setCurrentUser(user);
@@ -504,10 +528,13 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Forum.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
+
             controller.setOnOpenPost(this::openForumPost);
+
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -520,6 +547,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             setContentAndFill(view);
         } catch (IOException ex) {
@@ -533,6 +561,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/AskAI.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AIChatbotController controller = loader.getController();
             controller.setRemainingRequests(3);
@@ -548,6 +577,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             LeaderboardController controller = loader.getController();
             controller.setCurrentUser(user);
@@ -567,6 +597,7 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/Profile.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             controller.setCompetitor(competitor, competitorOrder);
@@ -578,14 +609,18 @@ public class MainShellController {
         }
     }
 
-    private void openForumPost(ForumPost post) {
+    private void openForumPost(Integer postId) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/ForumPost.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
+
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
-            controller.setPost(post);
+
+            controller.setPostId(postId);
+
             controller.setOnBack(() -> {
                 setActiveButton(btnForum);
                 loadForum();
@@ -597,19 +632,19 @@ public class MainShellController {
                     "Error loading post: " + ex.getMessage());
         }
     }
-
-    private void openChallengePage(DailyChallenge challenge) {
+    private void openChallengePage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/Challenge.fxml"));
+                    getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
-            ChallengeController controller = loader.getController();
-            controller.setChallenge(challenge);
+            QuestionSolverController controller = loader.getController();
+            controller.setQuestion(question);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
-            showSectionPlaceholder("Challenge",
-                    "Error opening challenge: " + ex.getMessage());
+            showSectionPlaceholder("Question Solver",
+                    "Error opening question solver: " + ex.getMessage());
         }
     }
 
@@ -626,22 +661,30 @@ public class MainShellController {
 
     // ========== Fallback (loader errors) ==========
 
-    private void showSectionPlaceholder(String title, String description) {
-        VBox box = new VBox(12);
-        box.setAlignment(Pos.CENTER);
-        box.setMaxWidth(500);
+    private void showSectionPlaceholder(String title, String subtitle) {
+        VBox placeholder = new VBox(12);
+        placeholder.setAlignment(Pos.CENTER);
+        Label lblTitle = new Label(title);
+        lblTitle.getStyleClass().add(Styles.TITLE_3);
+        Label lblSubtitle = new Label(subtitle);
+        lblSubtitle.getStyleClass().add(Styles.TEXT_SUBTLE);
+        placeholder.getChildren().addAll(lblTitle, lblSubtitle);
+        setContentAndFill(placeholder);
+    }
 
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("section-title");
+    private void logout() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/codedu/views/Login.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent root = loader.load();
 
-        Label descLabel = new Label(description);
-        descLabel.getStyleClass().add("section-description");
-        descLabel.setWrapText(true);
-
-        Label comingSoon = new Label("Module coming soon\u2026");
-        comingSoon.getStyleClass().add("coming-soon");
-
-        box.getChildren().addAll(titleLabel, descLabel, comingSoon);
-        setContentAndFill(box);
+            javafx.scene.Scene scene = new javafx.scene.Scene(root, 1000, 700);
+            javafx.stage.Stage stage = (javafx.stage.Stage) contentArea.getScene().getWindow();
+            stage.setScene(scene);
+            stage.centerOnScreen();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }

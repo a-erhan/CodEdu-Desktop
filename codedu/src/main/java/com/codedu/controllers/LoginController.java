@@ -1,10 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.Role;
-import com.codedu.models.User;
-import com.codedu.models.UserInventory;
-import com.codedu.models.UserGameState;
+import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

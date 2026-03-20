@@ -1,7 +1,7 @@
 package com.codedu.services;
 
-import com.codedu.models.User;
-import com.codedu.models.Role;
+import com.codedu.models.user.User;
+import com.codedu.models.user.Role;
 import com.codedu.repositories.interfaces.UserRepository;
 import org.springframework.stereotype.Service;
 

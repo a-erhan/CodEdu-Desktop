@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<SplitPane dividerPositions="0.35"
+           xmlns="http://javafx.com/javafx/25"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.codedu.controllers.QuestionSolverController"
+           prefHeight="600.0" prefWidth="900.0">
+
+    <!-- Left Side: Task Instructions -->
+    <VBox spacing="16" minWidth="250.0">
+        <padding>
+            <Insets top="24" right="24" bottom="24" left="24"/>
+        </padding>
+
+        <!-- Title of the task -->
+        <Label fx:id="questionTitleLabel" text="Task Loading..." wrapText="true"/>
+
+        <!-- Separator or subtle subtitle -->
+        <Label text="Instructions" styleClass="text-bold, text-subtle"/>
+
+        <!-- Description of the problem -->
+        <Label fx:id="questionDescriptionLabel" 
+               text="Problem description will appear here." 
+               wrapText="true" 
+               alignment="TOP_LEFT" 
+               VBox.vgrow="ALWAYS" 
+               maxHeight="Infinity"/>
+    </VBox>
+
+    <!-- Right Side: Code Editor -->
+    <VBox spacing="16">
+        <padding>
+            <Insets top="24" right="24" bottom="24" left="24"/>
+        </padding>
+
+        <Label text="Source Code" styleClass="text-bold, text-subtle"/>
+
+        <!-- The text area acts as our code editor -->
+        <!-- Added monospace font so the code aligns perfectly like in IntelliJ/Eclipse -->
+        <TextArea fx:id="codeEditorArea" 
+                  VBox.vgrow="ALWAYS"
+                  style="-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 14px;"/>
+
+        <!-- Action Bar at the bottom -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <!-- Result messages (Success/Fail) will appear here -->
+            <Label fx:id="resultMessageLabel" wrapText="true"/>
+            
+            <!-- Region acts as a spring to push the button to the far right -->
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <Button fx:id="submitButton" 
+                    text="Submit Code" 
+                    onAction="#onSubmitCode" 
+                    minWidth="130.0" 
+                    minHeight="35.0"
+                    style="-fx-cursor: hand;"/>
+        </HBox>
+    </VBox>
+
+</SplitPane>

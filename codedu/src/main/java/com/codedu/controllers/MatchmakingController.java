@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.DailyChallenge;
+import com.codedu.models.learning.DailyChallenge;
 import com.codedu.services.CodeExecutionService;
 import com.codedu.services.MatchmakingService;
 import javafx.concurrent.Task;
@@ -17,35 +17,60 @@ import org.springframework.stereotype.Controller;
 public class MatchmakingController {
 
     // --- UI Elements ---
-    @FXML private Label titleLabel;
-    @FXML private Label timeLabel;
-    @FXML private Label subtitleLabel;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private Label timeLabel;
+    @FXML
+    private Label subtitleLabel;
 
-    @FXML private VBox statusCard;
-    @FXML private Label statusLabel;
-    @FXML private Label statusValue;
+    @FXML
+    private VBox statusCard;
+    @FXML
+    private Label statusLabel;
+    @FXML
+    private Label statusValue;
 
-    @FXML private VBox challengeCard;
-    @FXML private Label challengeHeader;
-    @FXML private Label problemTitle;
-    @FXML private Label problemDescription;
+    @FXML
+    private VBox challengeCard;
+    @FXML
+    private Label challengeHeader;
+    @FXML
+    private Label problemTitle;
+    @FXML
+    private Label problemDescription;
 
-    @FXML private VBox editorCard;
-    @FXML private Label editorLabel;
-    @FXML private TextArea codeArea;
-    @FXML private HBox actionRow;
-    @FXML private Button runButton;
-    @FXML private Button submitButton;
-    @FXML private Label outputLabel;
-    @FXML private TextArea outputArea;
+    @FXML
+    private VBox editorCard;
+    @FXML
+    private Label editorLabel;
+    @FXML
+    private TextArea codeArea;
+    @FXML
+    private HBox actionRow;
+    @FXML
+    private Button runButton;
+    @FXML
+    private Button submitButton;
+    @FXML
+    private Label outputLabel;
+    @FXML
+    private TextArea outputArea;
 
-    @FXML private VBox scoreCard;
-    @FXML private Label scoreTitle;
-    @FXML private Label youScore;
-    @FXML private Label opponentScore;
-    @FXML private Label attemptsTitle;
-    @FXML private Label youAttempts;
-    @FXML private Label opponentAttempts;
+    @FXML
+    private VBox scoreCard;
+    @FXML
+    private Label scoreTitle;
+    @FXML
+    private Label youScore;
+    @FXML
+    private Label opponentScore;
+    @FXML
+    private Label attemptsTitle;
+    @FXML
+    private Label youAttempts;
+    @FXML
+    private Label opponentAttempts;
 
     private DailyChallenge activeChallenge;
 
@@ -67,24 +92,30 @@ public class MatchmakingController {
     @FXML
     public void initialize() {
         // ... (Your existing styling code remains exactly the same) ...
-        if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
+        if (titleLabel != null)
+            titleLabel.getStyleClass().add(Styles.TITLE_3);
         if (statusCard != null) {
             statusCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
             statusCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-        if (statusLabel != null) statusLabel.getStyleClass().add(Styles.TEXT_BOLD);
-        if (statusValue != null) statusValue.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (statusLabel != null)
+            statusLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (statusValue != null)
+            statusValue.getStyleClass().add(Styles.TEXT_SUBTLE);
         if (challengeCard != null) {
             challengeCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
             challengeCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-        if (challengeHeader != null) challengeHeader.getStyleClass().add(Styles.TEXT_BOLD);
-        if (problemTitle != null) problemTitle.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (challengeHeader != null)
+            challengeHeader.getStyleClass().add(Styles.TEXT_BOLD);
+        if (problemTitle != null)
+            problemTitle.getStyleClass().add(Styles.TEXT_SUBTLE);
         if (editorCard != null) {
             editorCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
             editorCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-        if (editorLabel != null) editorLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (editorLabel != null)
+            editorLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
         // Button Styling and Actions
         if (runButton != null) {
@@ -98,19 +129,54 @@ public class MatchmakingController {
             submitButton.setOnAction(e -> handleSubmitCode());
         }
 
-        if (outputLabel != null) outputLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (outputLabel != null)
+            outputLabel.getStyleClass().add(Styles.TEXT_BOLD);
         if (scoreCard != null) {
             scoreCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
             scoreCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
         }
-        if (scoreTitle != null) scoreTitle.getStyleClass().add(Styles.TEXT_BOLD);
-        if (youScore != null) youScore.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (opponentScore != null) opponentScore.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (attemptsTitle != null) attemptsTitle.getStyleClass().add(Styles.TEXT_BOLD);
-        if (youAttempts != null) youAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (opponentAttempts != null) opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (scoreTitle != null)
+            scoreTitle.getStyleClass().add(Styles.TEXT_BOLD);
+        if (youScore != null)
+            youScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (opponentScore != null)
+            opponentScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (attemptsTitle != null)
+            attemptsTitle.getStyleClass().add(Styles.TEXT_BOLD);
+        if (youAttempts != null)
+            youAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (opponentAttempts != null)
+            opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
 
         applyChallenge();
+
+        // Simulate Matchmaking process
+        if (statusValue != null)
+            statusValue.setText("Finding an opponent...");
+        long randomPlayerId = (long) (Math.random() * 10000);
+        matchmakingService.joinQueue(randomPlayerId);
+
+        Task<Void> matchTask = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                Thread.sleep(2000); // simulate 2 seconds waiting
+                return null;
+            }
+        };
+        matchTask.setOnSucceeded(e -> {
+            if (statusValue != null)
+                statusValue.setText("Match Started!");
+            DailyChallenge mockChallenge = new DailyChallenge();
+            mockChallenge.setName("Two Sum");
+            mockChallenge.setDescription(
+                    "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. Write your solution in the code editor.");
+            setChallenge(mockChallenge);
+            if (runButton != null)
+                runButton.setDisable(false);
+            if (submitButton != null)
+                submitButton.setDisable(false);
+        });
+        new Thread(matchTask).start();
     }
 
     private void applyChallenge() {
@@ -118,13 +184,13 @@ public class MatchmakingController {
             return;
         }
         problemTitle.setText(activeChallenge.getName());
-        // Temporarily assuming getDescription() exists, or adjust according to your DailyChallenge model
-        // problemDescription.setText(activeChallenge.getDescription());
+        problemDescription.setText(activeChallenge.getDescription());
     }
 
     /**
      * Triggered when the user clicks the "Run" button.
-     * Uses a background Task so the JavaFX UI doesn't freeze while waiting for Judge0.
+     * Uses a background Task so the JavaFX UI doesn't freeze while waiting for
+     * Judge0.
      */
     private void handleRunCode() {
         String code = codeArea.getText();

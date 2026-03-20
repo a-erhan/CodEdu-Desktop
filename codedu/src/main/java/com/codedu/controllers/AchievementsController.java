@@ -1,9 +1,9 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.Competitor;
-import com.codedu.models.LeaderBoard;
-import com.codedu.models.User;
+import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.matchmaking.LeaderBoard;
+import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;

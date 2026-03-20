@@ -1,13 +1,16 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.Competitor;
-import com.codedu.models.LeaderBoard;
-import com.codedu.models.User;
+import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.matchmaking.LeaderBoard;
+import com.codedu.models.user.User;
+import com.codedu.services.LeaderBoardService;
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
@@ -29,23 +32,24 @@ public class LeaderboardController {
     private Label myRankLabel;
     @FXML
     private Label myScoreLabel;
-
     @FXML
     private VBox boardList;
+    @FXML
+    private ComboBox<String> scopeComboBox;
 
     private LeaderBoard leaderboard;
+    @Autowired
+    private LeaderBoardService leaderboardService;
     private User currentUser;
     private BiConsumer<Competitor, List<Competitor>> onOpenProfile;
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        ensureDemoLeaderboard();
         buildLeaderboard();
     }
 
     public void setLeaderboard(LeaderBoard leaderboard) {
         this.leaderboard = leaderboard;
-        ensureDemoLeaderboard();
         buildLeaderboard();
     }
 
@@ -54,48 +58,46 @@ public class LeaderboardController {
         buildLeaderboard();
     }
 
-    /** Create demo leaderboard in this controller if none set (demo data lives here). */
-    private void ensureDemoLeaderboard() {
-        if (leaderboard != null) return;
-        if (currentUser == null) return;
-        Competitor me = Competitor.builder()
-                .user(currentUser)
-                .rankingPoint(2180)
-                .totalWins(12)
-                .totalLosses(8)
-                .totalMatches(20)
-                .build();
-        Competitor c1 = Competitor.builder().rankingPoint(2840).totalWins(20).totalLosses(5).totalMatches(25).build();
-        Competitor c2 = Competitor.builder().rankingPoint(2650).totalWins(18).totalLosses(6).totalMatches(24).build();
-        Competitor c3 = Competitor.builder().rankingPoint(2420).totalWins(15).totalLosses(7).totalMatches(22).build();
-        Competitor c5 = Competitor.builder().rankingPoint(1950).totalWins(10).totalLosses(9).totalMatches(19).build();
-        leaderboard = LeaderBoard.builder()
-                .name("Weekly XP")
-                .userRank(4)
-                .requiredLevel(1)
-                .build();
-        leaderboard.addCompetitor(c1);
-        leaderboard.addCompetitor(c2);
-        leaderboard.addCompetitor(c3);
-        leaderboard.addCompetitor(me);
-        leaderboard.addCompetitor(c5);
-    }
 
     @FXML
     public void initialize() {
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
+        if (scopeComboBox != null) {
+            scopeComboBox.getItems().addAll("Weekly", "Monthly", "All-Time");
+            scopeComboBox.setValue("Weekly"); // Varsayılan olarak haftalık açılsın
+
+            // Kullanıcı seçimi değiştirdiğinde tetiklenecek olay
+            scopeComboBox.setOnAction(e -> {
+                String selectedScope = scopeComboBox.getValue();
+                fetchLeaderboardData(selectedScope);
+            });
+        }
+        fetchLeaderboardData("Weekly");
+    }
+
+    private void fetchLeaderboardData(String scope) {
+        System.out.println("Fetching Leaderboard: " + scope);
+        this.leaderboard = leaderboardService.getLeaderboardByName(scope);
         buildLeaderboard();
     }
 
     private void buildLeaderboard() {
-        ensureDemoLeaderboard();
         if (leaderboard == null || boardList == null || myCard == null) {
             return;
         }
+        List<Competitor> competitors = leaderboard.getCompetitors();
 
-        java.util.List<Competitor> competitors = leaderboard.getCompetitors();
+        if (competitors == null || competitors.isEmpty()) {
+            myCard.getChildren().clear();
+            boardList.getChildren().clear();
+            Label emptyLabel = new Label("No one to show!");
+            emptyLabel.setStyle("-fx-text-fill: #95a5a6; -fx-font-style: italic;");
+            boardList.getChildren().add(emptyLabel);
+            return;
+        }
+
         int myRank = leaderboard.getUserRank();
         int total = competitors.size();
         int myIndex = Math.max(0, Math.min(total - 1, myRank - 1));

@@ -5,6 +5,7 @@ import com.codedu.repositories.interfaces.GenericRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.Optional;
 @Transactional
 public class GenericRepositoryImpl<T extends BaseEntity> implements GenericRepository<T> {
 
+    @Getter
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -61,4 +63,5 @@ public class GenericRepositoryImpl<T extends BaseEntity> implements GenericRepos
         return entityManager.createQuery("SELECT e FROM " + entityClass.getSimpleName() + " e WHERE e.isDeleted = false", entityClass)
                 .getResultList();
     }
+
 }

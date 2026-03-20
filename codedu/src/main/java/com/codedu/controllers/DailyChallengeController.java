@@ -1,14 +1,14 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.DailyChallenge;
-import com.codedu.models.Reward;
+import com.codedu.models.learning.DailyChallenge;
+import com.codedu.models.learning.Question;
+import com.codedu.services.DailyChallengeService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import org.springframework.stereotype.Controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -21,17 +21,19 @@ public class DailyChallengeController {
     private Label subtitleLabel;
     @FXML
     private VBox challengeList;
-
+    private final DailyChallengeService dailyChallengeService;
     private DailyChallenge todayChallenge;
-    private Consumer<DailyChallenge> onStartChallenge;
 
-    public void setTodayChallenge(DailyChallenge todayChallenge) {
-        this.todayChallenge = todayChallenge;
-        buildChallenges();
+    // 2. Artık karta tıklayınca tüm görevi değil, tıklanan o özel "Soruyu (Question)" başlatacağız
+    private Consumer<Question> onStartQuestion;
+
+    // Spring Boot Dependency Injection (Constructor Injection)
+    public DailyChallengeController(DailyChallengeService dailyChallengeService) {
+        this.dailyChallengeService = dailyChallengeService;
     }
 
-    public void setOnStartChallenge(Consumer<DailyChallenge> onStartChallenge) {
-        this.onStartChallenge = onStartChallenge;
+    public void setOnStartQuestion(Consumer<Question> onStartQuestion) {
+        this.onStartQuestion = onStartQuestion;
         buildChallenges();
     }
 
@@ -40,81 +42,54 @@ public class DailyChallengeController {
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
-        buildChallenges();
+        try {
+            this.todayChallenge = dailyChallengeService.getTodaysChallenge();
+            buildChallenges();
+        } catch (Exception e) {
+            System.err.println("Günün görevi yüklenirken hata oluştu: " + e.getMessage());
+        }
     }
 
     private void buildChallenges() {
-        if (challengeList == null) {
+        if (challengeList == null || todayChallenge == null) {
             return;
         }
         challengeList.getChildren().clear();
 
-        List<DailyChallenge> challenges = new ArrayList<>();
-        if (todayChallenge != null) {
-            challenges.add(todayChallenge);
-        }
+        if (titleLabel != null) titleLabel.setText(todayChallenge.getName());
+        if (subtitleLabel != null) subtitleLabel.setText(todayChallenge.getDescription());
 
-        if (challenges.isEmpty()) {
-            challenges.add(DailyChallenge.builder()
-                    .name("Loops & counters")
-                    .description("Write a function that prints the numbers from 1 to 100 and counts how many are even.")
-                    .reward(Reward.builder()
-                            .token(25)
-                            .xp(50)
-                            .build())
-                    .build());
-        }
+        List<Question> questions = todayChallenge.getQuestions();
 
-        // Additional sample challenges for visual richness
-        challenges.add(DailyChallenge.builder()
-                .name("Array practice")
-                .description("Work with arrays: sum numbers, find max, and reverse the list.")
-                .reward(Reward.builder()
-                        .token(15)
-                        .xp(40)
-                        .build())
-                .build());
+        int totalXp = todayChallenge.getReward() != null ? todayChallenge.getReward().getXp() : 0;
+        int xpPerQuestion = questions.isEmpty() ? 0 : totalXp / questions.size();
 
-        challenges.add(DailyChallenge.builder()
-                .name("Debug the loop")
-                .description("Fix an off-by-one error in a for-loop and make tests pass.")
-                .reward(Reward.builder()
-                        .token(10)
-                        .xp(35)
-                        .build())
-                .build());
+        int questionNumber = 1;
 
-        for (DailyChallenge ch : challenges) {
+        for (Question q : questions) {
             VBox card = new VBox(6);
             card.setAlignment(javafx.geometry.Pos.TOP_LEFT);
             card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
             card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-            Label chTitle = new Label(ch.getName());
+            Label chTitle = new Label("Task " + questionNumber + " - " + q.getQuestionType());
             chTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            Label chBody = new Label(ch.getDescription());
+            Label chBody = new Label("Difficulty: " + q.getQuestionDifficulity() + " level algorithm challenge.");
             chBody.setWrapText(true);
 
-            int xp = 0;
-            int token = 0;
-            if (ch.getReward() != null) {
-                xp = ch.getReward().getXp();
-                token = ch.getReward().getToken();
-            }
-
-            Label chMeta = new Label(xp + " XP · " + token + " tokens");
+            Label chMeta = new Label(xpPerQuestion + " XP");
             chMeta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
             card.getChildren().addAll(chTitle, chBody, chMeta);
 
-            if (onStartChallenge != null) {
+            if (onStartQuestion != null) {
                 card.getStyleClass().add(Styles.INTERACTIVE);
-                card.setOnMouseClicked(e -> onStartChallenge.accept(ch));
+                card.setOnMouseClicked(e -> onStartQuestion.accept(q));
             }
 
             challengeList.getChildren().add(card);
+            questionNumber++;
         }
     }
 }
-

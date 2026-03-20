@@ -117,6 +117,9 @@
                         <option>java.base/java.util=spring.core,ALL-UNNAMED</option>
                         <option>--add-opens</option>
                         <option>java.base/java.lang.invoke=spring.core,ALL-UNNAMED</option>
+
+                        <option>--add-opens</option>
+                        <option>com.codedu/com.codedu.repositories.implementations=spring.core,spring.aop,spring.beans,ALL-UNNAMED</option>
                     </options>
                 </configuration>
             </plugin>
