@@ -601,6 +601,7 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
+            controller.setCurrentUser(user);
             controller.setCompetitor(competitor, competitorOrder);
             setContentAndFill(profileView);
         } catch (IOException ex) {
@@ -622,6 +623,7 @@ public class MainShellController {
 
             boolean isSelf = (user != null && user.getId() > 0
                     && profileUser != null && user.getId() == profileUser.getId());
+            controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
             controller.setUserModel(profileUser);
 

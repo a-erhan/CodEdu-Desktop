@@ -16,7 +16,7 @@ import java.util.Map;
 @Service
 public class AIChatbotService {
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
-    private static final String API_KEY = "AIzaSyC2bU25_RAuMJFNV_nsatF4UJ5fhfdTjtw";
+    private static final String API_KEY = "API_KEY";
 
     private final RestTemplate restTemplate;
 
