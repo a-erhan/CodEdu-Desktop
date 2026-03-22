@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import javafx.application.Platform;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 @Controller
 @Scope("prototype")
@@ -32,7 +33,7 @@ public class ForumPostController {
     private ForumPostDetailDto post;
     private User currentUser;
     private Runnable onBack;
-
+    private Consumer<User> onOpenProfile;
     @Autowired
     private ForumService forumService;
 
@@ -52,6 +53,10 @@ public class ForumPostController {
 
     public void setCurrentUser(User currentUser) {
         this.currentUser = currentUser;
+    }
+
+    public void setOnOpenProfile(Consumer<User> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
     }
 
     public void setOnBack(Runnable onBack) {
@@ -76,7 +81,29 @@ public class ForumPostController {
     }
 
     private void renderPost() {
-        if (post == null || titleLabel == null) return;
+        if (post == null || titleLabel == null || contentArea == null || repliesList == null) {
+            return;
+        }
+
+        titleLabel.setText(post.getTitle());
+
+        String authorName = (post.getAuthor() != null && post.getAuthor().getUsername() != null)
+                ? post.getAuthor().getUsername()
+                : "Anonymous";
+        if (metaLabel != null) {
+            metaLabel.setText("Posted by " + authorName);
+            if (!metaLabel.getStyleClass().contains(Styles.TEXT_SUBTLE)) {
+                metaLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+            }
+            if (post.getAuthor() != null) {
+                metaLabel.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null)
+                        onOpenProfile.accept(post.getAuthor());
+                });
+                metaLabel.setOnMouseEntered(e -> metaLabel.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                metaLabel.setOnMouseExited(e -> metaLabel.setStyle("-fx-underline: false;"));
+            }
+        }
 
         titleLabel.setText(post.title());
         metaLabel.setText("Posted by " + post.authorUsername());
@@ -89,8 +116,16 @@ public class ForumPostController {
             replyCard.setPadding(new javafx.geometry.Insets(8, 10, 8, 10));
             replyCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-            Label meta = new Label(reply.authorUsername());
-            meta.getStyleClass().add(Styles.TEXT_BOLD);
+                Label meta = new Label(replyAuthor);
+                meta.getStyleClass().add(Styles.TEXT_BOLD);
+                if (reply.getAuthor() != null) {
+                    meta.setOnMouseClicked(e -> {
+                        if (onOpenProfile != null)
+                            onOpenProfile.accept(reply.getAuthor());
+                    });
+                    meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                    meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+                }
 
             Label body = new Label(reply.content());
             body.setWrapText(true);

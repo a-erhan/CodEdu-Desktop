@@ -1,5 +1,6 @@
 package com.codedu.services;
 
+import com.codedu.models.user.User;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,7 +16,7 @@ import java.util.Map;
 @Service
 public class AIChatbotService {
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
-    private static final String API_KEY = "AIzaSyBIkwC6rYUQt_m1e3pNzpsC-dvSd-5TNeQ";
+    private static final String API_KEY = "API_KEY";
 
     private final RestTemplate restTemplate;
 
@@ -35,7 +36,9 @@ public class AIChatbotService {
         // Constructing the JSON payload expected by the Gemini API
         // Format: { "contents": [{ "parts": [{"text": "your prompt here"}] }] }
         Map<String, Object> textPart = new HashMap<>();
-        textPart.put("text", prompt);
+        textPart.put("text",
+                "You are a java tutor, always use Java language; you should help the people in the CodEdu learning platform. Try to use the ideas of user instead of generating from scratch. You should provide the full runnable solution and explain it pedagogically"
+                        + prompt);
 
         Map<String, Object> parts = new HashMap<>();
         parts.put("parts", List.of(textPart));

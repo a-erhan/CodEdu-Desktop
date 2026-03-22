@@ -2,29 +2,35 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.matchmaking.Competitor;
-import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
+import com.codedu.services.UserService;
 
-import java.util.List;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-/**
- * Controller for the Profile view.
- * Displays user stats.
- */
+import java.util.List;
+
 @Controller
 public class ProfileController {
 
+    @Autowired
+    private UserService userService;
+
+    // ========== FXML bindings ==========
     @FXML
     private Label avatarDisplay;
     @FXML
@@ -72,256 +78,408 @@ public class ProfileController {
     @FXML
     private FlowPane badgesContainer;
 
-    private User user;
+    // ========== State ==========
+    private User currentUser; // the logged-in user (self)
+    private User profileUser; // the user whose profile is being viewed
     private UserGameState gameState;
-    private boolean viewingSelf = true;
+    private boolean viewingSelf;
 
-    public void setGameState(UserGameState gameState) {
-        this.gameState = gameState;
-        bindStats();
-    }
+    // ========== Setters called from MainShellController ==========
 
-    public void setUserModel(User user) {
-        this.user = user;
-        bindStats();
-    }
-
+    /**
+     * Called when viewing own profile via the header icon.
+     */
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
-        bindStats();
     }
 
     /**
-     * Show another user's profile from a leaderboard competitor.
-     * Builds display user and game state from competitor; use when opening profile from Leaderboard.
+     * Sets the user model for the profile being viewed, and also stores it
+     * as currentUser when viewing self.
      */
-    public void setCompetitor(Competitor competitor, List<Competitor> leaderboardOrder) {
-        if (competitor == null) return;
-        User profileUser = competitor.getUser();
-        if (profileUser == null && leaderboardOrder != null) {
-            int idx = Math.max(0, leaderboardOrder.indexOf(competitor));
-            profileUser = User.builder()
-                    .username("Player " + (idx + 1))
-                    .email("")
-                    .password("")
-                    .build();
-        } else if (profileUser == null) {
-            profileUser = User.builder().username("Player").email("").password("").build();
+    public void setUserModel(User user) {
+        this.profileUser = user;
+        if (viewingSelf) {
+            this.currentUser = user;
         }
-        int ranking = competitor.getRankingPoint();
-        int level = Math.max(1, ranking / 1000);
-        UserGameState otherState = UserGameState.builder()
-                .user(profileUser)
-                .level(level)
-                .xp(ranking)
-                .heartCount(3)
-                .build();
-        this.user = profileUser;
-        this.gameState = otherState;
-        this.viewingSelf = false;
-        bindStats();
+        bindUI();
     }
 
-    private void bindStats() {
-        // 1. Initial Null Check for User
-        if (user == null) {
-            return;
+    /**
+     * Sets the game state for the profile being viewed.
+     */
+    public void setGameState(UserGameState gameState) {
+        this.gameState = gameState;
+        // Refresh stats if profile was already bound
+        if (profileUser != null) {
+            bindStats();
         }
+    }
 
-        // 2. Username and Avatar Display
-        String username = (user.getUsername() != null && !user.getUsername().isEmpty())
-                ? user.getUsername() : "User";
-        String initial = username.substring(0, 1).toUpperCase();
+    /**
+     * Called when navigating to a competitor's profile from the leaderboard.
+     */
+    public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder) {
+        this.viewingSelf = false;
+        if (competitor != null && competitor.getUser() != null) {
+            this.profileUser = competitor.getUser();
+        }
+        try {
+            if (profileUser != null) {
+                this.gameState = profileUser.getGameState();
+            }
+        } catch (Exception ignored) {
+            // LazyInitializationException — gameState not loaded
+        }
+        if (this.gameState == null && profileUser != null) {
+            this.gameState = UserGameState.builder()
+                    .user(profileUser)
+                    .level(1).xp(0).heartCount(3)
+                    .build();
+        }
+        bindUI();
+    }
 
+    /**
+     * Allows the calling controller to pass the logged-in user
+     * so friend requests use the correct requester.
+     */
+    public void setCurrentUser(User currentUser) {
+        this.currentUser = currentUser;
+    }
+
+    // ========== UI binding ==========
+
+    private void bindUI() {
+        if (profileUser == null)
+            return;
+
+        String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
+        String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
+
+        // Avatar
         avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(80, 80);
         avatarDisplay.setPrefSize(80, 80);
         avatarDisplay.setMaxSize(80, 80);
         avatarDisplay.setShape(new Circle(40));
-        avatarDisplay.getStyleClass().add(Styles.TITLE_2);
+        if (!avatarDisplay.getStyleClass().contains(Styles.TITLE_2)) {
+            avatarDisplay.getStyleClass().add(Styles.TITLE_2);
+        }
 
+        // Username & level
         usernameDisplay.setText(username);
-        usernameDisplay.getStyleClass().add(Styles.TITLE_3);
-
-        // 3. Level and XP Logic (Using the controller's gameState field)
-        int level = (gameState != null) ? gameState.getLevel() : 1;
-        badgeDisplay.setText("Level " + level);
-
-        int xp = (gameState != null) ? gameState.getXp() : 0;
-        int levelCap = Math.max(1, level * 1000);
-        double progress = Math.max(0, Math.min(1, (double) xp / levelCap));
-
-        profileXpBar.setProgress(progress);
-        profileXpLabel.setText(xp + " / " + levelCap + " XP");
-
-        // 4. Token Balance Logic (FIX: Avoiding the NPE by checking gameState)
-        int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
-        profileTokenLabel.setText(String.valueOf(tokens));
-
-        // 5. Inventory Items Logic
-        int itemCount = 0;
-        if (user.getInventory() != null && user.getInventory().getItems() != null) {
-            for (InventoryItem inv : user.getInventory().getItems()) {
-                itemCount += Math.max(0, inv.getQuantity());
-            }
+        if (!usernameDisplay.getStyleClass().contains(Styles.TITLE_3)) {
+            usernameDisplay.getStyleClass().add(Styles.TITLE_3);
         }
-        profileItemsLabel.setText(String.valueOf(itemCount));
 
-        // 6. "Add Friend" Button Visibility Logic
-        if (addFriendButton != null) {
-            if (viewingSelf) {
-                addFriendButton.setVisible(false);
-                addFriendButton.setManaged(false);
-            } else {
-                addFriendButton.setVisible(true);
-                addFriendButton.setManaged(true);
-                if (!addFriendButton.getStyleClass().contains(Styles.ACCENT)) {
-                    addFriendButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+        bindStats();
+        bindAddFriendButton();
+        bindFriendsSection();
+        bindAvatarsSection();
+        applyCardStyles();
+    }
+
+    private void bindStats() {
+        int level = 1, xp = 0, targetXp = 1000, tokens = 0, items = 0;
+
+        if (gameState != null) {
+            level = gameState.getLevel();
+            xp = gameState.getXp();
+            targetXp = gameState.getXpToNextLevel();
+            tokens = gameState.getTokenBalance();
+        } else if (profileUser != null) {
+            try {
+                UserGameState gs = profileUser.getGameState();
+                if (gs != null) {
+                    level = gs.getLevel();
+                    xp = gs.getXp();
+                    targetXp = gs.getXpToNextLevel();
+                    tokens = gs.getTokenBalance();
                 }
-                addFriendButton.setDisable(false);
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (profileUser != null) {
+            try {
+                if (profileUser.getInventory() != null && profileUser.getInventory().getItems() != null) {
+                    items = profileUser.getInventory().getItems().size();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        badgeDisplay.setText("Level " + level);
+        double progress = targetXp == 0 ? 0 : Math.min(1.0, (double) xp / (level * 1000));
+        profileXpBar.setProgress(progress);
+        profileXpLabel.setText(xp + " / " + (level * 1000) + " XP");
+        profileTokenLabel.setText(String.valueOf(tokens));
+        profileItemsLabel.setText(String.valueOf(items));
+    }
+
+    private void bindAddFriendButton() {
+        if (addFriendButton == null)
+            return;
+
+        addFriendButton.getStyleClass().removeAll(Styles.SUCCESS, Styles.DANGER);
+        if (!addFriendButton.getStyleClass().contains(Styles.ACCENT)) {
+            addFriendButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+        }
+
+        if (viewingSelf) {
+            addFriendButton.setVisible(false);
+            addFriendButton.setManaged(false);
+            return;
+        }
+
+        addFriendButton.setVisible(true);
+        addFriendButton.setManaged(true);
+
+        // Determine relationship status
+        String relationStatus = "NONE";
+        if (currentUser != null && profileUser != null && userService != null) {
+            try {
+                relationStatus = userService.getRelationStatus(currentUser, profileUser);
+            } catch (Exception ignored) {
+            }
+        }
+
+        switch (relationStatus) {
+            case "PENDING":
+                addFriendButton.setText("Request Sent");
+                addFriendButton.setDisable(true);
+                break;
+            case "ACCEPTED":
+                addFriendButton.setText("Friends");
+                addFriendButton.getStyleClass().add(Styles.SUCCESS);
+                addFriendButton.setDisable(true);
+                break;
+            case "BLOCKED":
+                addFriendButton.setText("Blocked");
+                addFriendButton.getStyleClass().add(Styles.DANGER);
+                addFriendButton.setDisable(true);
+                break;
+            default: // NONE
                 addFriendButton.setText("Add friend");
-                addFriendButton.setOnAction(e -> {
-                    addFriendButton.setDisable(true);
-                    addFriendButton.setText("Request sent");
-                });
+                addFriendButton.setDisable(false);
+                addFriendButton.setOnAction(e -> handleSendFriendRequest());
+                break;
+        }
+    }
+
+    private void handleSendFriendRequest() {
+        if (currentUser == null || profileUser == null) {
+            System.err.println("Cannot send friend request: current or target user is null.");
+            return;
+        }
+
+        try {
+            addFriendButton.setDisable(true);
+            addFriendButton.setText("Request Sent");
+
+            if (userService != null) {
+                userService.sendFriendRequest(currentUser, profileUser);
+            }
+
+            System.out.println("Friend request sent to: " + profileUser.getUsername());
+        } catch (Exception ex) {
+            addFriendButton.setDisable(false);
+            addFriendButton.setText("Add friend");
+            System.err.println("Error sending friend request: " + ex.getMessage());
+        }
+    }
+
+    private void bindFriendsSection() {
+        if (friendsSection == null)
+            return;
+
+        friendsSection.setVisible(viewingSelf);
+        friendsSection.setManaged(viewingSelf);
+
+        if (viewingSelf && friendsSectionTitle != null) {
+            if (!friendsSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
+                friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
             }
         }
 
-        // 7. Sections Visibility (Badges, Friends, Avatars)
-        if (badgesSection != null) {
-            badgesSection.setVisible(true);
-            badgesSection.setManaged(true);
-            if (badgesSectionTitle != null) badgesSectionTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
-            if (noBadgesLabel != null) noBadgesLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
-            buildBadgesList();
-        }
+        if (!viewingSelf || friendsList == null)
+            return;
 
-        if (friendsSection != null) {
-            friendsSection.setVisible(viewingSelf);
-            friendsSection.setManaged(viewingSelf);
-            if (viewingSelf) {
-                if (friendsSectionTitle != null) friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
-                buildFriendsList();
+        friendsList.getChildren().clear();
+
+        bindPendingRequestsSection();
+
+        List<User> friends = List.of();
+        if (userService != null && currentUser != null) {
+            try {
+                friends = userService.getAcceptedFriends(currentUser);
+            } catch (Exception ignored) {
             }
         }
 
+        if (friends.isEmpty()) {
+            if (noFriendsLabel != null) {
+                noFriendsLabel.setVisible(true);
+                noFriendsLabel.setManaged(true);
+            }
+        } else {
+            if (noFriendsLabel != null) {
+                noFriendsLabel.setVisible(false);
+                noFriendsLabel.setManaged(false);
+            }
+            for (User friend : friends) {
+                friendsList.getChildren().add(createFriendRow(friend));
+            }
+        }
+    }
+
+    private void bindPendingRequestsSection() {
+        if (!viewingSelf || friendsList == null)
+            return;
+
+        List<User> pendingRequests = List.of();
+        if (userService != null && currentUser != null) {
+            try {
+                pendingRequests = userService.getPendingRequests(currentUser);
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!pendingRequests.isEmpty()) {
+            Label pendingTitle = new Label("Pending Requests (" + pendingRequests.size() + ")");
+            pendingTitle.getStyleClass().addAll(Styles.TEXT_MUTED, Styles.TEXT_BOLD);
+            VBox.setMargin(pendingTitle, new Insets(8, 0, 4, 0));
+            friendsList.getChildren().add(pendingTitle);
+
+            for (User requester : pendingRequests) {
+                friendsList.getChildren().add(createPendingRequestRow(requester));
+            }
+
+            // Separator
+            Region separator = new Region();
+            separator.setMinHeight(1);
+            separator.setStyle("-fx-background-color: -color-border-default;");
+            VBox.setMargin(separator, new Insets(12, 0, 12, 0));
+            friendsList.getChildren().add(separator);
+
+            Label friendsTitle = new Label("My Friends");
+            friendsTitle.getStyleClass().addAll(Styles.TEXT_MUTED, Styles.TEXT_BOLD);
+            VBox.setMargin(friendsTitle, new Insets(0, 0, 4, 0));
+            friendsList.getChildren().add(friendsTitle);
+        }
+    }
+
+    private HBox createPendingRequestRow(User requester) {
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8, 12, 8, 12));
+        row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        String name = requester.getUsername() != null ? requester.getUsername() : "?";
+        String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
+
+        Label avatarLabel = new Label(initial);
+        avatarLabel.setMinSize(36, 36);
+        avatarLabel.setPrefSize(36, 36);
+        avatarLabel.setMaxSize(36, 36);
+        avatarLabel.setAlignment(Pos.CENTER);
+        avatarLabel.setShape(new Circle(18));
+        avatarLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED);
+        avatarLabel.setStyle("-fx-background-color: -color-warning-emphasis; -fx-text-fill: white;");
+
+        Label nameLabel = new Label(name);
+        nameLabel.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button acceptBtn = new Button("Accept");
+        acceptBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.SUCCESS, Styles.SMALL);
+        acceptBtn.setOnAction(e -> handleAnswerRequest(requester, true));
+
+        Button rejectBtn = new Button("Reject");
+        rejectBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DANGER, Styles.SMALL);
+        rejectBtn.setOnAction(e -> handleAnswerRequest(requester, false));
+
+        HBox btnBox = new HBox(8, acceptBtn, rejectBtn);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+
+        row.getChildren().addAll(avatarLabel, nameLabel, spacer, btnBox);
+        return row;
+    }
+
+    private void handleAnswerRequest(User requester, boolean accept) {
+        if (userService != null && currentUser != null) {
+            try {
+                userService.answerFriendRequest(currentUser, requester, accept);
+                // Refresh list
+                bindFriendsSection();
+            } catch (Exception e) {
+                System.err.println("Error answering friend request: " + e.getMessage());
+            }
+        }
+    }
+
+    private HBox createFriendRow(User friend) {
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8, 12, 8, 12));
+        row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        // Friend avatar initial
+        String name = friend.getUsername() != null ? friend.getUsername() : "?";
+        String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
+
+        Label avatarLabel = new Label(initial);
+        avatarLabel.setMinSize(36, 36);
+        avatarLabel.setPrefSize(36, 36);
+        avatarLabel.setMaxSize(36, 36);
+        avatarLabel.setAlignment(Pos.CENTER);
+        avatarLabel.setShape(new Circle(18));
+        avatarLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED);
+        avatarLabel.setStyle("-fx-background-color: -color-accent-emphasis; -fx-text-fill: white;");
+
+        // Friend name
+        Label nameLabel = new Label(name);
+        nameLabel.getStyleClass().add(Styles.TEXT_BOLD);
+
+        // Spacer
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Chat button
+        Button chatButton = new Button("💬 Chat");
+        chatButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.ACCENT, Styles.SMALL);
+        chatButton.setOnAction(e -> {
+            System.out.println("Opening chat with: " + friend.getUsername());
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Chat");
+            alert.setHeaderText(null);
+            alert.setContentText("Chat with " + friend.getUsername() + " coming soon!");
+            alert.showAndWait();
+        });
+
+        row.getChildren().addAll(avatarLabel, nameLabel, spacer, chatButton);
+        return row;
+    }
+
+    private void bindAvatarsSection() {
         if (avatarsSection != null) {
             avatarsSection.setVisible(viewingSelf);
             avatarsSection.setManaged(viewingSelf);
         }
-
-        // 8. Card Styling (Ensures UI consistency)
-        applyCardStyles();
     }
 
-    /** * Helper to keep bindStats clean: applies AtlantaFX styles to the VBox cards
-     */
     private void applyCardStyles() {
-        if (avatarCard != null) avatarCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
-        if (xpCard != null) xpCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        if (tokensCard != null) tokensCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        if (itemsCard != null) itemsCard.getStyleClass().setAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-    }
-
-    /** Build the friends list (demo data when viewing self). */
-    private void buildFriendsList() {
-        if (friendsList == null) return;
-        friendsList.getChildren().clear();
-
-        java.util.List<User> friends = getFriendsForCurrentUser();
-        if (noFriendsLabel != null) {
-            noFriendsLabel.setVisible(friends.isEmpty());
-            noFriendsLabel.setManaged(friends.isEmpty());
-        }
-        for (User friend : friends) {
-            HBox row = new HBox(12);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-            row.setPadding(new javafx.geometry.Insets(10, 14, 10, 14));
-
-            Label initial = new Label("");
-            String name = friend.getUsername() != null ? friend.getUsername() : "Friend";
-            String init = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
-            initial.setText(init);
-            initial.setMinSize(36, 36);
-            initial.setPrefSize(36, 36);
-            initial.setMaxSize(36, 36);
-            initial.setAlignment(Pos.CENTER);
-            initial.setShape(new Circle(18));
-            initial.getStyleClass().add(Styles.TEXT_BOLD);
-
-            Label usernameLabel = new Label(name);
-            usernameLabel.getStyleClass().add(Styles.TEXT_BOLD);
-
-            row.getChildren().addAll(initial, usernameLabel);
-            friendsList.getChildren().add(row);
-        }
-    }
-
-    /** Demo friends list (replace with real data when backend exists). */
-    private java.util.List<User> getFriendsForCurrentUser() {
-        java.util.List<User> list = new java.util.ArrayList<>();
-        if (!viewingSelf || user == null) return list;
-        list.add(User.builder().username("CodeMaster").email("").password("").build());
-        list.add(User.builder().username("ByteNinja").email("").password("").build());
-        list.add(User.builder().username("DevExplorer").email("").password("").build());
-        return list;
-    }
-
-    /** Build the badges list (demo data; replace with user's achievements when wired to backend). */
-    private void buildBadgesList() {
-        if (badgesContainer == null) return;
-        badgesContainer.getChildren().clear();
-
-        java.util.List<BadgeDisplay> badges = getBadgesForUser();
-        if (noBadgesLabel != null) {
-            noBadgesLabel.setVisible(badges.isEmpty());
-            noBadgesLabel.setManaged(badges.isEmpty());
-        }
-        for (BadgeDisplay b : badges) {
-            VBox card = new VBox(6);
-            card.setAlignment(Pos.TOP_CENTER);
-            card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
-            card.setPadding(new javafx.geometry.Insets(14, 18, 14, 18));
-            card.setMinWidth(120);
-            card.setMaxWidth(160);
-
-            Label icon = new Label(b.icon);
-            icon.getStyleClass().add(Styles.TITLE_2);
-            Label name = new Label(b.name);
-            name.getStyleClass().addAll(Styles.TEXT_BOLD, Styles.SMALL);
-            name.setWrapText(true);
-            Label desc = new Label(b.description);
-            desc.getStyleClass().addAll(Styles.TEXT_SUBTLE, Styles.SMALL);
-            desc.setWrapText(true);
-            desc.setMaxWidth(140);
-
-            card.getChildren().addAll(icon, name, desc);
-            badgesContainer.getChildren().add(card);
-        }
-    }
-
-    /** Demo badges (replace with user achievements from backend). */
-    private java.util.List<BadgeDisplay> getBadgesForUser() {
-        java.util.List<BadgeDisplay> list = new java.util.ArrayList<>();
-        if (user == null) return list;
-        list.add(new BadgeDisplay("\uD83C\uDFC6", "First Steps", "Complete your first lesson"));
-        list.add(new BadgeDisplay("🔥", "Streak Master", "7-day coding streak"));
-        list.add(new BadgeDisplay("\uD83E\uDDE9", "Code Explorer", "Finish 5 chapters"));
-        list.add(new BadgeDisplay("⭐", "Rising Star", "Reach Level 3"));
-        return list;
-    }
-
-    private static final class BadgeDisplay {
-        final String icon;
-        final String name;
-        final String description;
-
-        BadgeDisplay(String icon, String name, String description) {
-            this.icon = icon;
-            this.name = name;
-            this.description = description;
-        }
+        if (avatarCard != null)
+            avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
+        if (xpCard != null)
+            xpCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        if (tokensCard != null)
+            tokensCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        if (itemsCard != null)
+            itemsCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
     }
 }

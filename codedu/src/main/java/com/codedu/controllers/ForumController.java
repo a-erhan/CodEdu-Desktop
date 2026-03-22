@@ -35,12 +35,16 @@ public class ForumController {
     // Now using the Record DTOs instead of Entities
     private List<ForumPostListDto> posts = new ArrayList<>();
     private User currentUser;
-    private Consumer<Integer> onOpenPost; // Passing ID instead of Entity
-
+    private Consumer<ForumPost> onOpenPost;
+    private Consumer<User> onOpenProfile;
     @Autowired
     private ForumService forumService;
 
     // --- Lifecycle & Initialization ---
+
+    public void setOnOpenProfile(Consumer<User> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
+    }
 
     @FXML
     public void initialize() {
@@ -131,16 +135,18 @@ public class ForumController {
             Label meta = new Label("By " + post.authorUsername() + " • " + post.replyCount() + " replies");
             meta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
-            card.getChildren().addAll(postTitle, meta);
+            if (post.getAuthor() != null) {
+                meta.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null)
+                        onOpenProfile.accept(post.getAuthor());
+                    e.consume();
+                });
+                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            }
 
-            // Interaction logic
-            card.setOnMouseClicked(e -> {
-                if (onOpenPost != null) {
-                    onOpenPost.accept(post.id());
-                } else {
-                    fetchAndShowPost(post.id());
-                }
-            });
+            Label snippet = new Label(snippet(post.getContent()));
+            snippet.setWrapText(true);
 
             threadList.getChildren().add(card);
         }

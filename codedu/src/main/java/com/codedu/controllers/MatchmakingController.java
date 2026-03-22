@@ -11,6 +11,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import com.codedu.services.DailyChallengeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -77,11 +79,16 @@ public class MatchmakingController {
     // --- Backend Services ---
     private final CodeExecutionService codeExecutionService;
     private final MatchmakingService matchmakingService;
+    private final DailyChallengeService dailyChallengeService;
 
     // Spring Boot will automatically inject our services here
-    public MatchmakingController(CodeExecutionService codeExecutionService, MatchmakingService matchmakingService) {
+    @Autowired
+    public MatchmakingController(CodeExecutionService codeExecutionService,
+            MatchmakingService matchmakingService,
+            DailyChallengeService dailyChallengeService) {
         this.codeExecutionService = codeExecutionService;
         this.matchmakingService = matchmakingService;
+        this.dailyChallengeService = dailyChallengeService;
     }
 
     public void setChallenge(DailyChallenge challenge) {
