@@ -21,8 +21,8 @@ public class FriendshipRepositoryImpl extends GenericRepositoryImpl<Friendship> 
     @Override
     public Optional<Friendship> findFriendshipBetween(User user1, User user2) {
         String jpql = "SELECT f FROM Friendship f WHERE " +
-                "(f.requester = :user1 AND f.receiver = :user2) OR " +
-                "(f.requester = :user2 AND f.receiver = :user1)";
+                "((f.requester = :user1 AND f.receiver = :user2) OR " +
+                "(f.requester = :user2 AND f.receiver = :user1)) AND f.isDeleted = false";
         try {
             Friendship friendship = getEntityManager().createQuery(jpql, Friendship.class)
                     .setParameter("user1", user1)
@@ -36,11 +36,21 @@ public class FriendshipRepositoryImpl extends GenericRepositoryImpl<Friendship> 
 
     @Override
     public List<Friendship> findAcceptedFriendships(User user) {
-        String jpql = "SELECT f FROM Friendship f WHERE " +
-                "(f.requester = :user OR f.receiver = :user) AND f.status = :status";
+        String jpql = "SELECT f FROM Friendship f JOIN FETCH f.requester JOIN FETCH f.receiver WHERE " +
+                "(f.requester = :user OR f.receiver = :user) AND f.status = :status AND f.isDeleted = false";
         return getEntityManager().createQuery(jpql, Friendship.class)
                 .setParameter("user", user)
                 .setParameter("status", Friendship.FriendshipStatus.ACCEPTED)
+                .getResultList();
+    }
+
+    @Override
+    public List<Friendship> findPendingRequests(User receiver) {
+        String jpql = "SELECT f FROM Friendship f JOIN FETCH f.requester WHERE " +
+                "f.receiver = :receiver AND f.status = :status AND f.isDeleted = false";
+        return getEntityManager().createQuery(jpql, Friendship.class)
+                .setParameter("receiver", receiver)
+                .setParameter("status", Friendship.FriendshipStatus.PENDING)
                 .getResultList();
     }
 }

@@ -80,6 +80,34 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public List<User> getPendingRequests(User receiver) {
+        List<Friendship> requests = friendshipRepository.findPendingRequests(receiver);
+        return requests.stream()
+                .map(Friendship::getRequester)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void answerFriendRequest(User receiver, User requester, boolean accept) {
+        Optional<Friendship> friendshipOpt = friendshipRepository.findFriendshipBetween(requester, receiver);
+        if (friendshipOpt.isPresent()) {
+            Friendship friendship = friendshipOpt.get();
+            if (friendship.getStatus() == Friendship.FriendshipStatus.PENDING &&
+                    friendship.getReceiver().getId() == receiver.getId()) {
+
+                if (accept) {
+                    friendship.setStatus(Friendship.FriendshipStatus.ACCEPTED);
+                    friendshipRepository.update(friendship);
+                } else {
+                    // Rejecting simply deletes the pending request
+                    friendship.setDeleted(true);
+                    friendshipRepository.update(friendship);
+                }
+            }
+        }
+    }
+
+    @Transactional(readOnly = true)
     public String getRelationStatus(User currentUser, User targetUser) {
         if (currentUser.getId() == targetUser.getId()) {
             return "SELF";

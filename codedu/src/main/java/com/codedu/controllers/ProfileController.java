@@ -309,6 +309,8 @@ public class ProfileController {
 
         friendsList.getChildren().clear();
 
+        bindPendingRequestsSection();
+
         List<User> friends = List.of();
         if (userService != null && currentUser != null) {
             try {
@@ -329,6 +331,93 @@ public class ProfileController {
             }
             for (User friend : friends) {
                 friendsList.getChildren().add(createFriendRow(friend));
+            }
+        }
+    }
+
+    private void bindPendingRequestsSection() {
+        if (!viewingSelf || friendsList == null)
+            return;
+
+        List<User> pendingRequests = List.of();
+        if (userService != null && currentUser != null) {
+            try {
+                pendingRequests = userService.getPendingRequests(currentUser);
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (!pendingRequests.isEmpty()) {
+            Label pendingTitle = new Label("Pending Requests (" + pendingRequests.size() + ")");
+            pendingTitle.getStyleClass().addAll(Styles.TEXT_MUTED, Styles.TEXT_BOLD);
+            VBox.setMargin(pendingTitle, new Insets(8, 0, 4, 0));
+            friendsList.getChildren().add(pendingTitle);
+
+            for (User requester : pendingRequests) {
+                friendsList.getChildren().add(createPendingRequestRow(requester));
+            }
+
+            // Separator
+            Region separator = new Region();
+            separator.setMinHeight(1);
+            separator.setStyle("-fx-background-color: -color-border-default;");
+            VBox.setMargin(separator, new Insets(12, 0, 12, 0));
+            friendsList.getChildren().add(separator);
+
+            Label friendsTitle = new Label("My Friends");
+            friendsTitle.getStyleClass().addAll(Styles.TEXT_MUTED, Styles.TEXT_BOLD);
+            VBox.setMargin(friendsTitle, new Insets(0, 0, 4, 0));
+            friendsList.getChildren().add(friendsTitle);
+        }
+    }
+
+    private HBox createPendingRequestRow(User requester) {
+        HBox row = new HBox(12);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8, 12, 8, 12));
+        row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+
+        String name = requester.getUsername() != null ? requester.getUsername() : "?";
+        String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
+
+        Label avatarLabel = new Label(initial);
+        avatarLabel.setMinSize(36, 36);
+        avatarLabel.setPrefSize(36, 36);
+        avatarLabel.setMaxSize(36, 36);
+        avatarLabel.setAlignment(Pos.CENTER);
+        avatarLabel.setShape(new Circle(18));
+        avatarLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED);
+        avatarLabel.setStyle("-fx-background-color: -color-warning-emphasis; -fx-text-fill: white;");
+
+        Label nameLabel = new Label(name);
+        nameLabel.getStyleClass().add(Styles.TEXT_BOLD);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button acceptBtn = new Button("Accept");
+        acceptBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.SUCCESS, Styles.SMALL);
+        acceptBtn.setOnAction(e -> handleAnswerRequest(requester, true));
+
+        Button rejectBtn = new Button("Reject");
+        rejectBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DANGER, Styles.SMALL);
+        rejectBtn.setOnAction(e -> handleAnswerRequest(requester, false));
+
+        HBox btnBox = new HBox(8, acceptBtn, rejectBtn);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+
+        row.getChildren().addAll(avatarLabel, nameLabel, spacer, btnBox);
+        return row;
+    }
+
+    private void handleAnswerRequest(User requester, boolean accept) {
+        if (userService != null && currentUser != null) {
+            try {
+                userService.answerFriendRequest(currentUser, requester, accept);
+                // Refresh list
+                bindFriendsSection();
+            } catch (Exception e) {
+                System.err.println("Error answering friend request: " + e.getMessage());
             }
         }
     }
