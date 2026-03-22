@@ -534,6 +534,7 @@ public class MainShellController {
             Parent view = loader.load();
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
+
             controller.setOnOpenPost(this::openForumPost);
             controller.setOnOpenProfile(this::openUserProfile);
             setContentAndFill(view);
@@ -657,6 +658,7 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/ForumPost.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
+
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setPost(post);
@@ -672,7 +674,6 @@ public class MainShellController {
                     "Error loading post: " + ex.getMessage());
         }
     }
-
     private void openChallengePage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(
