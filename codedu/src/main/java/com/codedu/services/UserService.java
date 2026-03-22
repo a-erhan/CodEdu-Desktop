@@ -1,7 +1,7 @@
 package com.codedu.services;
 
 import com.codedu.dtos.UserProfileDTO;
-import com.codedu.models.user.Friendship;
+import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
 import com.codedu.repositories.interfaces.UserRepository;

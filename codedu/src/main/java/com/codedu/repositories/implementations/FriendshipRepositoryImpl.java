@@ -1,11 +1,9 @@
 package com.codedu.repositories.implementations;
 
-import com.codedu.models.user.Friendship;
+import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

@@ -2,6 +2,7 @@ package com.codedu.services;
 
 import com.codedu.dtos.forumpost.*;
 import com.codedu.models.social.ForumPost;
+import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.ForumPostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,40 +22,55 @@ public class ForumService {
     @Transactional(readOnly = true)
     public List<ForumPostListDto> getAllMainPosts() {
         return forumPostRepository.findAllMainPosts().stream()
-                .map(post -> ForumPostListDto.builder()
-                        .id(post.getId())
-                        .title(post.getTitle())
-                        .authorUsername(post.getAuthor().getUsername())
-                        .createdAt(post.getCreatedAt())
-                        .replyCount(post.getReplies().size())
-                        .build())
+                .map(post -> {
+                    // Null-safe author check
+                    String username = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
+                    User authorObj = post.getAuthor(); // Might be null
+
+                    return new ForumPostListDto(
+                            post.getId(),
+                            post.getTitle(),
+                            post.getContent(), // Ensure this matches your Record field
+                            username,
+                            authorObj,
+                            post.getCreatedAt(),
+                            post.getReplies() != null ? post.getReplies().size() : 0
+                    );
+                })
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public ForumPostDetailDto getPostWithReplies(int id) {
         ForumPost post = forumPostRepository.findByIdWithReplies(id);
+        if (post == null) return null;
+
+        String mainAuthorName = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
 
         List<ForumReplyDto> replyDtos = post.getReplies().stream()
-                .map(reply -> ForumReplyDto.builder()
-                        .id(reply.getId())
-                        .content(reply.getContent())
-                        .authorUsername(reply.getAuthor().getUsername())
-                        .createdAt(reply.getCreatedAt())
-                        .build())
+                .map(reply -> {
+                    String replyAuthorName = (reply.getAuthor() != null) ? reply.getAuthor().getUsername() : "Anonymous";
+                    return new ForumReplyDto(
+                            reply.getId(),
+                            reply.getContent(),
+                            replyAuthorName,
+                            reply.getAuthor(),
+                            reply.getCreatedAt()
+                    );
+                })
                 .collect(Collectors.toList());
 
-        return ForumPostDetailDto.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .authorUsername(post.getAuthor().getUsername())
-                .createdAt(post.getCreatedAt())
-                .updatedAt(post.getUpdatedAt())
-                .replies(replyDtos)
-                .build();
+        return new ForumPostDetailDto(
+                post.getId(),
+                post.getTitle(),
+                post.getContent(),
+                mainAuthorName,
+                post.getAuthor(),
+                post.getCreatedAt(),
+                post.getUpdatedAt(),
+                replyDtos
+        );
     }
-
     @Transactional
     public void createPost(ForumPostCreateDto dto) {
         ForumPost post = new ForumPost();

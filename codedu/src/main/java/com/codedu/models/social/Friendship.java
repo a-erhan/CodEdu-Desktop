@@ -1,5 +1,6 @@
-package com.codedu.models.user;
+package com.codedu.models.social;
 
+import com.codedu.models.user.User;
 import lombok.*;
 import jakarta.persistence.*;
 import com.codedu.models.BaseEntity;

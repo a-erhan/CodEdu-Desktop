@@ -1,6 +1,6 @@
 package com.codedu.repositories.interfaces;
 
-import com.codedu.models.user.Friendship;
+import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 
 import java.util.List;
