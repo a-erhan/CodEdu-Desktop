@@ -30,6 +30,7 @@ module com.codedu {
     opens com.codedu.repositories.interfaces to spring.core, spring.beans, spring.context;
     opens com.codedu.repositories.implementations to spring.core, spring.beans, spring.context, org.hibernate.orm.core;
     opens com.codedu.services to spring.core, spring.beans, spring.context;
+    opens com.codedu.seeders;
 
     exports com.codedu;
     exports com.codedu.models;
