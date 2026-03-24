@@ -18,7 +18,8 @@ public class ChapterContent extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String learnText;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "chapter_content_id")
     @Builder.Default
     private List<Question> questions = new ArrayList<>();

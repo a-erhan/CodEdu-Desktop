@@ -36,7 +36,7 @@ public class Chapter extends BaseEntity {
     private int totalLessons;
     private int xpReward;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "content_id")
     private ChapterContent content;
 

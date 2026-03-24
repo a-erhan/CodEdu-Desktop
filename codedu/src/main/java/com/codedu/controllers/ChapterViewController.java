@@ -66,21 +66,29 @@ public class ChapterViewController {
         tabPractice.setOnAction(e -> switchTab("practice"));
     }
 
-    /** Called externally after FXML load. */
     public void setChapter(Chapter chapter) {
         this.chapter = chapter;
         headerTitle.setText(chapter.getTitle());
-        // Add small icon image to the left of the header title
+
+        // SAFELY load the image to prevent crashes if the file is missing
         if (chapter.getIconImage() != null) {
-            Image img = new Image(getClass().getResourceAsStream(chapter.getIconImage()));
-            ImageView iv = new ImageView(img);
-            iv.setFitWidth(28);
-            iv.setFitHeight(28);
-            iv.setPreserveRatio(true);
-            iv.setSmooth(true);
-            headerTitle.setGraphic(iv);
-            headerTitle.setGraphicTextGap(10);
+            try {
+                var imageStream = getClass().getResourceAsStream(chapter.getIconImage());
+                if (imageStream != null) {
+                    Image img = new Image(imageStream);
+                    ImageView iv = new ImageView(img);
+                    iv.setFitWidth(28);
+                    iv.setFitHeight(28);
+                    iv.setPreserveRatio(true);
+                    iv.setSmooth(true);
+                    headerTitle.setGraphic(iv);
+                    headerTitle.setGraphicTextGap(10);
+                }
+            } catch (Exception e) {
+                System.out.println("Could not load chapter icon, skipping...");
+            }
         }
+
         headerXP.setText("XP: " + chapter.getXpReward());
 
         ChapterContent content = chapter.getContent();
@@ -88,8 +96,7 @@ public class ChapterViewController {
             buildLearnSection(content.getLearnText());
 
             List<Question> questions = content.getQuestions();
-            if (questions == null)
-                questions = new ArrayList<>();
+            if (questions == null) questions = new ArrayList<>();
 
             List<Question> mcQuestions = questions.stream()
                     .filter(q -> q.getQuestionType() == QuestionType.MULTIPLE_CHOICES)
