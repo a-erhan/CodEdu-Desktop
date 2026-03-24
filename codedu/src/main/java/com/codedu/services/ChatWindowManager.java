@@ -2,7 +2,9 @@ package com.codedu.services;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.dtos.ChatMessageDTO;
+import com.codedu.models.social.ChatMessage;
 import com.codedu.models.user.User;
+import com.codedu.repositories.interfaces.ChatMessageRepository;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,16 +19,21 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class ChatWindowManager {
 
     private final WebSocketClientService webSocketClientService;
+    private final ChatMessageRepository chatMessageRepository;
     private VBox activeChatBox;
     private String activeChatFriendId;
     private User currentUser;
 
-    public ChatWindowManager(WebSocketClientService webSocketClientService) {
+    public ChatWindowManager(WebSocketClientService webSocketClientService,
+            ChatMessageRepository chatMessageRepository) {
         this.webSocketClientService = webSocketClientService;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
     // ========== Connection ==========
@@ -41,7 +48,8 @@ public class ChatWindowManager {
     // ========== Chat Window UI ==========
 
     public void openChatWindow(User friend) {
-        if (this.currentUser == null) return;
+        if (this.currentUser == null)
+            return;
 
         Stage chatStage = new Stage();
         chatStage.setTitle("Chat: " + friend.getUsername());
@@ -62,21 +70,28 @@ public class ChatWindowManager {
         this.activeChatBox = messageContainer;
         this.activeChatFriendId = String.valueOf(friend.getId());
 
+        // Load chat history from DB
+        loadChatHistory(messageContainer, currentUser.getId(), friend.getId());
+
         sendButton.setOnAction(e -> {
             String text = inputField.getText();
             if (!text.trim().isEmpty()) {
+                long now = System.currentTimeMillis();
 
                 ChatMessageDTO msg = ChatMessageDTO.builder()
                         .senderId(String.valueOf(currentUser.getId()))
                         .receiverId(String.valueOf(friend.getId()))
                         .content(text)
-                        .timestamp(System.currentTimeMillis())
+                        .timestamp(now)
                         .build();
 
+                // Send via WebSocket — server-side ChatMessageController persists to DB
                 webSocketClientService.sendMessage(msg);
 
+                // Show in local UI
                 Label selfLabel = new Label(text);
-                selfLabel.setStyle("-fx-background-color: -color-accent-subtle; -fx-padding: 8px; -fx-background-radius: 8px;");
+                selfLabel.setStyle(
+                        "-fx-background-color: -color-accent-subtle; -fx-padding: 8px; -fx-background-radius: 8px;");
                 HBox selfRow = new HBox(selfLabel);
                 selfRow.setAlignment(Pos.CENTER_RIGHT);
                 messageContainer.getChildren().add(selfRow);
@@ -95,6 +110,36 @@ public class ChatWindowManager {
         Scene scene = new Scene(root);
         chatStage.setScene(scene);
         chatStage.show();
+
+        // Scroll to bottom after rendering
+        Platform.runLater(() -> scrollPane.setVvalue(1.0));
+    }
+
+    // ========== History ==========
+
+    private void loadChatHistory(VBox messageContainer, int currentUserId, int friendId) {
+        try {
+            List<ChatMessage> history = chatMessageRepository.findConversation(currentUserId, friendId);
+            for (ChatMessage msg : history) {
+                Label label = new Label(msg.getContent());
+                HBox row = new HBox(label);
+
+                if (msg.getSenderId() == currentUserId) {
+                    // My message
+                    label.setStyle(
+                            "-fx-background-color: -color-accent-subtle; -fx-padding: 8px; -fx-background-radius: 8px;");
+                    row.setAlignment(Pos.CENTER_RIGHT);
+                } else {
+                    // Friend's message
+                    label.setStyle(
+                            "-fx-background-color: -color-bg-subtle; -fx-padding: 8px; -fx-background-radius: 8px; -fx-border-color: -color-border-default; -fx-border-radius: 8px;");
+                    row.setAlignment(Pos.CENTER_LEFT);
+                }
+                messageContainer.getChildren().add(row);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     // ========== Message Handling ==========
@@ -103,7 +148,8 @@ public class ChatWindowManager {
         Platform.runLater(() -> {
             if (activeChatBox != null && message.getSenderId().equals(activeChatFriendId)) {
                 Label friendLabel = new Label(message.getContent());
-                friendLabel.setStyle("-fx-background-color: -color-bg-subtle; -fx-padding: 8px; -fx-background-radius: 8px; -fx-border-color: -color-border-default; -fx-border-radius: 8px;");
+                friendLabel.setStyle(
+                        "-fx-background-color: -color-bg-subtle; -fx-padding: 8px; -fx-background-radius: 8px; -fx-border-color: -color-border-default; -fx-border-radius: 8px;");
                 HBox friendRow = new HBox(friendLabel);
                 friendRow.setAlignment(Pos.CENTER_LEFT);
                 activeChatBox.getChildren().add(friendRow);
