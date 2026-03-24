@@ -10,12 +10,13 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 
 public abstract class Question extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "question_difficulity")
-    private QuestionDifficulity questionDifficulity;
+    @Column(name = "question_difficulty")
+    private QuestionDifficulty questionDifficulty;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "question_type")
@@ -32,6 +33,7 @@ public abstract class Question extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String hint;
 
+    @Embedded
     private Reward reward;
 
     public Question(QuestionType questionType,

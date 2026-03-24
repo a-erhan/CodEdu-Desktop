@@ -1,5 +1,6 @@
 package com.codedu.models.learning;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 
 public class MultipleChoiceQuestion extends Question {
+    @ElementCollection
     private List<String> choices;
 
     @Override
