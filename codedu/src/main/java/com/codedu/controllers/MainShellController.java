@@ -465,7 +465,9 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
+            controller.setCurrentUser(user);
             controller.setViewingSelf(true);
+            controller.setOnProfileClick(this::openUserProfile);
             controller.setUserModel(user);
             controller.setGameState(gameState);
             setContentAndFill(profileView);
@@ -630,6 +632,7 @@ public class MainShellController {
                     && profileUser != null && user.getId() == profileUser.getId());
             controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
+            controller.setOnProfileClick(this::openUserProfile);
             controller.setUserModel(profileUser);
 
             UserGameState state = null;
