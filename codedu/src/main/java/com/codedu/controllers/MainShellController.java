@@ -43,6 +43,9 @@ public class MainShellController {
     @org.springframework.beans.factory.annotation.Autowired
     private org.springframework.context.ApplicationContext applicationContext;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codedu.repositories.interfaces.UserRepository userRepository;
+
     // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
@@ -536,7 +539,8 @@ public class MainShellController {
             controller.setCurrentUser(user);
 
             controller.setOnOpenPost(this::openForumPost);
-            controller.setOnOpenProfile(this::openUserProfile);
+            controller.setOnOpenProfile(
+                    username -> userRepository.findByUsername(username).ifPresent(this::openUserProfile));
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -652,7 +656,7 @@ public class MainShellController {
         }
     }
 
-    private void openForumPost(ForumPost post) {
+    private void openForumPost(Integer postId) {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/codedu/views/ForumPost.fxml"));
@@ -661,8 +665,9 @@ public class MainShellController {
 
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
-            controller.setPost(post);
-            controller.setOnOpenProfile(this::openUserProfile);
+            controller.setPostId(postId);
+            controller.setOnOpenProfile(
+                    username -> userRepository.findByUsername(username).ifPresent(this::openUserProfile));
             controller.setOnBack(() -> {
                 setActiveButton(btnForum);
                 loadForum();
@@ -674,6 +679,7 @@ public class MainShellController {
                     "Error loading post: " + ex.getMessage());
         }
     }
+
     private void openChallengePage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(

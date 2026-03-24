@@ -450,7 +450,7 @@ public class ProfileController {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // Chat button
-        Button chatButton = new Button("💬 Chat");
+        Button chatButton = new Button("Chat");
         chatButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.ACCENT, Styles.SMALL);
         chatButton.setOnAction(e -> {
             System.out.println("Opening chat with: " + friend.getUsername());

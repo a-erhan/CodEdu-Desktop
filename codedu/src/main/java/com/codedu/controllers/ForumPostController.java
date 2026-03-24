@@ -20,20 +20,28 @@ import java.util.function.Consumer;
 @Scope("prototype")
 public class ForumPostController {
 
-    @FXML private Button backButton;
-    @FXML private VBox postCard;
-    @FXML private Label titleLabel;
-    @FXML private Label metaLabel;
-    @FXML private TextArea contentArea;
-    @FXML private VBox repliesList;
-    @FXML private TextArea replyArea;
-    @FXML private Button replyButton;
+    @FXML
+    private Button backButton;
+    @FXML
+    private VBox postCard;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private Label metaLabel;
+    @FXML
+    private TextArea contentArea;
+    @FXML
+    private VBox repliesList;
+    @FXML
+    private TextArea replyArea;
+    @FXML
+    private Button replyButton;
 
     // Use the Detail DTO instead of the Entity
     private ForumPostDetailDto post;
     private User currentUser;
     private Runnable onBack;
-    private Consumer<User> onOpenProfile;
+    private Consumer<String> onOpenProfile;
     @Autowired
     private ForumService forumService;
 
@@ -55,7 +63,7 @@ public class ForumPostController {
         this.currentUser = currentUser;
     }
 
-    public void setOnOpenProfile(Consumer<User> onOpenProfile) {
+    public void setOnOpenProfile(Consumer<String> onOpenProfile) {
         this.onOpenProfile = onOpenProfile;
     }
 
@@ -66,17 +74,33 @@ public class ForumPostController {
     @FXML
     public void initialize() {
         // Styling logic remains the same
-        if (postCard != null) postCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
+        if (postCard != null)
+            postCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        if (titleLabel != null)
+            titleLabel.getStyleClass().add(Styles.TITLE_3);
 
         if (replyButton != null) {
             replyButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
             replyButton.setOnAction(e -> handleAddReply());
         }
 
+        if (replyArea != null && replyButton != null) {
+            replyArea.textProperty().addListener((obs, oldVal, newVal) -> updateReplyButtonState());
+            updateReplyButtonState();
+        }
+    }
+
+    private void updateReplyButtonState() {
+        if (replyButton != null && replyArea != null) {
+            replyButton.setDisable(replyArea.getText().trim().isEmpty());
+        }
+
         if (backButton != null) {
             backButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
-            backButton.setOnAction(e -> { if (onBack != null) onBack.run(); });
+            backButton.setOnAction(e -> {
+                if (onBack != null)
+                    onBack.run();
+            });
         }
     }
 
@@ -85,28 +109,24 @@ public class ForumPostController {
             return;
         }
 
-        titleLabel.setText(post.getTitle());
+        titleLabel.setText(post.title());
 
-        String authorName = (post.getAuthor() != null && post.getAuthor().getUsername() != null)
-                ? post.getAuthor().getUsername()
-                : "Anonymous";
+        String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
         if (metaLabel != null) {
             metaLabel.setText("Posted by " + authorName);
             if (!metaLabel.getStyleClass().contains(Styles.TEXT_SUBTLE)) {
                 metaLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
             }
-            if (post.getAuthor() != null) {
+            if (post.authorUsername() != null) {
                 metaLabel.setOnMouseClicked(e -> {
                     if (onOpenProfile != null)
-                        onOpenProfile.accept(post.getAuthor());
+                        onOpenProfile.accept(post.authorUsername());
                 });
                 metaLabel.setOnMouseEntered(e -> metaLabel.setStyle("-fx-underline: true; -fx-cursor: hand;"));
                 metaLabel.setOnMouseExited(e -> metaLabel.setStyle("-fx-underline: false;"));
             }
         }
 
-        titleLabel.setText(post.title());
-        metaLabel.setText("Posted by " + post.authorUsername());
         contentArea.setText(post.content());
 
         repliesList.getChildren().clear();
@@ -116,16 +136,16 @@ public class ForumPostController {
             replyCard.setPadding(new javafx.geometry.Insets(8, 10, 8, 10));
             replyCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-                Label meta = new Label(replyAuthor);
-                meta.getStyleClass().add(Styles.TEXT_BOLD);
-                if (reply.getAuthor() != null) {
-                    meta.setOnMouseClicked(e -> {
-                        if (onOpenProfile != null)
-                            onOpenProfile.accept(reply.getAuthor());
-                    });
-                    meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
-                    meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
-                }
+            Label meta = new Label(reply.authorUsername() != null ? reply.authorUsername() : "Anonymous");
+            meta.getStyleClass().add(Styles.TEXT_BOLD);
+            if (reply.authorUsername() != null) {
+                meta.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null)
+                        onOpenProfile.accept(reply.authorUsername());
+                });
+                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            }
 
             Label body = new Label(reply.content());
             body.setWrapText(true);
@@ -137,7 +157,8 @@ public class ForumPostController {
 
     private void handleAddReply() {
         String body = replyArea.getText().trim();
-        if (body.isEmpty() || post == null || currentUser == null) return;
+        if (body.isEmpty() || post == null || currentUser == null)
+            return;
 
         CompletableFuture.runAsync(() -> forumService.addReply(post.id(), body, currentUser.getId()))
                 .thenRun(() -> Platform.runLater(() -> {
