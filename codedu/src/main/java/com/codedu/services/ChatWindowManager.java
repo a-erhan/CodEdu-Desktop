@@ -28,6 +28,7 @@ public class ChatWindowManager {
     private final ChatMessageRepository chatMessageRepository;
     private VBox activeChatBox;
     private String activeChatFriendId;
+    private ScrollPane activeScrollPane;
     private User currentUser;
 
     public ChatWindowManager(WebSocketClientService webSocketClientService,
@@ -69,6 +70,7 @@ public class ChatWindowManager {
 
         this.activeChatBox = messageContainer;
         this.activeChatFriendId = String.valueOf(friend.getId());
+        this.activeScrollPane = scrollPane;
 
         // Load chat history from DB
         loadChatHistory(messageContainer, currentUser.getId(), friend.getId());
@@ -97,6 +99,12 @@ public class ChatWindowManager {
                 messageContainer.getChildren().add(selfRow);
 
                 inputField.clear();
+
+                // Auto-scroll to bottom
+                Platform.runLater(() -> {
+                    scrollPane.layout();
+                    scrollPane.setVvalue(1.0);
+                });
             }
         });
 
@@ -153,6 +161,12 @@ public class ChatWindowManager {
                 HBox friendRow = new HBox(friendLabel);
                 friendRow.setAlignment(Pos.CENTER_LEFT);
                 activeChatBox.getChildren().add(friendRow);
+
+                // Auto-scroll to bottom
+                if (activeScrollPane != null) {
+                    activeScrollPane.layout();
+                    activeScrollPane.setVvalue(1.0);
+                }
             } else {
                 System.out.println("New message from user ID " + message.getSenderId() + ": " + message.getContent());
             }

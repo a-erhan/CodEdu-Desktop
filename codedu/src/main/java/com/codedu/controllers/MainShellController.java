@@ -507,8 +507,9 @@ public class MainShellController {
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
             controller.setOnStartQuestion(this::openChallengePage);
+            controller.setOnBack(this::loadLearningPath);
             setContentAndFill(view);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Daily challenges",
                     "Error loading daily challenges module: " + ex.getMessage());
@@ -591,7 +592,7 @@ public class MainShellController {
             controller.setCurrentUser(user);
             controller.setOnOpenProfile(this::openCompetitorProfile);
             setContentAndFill(view);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Leaderboard",
                     "Error loading leaderboard module: " + ex.getMessage());

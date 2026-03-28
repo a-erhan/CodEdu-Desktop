@@ -28,15 +28,17 @@ public class QuestionEvaluationService {
             for (TestCase tc : testCases) {
                 String actualOutput = codeExecutionService.executeJavaCode(userAnswer, tc.getInput());
 
-                if (actualOutput != null && (actualOutput.startsWith("COMPILE ERROR") || actualOutput.startsWith("RUNTIME ERROR") || actualOutput.startsWith("CONNECTION ERROR"))) {
-                    System.out.println("System Error: \n" + actualOutput);
+                if (actualOutput != null && (actualOutput.startsWith("EXECUTION ERROR")
+                        || actualOutput.startsWith("CONNECTION ERROR"))) {
                     return false;
                 }
-                String safeActual = actualOutput != null ? actualOutput.trim().replace("\r\n", "\n") : "";
-                String safeExpected = tc.getExpectedOutput() != null ? tc.getExpectedOutput().trim().replace("\r\n", "\n") : "";
+
+                String safeActual = (actualOutput != null) ? actualOutput.trim().replace("\r\n", "\n") : "";
+                String safeExpected = (tc.getExpectedOutput() != null)
+                        ? tc.getExpectedOutput().trim().replace("\r\n", "\n")
+                        : "";
 
                 if (!safeActual.equals(safeExpected)) {
-                    System.out.println("Test failed! Expected: '" + safeExpected + "' | Result: '" + safeActual + "'");
                     return false;
                 }
             }

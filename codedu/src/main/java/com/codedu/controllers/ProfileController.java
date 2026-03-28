@@ -31,52 +31,29 @@ public class ProfileController {
     private FriendshipUIManager friendshipUIManager;
 
     // ========== FXML bindings ==========
-    @FXML
-    private Label avatarDisplay;
-    @FXML
-    private Label usernameDisplay;
-    @FXML
-    private Label badgeDisplay;
-    @FXML
-    private ProgressBar profileXpBar;
-    @FXML
-    private Label profileXpLabel;
-    @FXML
-    private Label profileTokenLabel;
-    @FXML
-    private Label profileItemsLabel;
-    @FXML
-    private VBox avatarsSection;
-    @FXML
-    private VBox avatarCard;
-    @FXML
-    private VBox xpCard;
-    @FXML
-    private VBox tokensCard;
-    @FXML
-    private VBox itemsCard;
-    @FXML
-    private Button addFriendButton;
-    @FXML
-    private Label noAvatarsLabel;
-    @FXML
-    private FlowPane avatarGrid;
-    @FXML
-    private VBox friendsSection;
-    @FXML
-    private Label friendsSectionTitle;
-    @FXML
-    private Label noFriendsLabel;
-    @FXML
-    private VBox friendsList;
-    @FXML
-    private VBox badgesSection;
-    @FXML
-    private Label badgesSectionTitle;
-    @FXML
-    private Label noBadgesLabel;
-    @FXML
-    private FlowPane badgesContainer;
+    @FXML private Label avatarDisplay;
+    @FXML private Label usernameDisplay;
+    @FXML private Label badgeDisplay;
+    @FXML private ProgressBar profileXpBar;
+    @FXML private Label profileXpLabel;
+    @FXML private Label profileTokenLabel;
+    @FXML private Label profileItemsLabel;
+    @FXML private VBox avatarsSection;
+    @FXML private VBox avatarCard;
+    @FXML private VBox xpCard;
+    @FXML private VBox tokensCard;
+    @FXML private VBox itemsCard;
+    @FXML private Button addFriendButton;
+    @FXML private Label noAvatarsLabel;
+    @FXML private FlowPane avatarGrid;
+    @FXML private VBox friendsSection;
+    @FXML private Label friendsSectionTitle;
+    @FXML private Label noFriendsLabel;
+    @FXML private VBox friendsList;
+    @FXML private VBox badgesSection;
+    @FXML private Label badgesSectionTitle;
+    @FXML private Label noBadgesLabel;
+    @FXML private FlowPane badgesContainer;
 
     // ========== State ==========
     private User currentUser;
@@ -115,8 +92,7 @@ public class ProfileController {
             if (profileUser != null) {
                 this.gameState = profileUser.getGameState();
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) {}
 
         if (this.gameState == null && profileUser != null) {
             this.gameState = UserGameState.builder()
@@ -139,8 +115,7 @@ public class ProfileController {
     // ========== UI binding ==========
 
     private void bindUI() {
-        if (profileUser == null)
-            return;
+        if (profileUser == null) return;
 
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();

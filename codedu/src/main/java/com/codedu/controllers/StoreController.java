@@ -74,6 +74,7 @@ public class StoreController {
     }
 
     private void loadMockItems() {
+        allItems.clear();
         // Avatars
         allItems.add(new Item("Ninja Coder", "A stealthy coding warrior", "", 200, ItemType.AVATAR));
         allItems.add(new Item("Robot Dev", "Automated perfection", "", 300, ItemType.AVATAR));

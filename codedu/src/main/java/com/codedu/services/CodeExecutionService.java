@@ -49,8 +49,9 @@ public class CodeExecutionService {
                 String output = (String) responseBody.get("output");
 
                 if (output != null) {
-                    if (output.contains("error:") || output.contains("Exception in thread")) {
-                        return "RUNTIME/COMPILE ERROR:\n" + output.trim();
+                    if (output.contains("error:") || output.contains("Exception in thread")
+                            || output.contains("standard error")) {
+                        return "EXECUTION ERROR:\n" + output.trim();
                     }
                     return output.trim();
                 }
