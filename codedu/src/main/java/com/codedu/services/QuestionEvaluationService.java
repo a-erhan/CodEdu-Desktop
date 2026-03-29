@@ -3,7 +3,9 @@ package com.codedu.services;
 import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.models.learning.Question;
 import com.codedu.models.learning.TestCase;
+import com.codedu.repositories.interfaces.QuestionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,14 +13,18 @@ import java.util.List;
 public class QuestionEvaluationService {
 
     private final CodeExecutionService codeExecutionService;
+    private final QuestionRepository questionRepository;
 
-    public QuestionEvaluationService(CodeExecutionService codeExecutionService) {
+    public QuestionEvaluationService(CodeExecutionService codeExecutionService, QuestionRepository questionRepository) {
         this.codeExecutionService = codeExecutionService;
+        this.questionRepository = questionRepository;
     }
 
+    @Transactional
     public boolean evaluate(Question question, String userAnswer) {
+        Question loadedQuestion = questionRepository.findById(question.getId()).orElse(question);
 
-        if (question instanceof CodeImplementationQuestion codeQuestion) {
+        if (loadedQuestion instanceof CodeImplementationQuestion codeQuestion) {
 
             List<TestCase> testCases = codeQuestion.getTestCases();
             if (testCases == null || testCases.isEmpty()) {

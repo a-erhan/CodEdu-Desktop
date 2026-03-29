@@ -1,11 +1,14 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.models.learning.Question;
+import com.codedu.services.QuestionEvaluationService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -21,6 +24,9 @@ public class QuestionSolverController {
     private Label resultMessageLabel;
     @FXML
     private Button submitButton;
+
+    @Autowired
+    private QuestionEvaluationService questionEvaluationService;
 
     private Question currentQuestion;
 
@@ -46,7 +52,11 @@ public class QuestionSolverController {
             resultMessageLabel.setText("");
         }
         if (codeEditorArea != null) {
-            codeEditorArea.clear();
+            if (question instanceof CodeImplementationQuestion codeQuestion) {
+                codeEditorArea.setText(codeQuestion.getBoilerplateCode());
+            } else {
+                codeEditorArea.clear();
+            }
         }
     }
 
@@ -61,16 +71,28 @@ public class QuestionSolverController {
             return;
         }
 
-        // Basic verification against the expected solution
-        String expectedSolution = currentQuestion.getSolution();
+        submitButton.setDisable(true);
+        showResult("Evaluating... Please wait. This can take up to 10 seconds.", true);
+        resultMessageLabel.getStyleClass().remove(Styles.SUCCESS);
 
-        // Very basic simple match
-        if (expectedSolution != null && userCode.trim().equals(expectedSolution.trim())) {
-            showResult("Correct! Well done.", true);
-            // Optionally, we could notify a parent callback or unlock next step here
-        } else {
-            showResult("Incorrect solution. Please try again.", false);
-        }
+        java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            try {
+                return questionEvaluationService.evaluate(currentQuestion, userCode);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }).thenAccept((isCorrect) -> {
+            javafx.application.Platform.runLater(() -> {
+                submitButton.setDisable(false);
+                if (isCorrect) {
+                    showResult("Correct! Well done! All test cases passed.", true);
+                    // Optionally notify parent callback
+                } else {
+                    showResult("Incorrect solution or compilation failed. Please try again.", false);
+                }
+            });
+        });
     }
 
     private void showResult(String message, boolean isSuccess) {

@@ -41,12 +41,22 @@ public class MainShellController {
     @Autowired
     private com.codedu.services.ChatWindowManager chatWindowManager;
 
-    @FXML private Label badgeLabel, tokenLabel, xpLabel, welcomeNavLabel, profileIconLabel, taglineLabel;
-    @FXML private ProgressBar xpProgressBar;
-    @FXML private VBox sidebar, sidebarContainer;
-    @FXML private ScrollPane sidebarScroll;
-    @FXML private StackPane contentArea;
-    @FXML private Button btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnStore, btnMatchmaking, btnAskAI, btnSettings;
+    @Autowired
+    private com.codedu.services.UserService userService;
+
+    @FXML
+    private Label badgeLabel, tokenLabel, xpLabel, welcomeNavLabel, profileIconLabel, taglineLabel;
+    @FXML
+    private ProgressBar xpProgressBar;
+    @FXML
+    private VBox sidebar, sidebarContainer;
+    @FXML
+    private ScrollPane sidebarScroll;
+    @FXML
+    private StackPane contentArea;
+    @FXML
+    private Button btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnStore,
+            btnMatchmaking, btnAskAI, btnSettings;
 
     private User user = new User();
     private UserGameState gameState;
@@ -73,7 +83,8 @@ public class MainShellController {
 
     private void ensureShellFillsScene() {
         Platform.runLater(() -> {
-            if (contentArea == null || contentArea.getScene() == null) return;
+            if (contentArea == null || contentArea.getScene() == null)
+                return;
             javafx.scene.Node root = contentArea.getScene().getRoot();
             if (root instanceof Region r) {
                 r.setMaxWidth(Double.MAX_VALUE);
@@ -95,11 +106,13 @@ public class MainShellController {
     }
 
     private void initSidebarAndHeaderStyles() {
-        if (taglineLabel != null) taglineLabel.getStyleClass().add(Styles.TITLE_2);
+        if (taglineLabel != null)
+            taglineLabel.getStyleClass().add(Styles.TITLE_2);
         if (sidebar != null) {
             sidebar.setSpacing(16);
             sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
-            if (sidebarScroll != null) sidebar.minHeightProperty().bind(sidebarScroll.heightProperty());
+            if (sidebarScroll != null)
+                sidebar.minHeightProperty().bind(sidebarScroll.heightProperty());
         }
         if (profileIconLabel != null) {
             profileIconLabel.setShape(new Circle(16));
@@ -112,21 +125,49 @@ public class MainShellController {
     }
 
     private void styleAndWireNavigation() {
-        Button[] navButtons = {btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnMatchmaking, btnStore, btnAskAI, btnSettings};
+        Button[] navButtons = { btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum,
+                btnMatchmaking, btnStore, btnAskAI, btnSettings };
         for (Button btn : navButtons) {
             styleNavButton(btn);
             setupNavButtonWithHover(btn);
         }
 
-        btnLearningPath.setOnAction(e -> { setActiveButton(btnLearningPath); loadLearningPath(); });
-        btnDailyChallenge.setOnAction(e -> { setActiveButton(btnDailyChallenge); loadDailyChallenge(); });
-        btnAchievements.setOnAction(e -> { setActiveButton(btnAchievements); loadAchievements(); });
-        btnLeaderboard.setOnAction(e -> { setActiveButton(btnLeaderboard); loadLeaderboard(); });
-        btnForum.setOnAction(e -> { setActiveButton(btnForum); loadForum(); });
-        btnMatchmaking.setOnAction(e -> { setActiveButton(btnMatchmaking); loadMatchmaking(); });
-        btnStore.setOnAction(e -> { setActiveButton(btnStore); loadStore(); });
-        btnAskAI.setOnAction(e -> { setActiveButton(btnAskAI); loadAskAI(); });
-        btnSettings.setOnAction(e -> { setActiveButton(btnSettings); loadSettings(); });
+        btnLearningPath.setOnAction(e -> {
+            setActiveButton(btnLearningPath);
+            loadLearningPath();
+        });
+        btnDailyChallenge.setOnAction(e -> {
+            setActiveButton(btnDailyChallenge);
+            loadDailyChallenge();
+        });
+        btnAchievements.setOnAction(e -> {
+            setActiveButton(btnAchievements);
+            loadAchievements();
+        });
+        btnLeaderboard.setOnAction(e -> {
+            setActiveButton(btnLeaderboard);
+            loadLeaderboard();
+        });
+        btnForum.setOnAction(e -> {
+            setActiveButton(btnForum);
+            loadForum();
+        });
+        btnMatchmaking.setOnAction(e -> {
+            setActiveButton(btnMatchmaking);
+            loadMatchmaking();
+        });
+        btnStore.setOnAction(e -> {
+            setActiveButton(btnStore);
+            loadStore();
+        });
+        btnAskAI.setOnAction(e -> {
+            setActiveButton(btnAskAI);
+            loadAskAI();
+        });
+        btnSettings.setOnAction(e -> {
+            setActiveButton(btnSettings);
+            loadSettings();
+        });
     }
 
     private void loadLearningPath() {
@@ -195,8 +236,8 @@ public class MainShellController {
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
-            controller.setOnOpenProfile(username -> 
-                userRepository.findByUsername(username).ifPresent(this::openUserProfile));
+            controller.setOnOpenProfile(
+                    username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -212,9 +253,12 @@ public class MainShellController {
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setPostId(postId);
-            controller.setOnOpenProfile(username -> 
-                userRepository.findByUsername(username).ifPresent(this::openUserProfile));
-            controller.setOnBack(() -> { setActiveButton(btnForum); loadForum(); });
+            controller.setOnOpenProfile(
+                    username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
+            controller.setOnBack(() -> {
+                setActiveButton(btnForum);
+                loadForum();
+            });
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -223,7 +267,8 @@ public class MainShellController {
     }
 
     private void openUserProfile(User profileUser) {
-        if (profileUser == null) return;
+        if (profileUser == null)
+            return;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -234,7 +279,7 @@ public class MainShellController {
             controller.setViewingSelf(isSelf);
             controller.setOnProfileClick(this::openUserProfile);
             controller.setUserModel(profileUser);
-            
+
             UserGameState state = profileUser.getGameState();
             if (state == null) {
                 state = UserGameState.builder().user(profileUser).level(1).xp(0).heartCount(3).build();
@@ -357,7 +402,7 @@ public class MainShellController {
         int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
         int level = (gameState != null) ? gameState.getLevel() : 1;
         int xp = (gameState != null) ? gameState.getXp() : 0;
-        
+
         tokenLabel.setText("Tokens: " + tokens);
         badgeLabel.setText("Lvl " + level);
         welcomeNavLabel.setText("@" + username);
@@ -374,28 +419,37 @@ public class MainShellController {
 
     private void toggleTheme() {
         darkTheme = !darkTheme;
-        Application.setUserAgentStylesheet(darkTheme ? new NordDark().getUserAgentStylesheet() : new NordLight().getUserAgentStylesheet());
+        Application.setUserAgentStylesheet(
+                darkTheme ? new NordDark().getUserAgentStylesheet() : new NordLight().getUserAgentStylesheet());
     }
 
     private void setActiveButton(Button button) {
-        if (activeButton != null) activeButton.getStyleClass().remove(Styles.ACCENT);
+        if (activeButton != null)
+            activeButton.getStyleClass().remove(Styles.ACCENT);
         activeButton = button;
-        if (activeButton != null) activeButton.getStyleClass().add(Styles.ACCENT);
+        if (activeButton != null)
+            activeButton.getStyleClass().add(Styles.ACCENT);
     }
 
     private void styleNavButton(Button button) {
-        if (button != null) button.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DENSE, Styles.INTERACTIVE);
+        if (button != null)
+            button.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.DENSE, Styles.INTERACTIVE);
     }
 
     private void setupNavButtonWithHover(Button button) {
-        if (button == null) return;
+        if (button == null)
+            return;
         button.setOnMouseEntered(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), button);
-            st.setToX(1.05); st.setToY(1.05); st.play();
+            st.setToX(1.05);
+            st.setToY(1.05);
+            st.play();
         });
         button.setOnMouseExited(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), button);
-            st.setToX(1.0); st.setToY(1.0); st.play();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
         });
     }
 
@@ -427,7 +481,8 @@ public class MainShellController {
     private void initDemoModelsIfNeeded() {
         if (gameState == null) {
             gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
-            if (user != null) user.setGameState(gameState);
+            if (user != null)
+                user.setGameState(gameState);
         }
     }
 }
