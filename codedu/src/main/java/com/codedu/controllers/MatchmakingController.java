@@ -123,12 +123,11 @@ public class MatchmakingController {
     private void joinMatchmakingQueue() {
         if (currentUser == null) return;
 
-        // 1. Open a dedicated STOMP session and subscribe to the private match channel.
-        // 2. The onMatchFound callback will be called from the STOMP receive thread.
-        webSocketClientService.connectForMatchmaking(currentUser.getId(), this::onMatchFound);
-
-        // 3. Tell the server to add us to the waiting queue.
-        webSocketClientService.sendJoinQueue(currentUser.getId());
+        // Single call: opens the STOMP session, subscribes to /queue/match/{id},
+        // then sends /app/match.join — all inside afterConnected on the same TCP
+        // connection.  This eliminates the subscribe/join race condition that
+        // previously caused match notifications to be silently dropped.
+        webSocketClientService.connectAndJoinMatchmaking(currentUser.getId(), this::onMatchFound);
     }
 
     /**

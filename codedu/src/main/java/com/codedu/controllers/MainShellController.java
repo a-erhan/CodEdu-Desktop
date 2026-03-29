@@ -46,6 +46,9 @@ public class MainShellController {
     @org.springframework.beans.factory.annotation.Autowired
     private com.codedu.repositories.interfaces.UserRepository userRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codedu.services.ChatWindowManager chatWindowManager;
+
     // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
@@ -108,6 +111,9 @@ public class MainShellController {
         this.user = user;
         initDemoModelsIfNeeded();
         updateHeader();
+        // Establish chat WebSocket subscription at login time so the user
+        // receives real-time messages without needing to open the Profile page first.
+        chatWindowManager.connectUser(user);
     }
 
     @FXML
