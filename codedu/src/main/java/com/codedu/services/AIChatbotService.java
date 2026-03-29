@@ -1,13 +1,12 @@
 package com.codedu.services;
 
-import com.codedu.models.user.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +14,12 @@ import java.util.Map;
 
 @Service
 public class AIChatbotService {
-    private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
-    private static final String API_KEY = "API_KEY";
+
+    @Value("${gemini.url}")
+    private String geminiUrl;
+
+    @Value("${gemini.api.key}")
+    private String apiKey;
 
     private final RestTemplate restTemplate;
 
@@ -24,42 +27,46 @@ public class AIChatbotService {
         this.restTemplate = new RestTemplate();
     }
 
-    /**
-     * Sends a prompt to the Gemini API and returns the AI's text response.
-     */
     public String askAi(String prompt) {
-        String url = GEMINI_URL + API_KEY;
+        String url = geminiUrl + "?key=" + apiKey;
+
+        System.out.println("geminiUrl = " + geminiUrl);
+        System.out.println("apiKey = " + apiKey);
+        System.out.println("final url = " + url);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Constructing the JSON payload expected by the Gemini API
-        // Format: { "contents": [{ "parts": [{"text": "your prompt here"}] }] }
         Map<String, Object> textPart = new HashMap<>();
-        textPart.put("text",
-                "You are a java tutor, always use Java language; you should help the people in the CodEdu learning platform. Try to use the ideas of user instead of generating from scratch. You should provide the full runnable solution and explain it pedagogically"
-                        + prompt);
+        textPart.put(
+                "text",
+                "You are a Java tutor, always use Java language. " +
+                        "You should help people in the CodEdu learning platform. " +
+                        "Try to use the user's ideas instead of generating from scratch. " +
+                        "Provide a full runnable solution and explain it pedagogically.\n\n" +
+                        prompt
+        );
 
-        Map<String, Object> parts = new HashMap<>();
-        parts.put("parts", List.of(textPart));
+        Map<String, Object> content = new HashMap<>();
+        content.put("parts", List.of(textPart));
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("contents", List.of(parts));
+        requestBody.put("contents", List.of(content));
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            // Send the POST request
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             Map<String, Object> responseBody = response.getBody();
 
-            // Parse the JSON response to extract the actual text
             if (responseBody != null && responseBody.containsKey("candidates")) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
                 if (!candidates.isEmpty()) {
-                    Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
-                    List<Map<String, Object>> resParts = (List<Map<String, Object>>) content.get("parts");
-                    return (String) resParts.get(0).get("text");
+                    Map<String, Object> responseContent = (Map<String, Object>) candidates.get(0).get("content");
+                    List<Map<String, Object>> responseParts = (List<Map<String, Object>>) responseContent.get("parts");
+                    if (responseParts != null && !responseParts.isEmpty()) {
+                        return (String) responseParts.get(0).get("text");
+                    }
                 }
             }
         } catch (Exception e) {

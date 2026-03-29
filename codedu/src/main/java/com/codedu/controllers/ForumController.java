@@ -42,25 +42,17 @@ public class ForumController {
     @FXML
     private TextArea selectedContent;
 
-    // Now using the Record DTOs instead of Entities
     private List<ForumPostListDto> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<Integer> onOpenPost;
     private Consumer<String> onOpenProfile;
+
     @Autowired
     private ForumService forumService;
 
-    // --- Lifecycle & Initialization ---
-
-    public void setOnOpenProfile(Consumer<String> onOpenProfile) {
-        this.onOpenProfile = onOpenProfile;
-    }
-
     @FXML
     public void initialize() {
-        // Applying AtlantaFX Styles Manually (This adds a lot of "noise")
-        if (titleLabel != null)
-            titleLabel.getStyleClass().add(Styles.TITLE_3);
+        if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
 
         if (newPostCard != null) {
             newPostCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
@@ -85,17 +77,12 @@ public class ForumController {
         loadPostsFromDatabase(() -> buildThreads(false));
     }
 
-    // --- Data Management ---
-
     private void loadPostsFromDatabase(Runnable onSuccess) {
         CompletableFuture.supplyAsync(() -> forumService.getAllMainPosts())
-                .thenAccept(result -> {
-                    Platform.runLater(() -> {
-                        this.posts = result;
-                        if (onSuccess != null)
-                            onSuccess.run();
-                    });
-                })
+                .thenAccept(result -> Platform.runLater(() -> {
+                    this.posts = result;
+                    if (onSuccess != null) onSuccess.run();
+                }))
                 .exceptionally(ex -> {
                     ex.printStackTrace();
                     return null;
@@ -106,10 +93,8 @@ public class ForumController {
         String title = newPostTitleField.getText().trim();
         String body = newPostBodyArea.getText().trim();
 
-        if (this.currentUser == null || title.isEmpty() || body.isEmpty())
-            return;
+        if (this.currentUser == null || title.isEmpty() || body.isEmpty()) return;
 
-        // Creating the Record using the Builder
         ForumPostCreateDto createDto = ForumPostCreateDto.builder()
                 .title(title)
                 .content(body)
@@ -125,25 +110,21 @@ public class ForumController {
                 }));
     }
 
-    // --- UI Construction (The "Crowded" Part) ---
-
     private void buildThreads(boolean loadFromDb) {
         if (loadFromDb) {
             loadPostsFromDatabase(() -> buildThreads(false));
             return;
         }
-        if (threadList == null)
-            return;
+        if (threadList == null) return;
         threadList.getChildren().clear();
 
         for (ForumPostListDto post : posts) {
-            // Manually creating the UI "Card"
             VBox card = new VBox(6);
             card.setAlignment(Pos.TOP_LEFT);
             card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
             card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.INTERACTIVE);
 
-            Label postTitle = new Label(post.title()); // Record Accessor
+            Label postTitle = new Label(post.title());
             postTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
             String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
@@ -152,21 +133,22 @@ public class ForumController {
 
             if (post.authorUsername() != null) {
                 meta.setOnMouseClicked(e -> {
-                    if (onOpenProfile != null)
-                        onOpenProfile.accept(post.authorUsername());
+                    if (onOpenProfile != null) onOpenProfile.accept(post.authorUsername());
                     e.consume();
                 });
                 meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
                 meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
             }
 
-            card.getChildren().addAll(postTitle, meta);
+            Label snippet = new Label(truncate(post.content(), 120));
+            snippet.setWrapText(true);
 
-            if (onOpenPost != null) {
-                card.setOnMouseClicked(e -> onOpenPost.accept(post.id()));
-            } else {
-                card.setOnMouseClicked(e -> fetchAndShowPost(post.id()));
-            }
+            card.getChildren().addAll(postTitle, meta, snippet);
+
+            card.setOnMouseClicked(e -> {
+                if (onOpenPost != null) onOpenPost.accept(post.id());
+                else fetchAndShowPost(post.id());
+            });
 
             threadList.getChildren().add(card);
         }
@@ -185,21 +167,18 @@ public class ForumController {
                 });
     }
 
+    private String truncate(String text, int length) {
+        if (text == null || text.length() <= length) return text;
+        return text.substring(0, length).replace("\n", " ") + "...";
+    }
+
     private void updatePostButtonState() {
-        if (postButton == null || newPostTitleField == null || newPostBodyArea == null)
-            return;
-        boolean disable = newPostTitleField.getText().trim().isEmpty()
-                || newPostBodyArea.getText().trim().isEmpty();
+        if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
+        boolean disable = newPostTitleField.getText().trim().isEmpty() || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
     }
 
-    // --- Setters for Navigation ---
-
-    public void setCurrentUser(User user) {
-        this.currentUser = user;
-    }
-
-    public void setOnOpenPost(Consumer<Integer> onOpenPost) {
-        this.onOpenPost = onOpenPost;
-    }
+    public void setCurrentUser(User user) { this.currentUser = user; }
+    public void setOnOpenPost(Consumer<Integer> onOpenPost) { this.onOpenPost = onOpenPost; }
+    public void setOnOpenProfile(Consumer<String> onOpenProfile) { this.onOpenProfile = onOpenProfile; }
 }

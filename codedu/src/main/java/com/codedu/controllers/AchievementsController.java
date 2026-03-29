@@ -120,9 +120,7 @@ public class AchievementsController {
             javafx.scene.layout.HBox.setHgrow(textContainer, javafx.scene.layout.Priority.ALWAYS);
 
             String nameText = "Achievement " + (i + 1);
-            if (c.getUser() != null && c.getUser().getUsername() != null) {
-                nameText = c.getUser().getUsername();
-            }
+
             Label goalTitle = new Label(nameText);
             goalTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
 

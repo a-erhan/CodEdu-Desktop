@@ -1,14 +1,13 @@
 package com.codedu.dtos.forumpost;
 
-import lombok.Builder;
+import com.codedu.models.user.User;
 
 import java.time.LocalDateTime;
 
-
-@Builder
 public record ForumReplyDto(
-    int id,
-    String content,
-    String authorUsername,
-    LocalDateTime createdAt
+        int id,
+        String content,
+        String authorUsername,
+        User author,
+        LocalDateTime createdAt
 ){}
