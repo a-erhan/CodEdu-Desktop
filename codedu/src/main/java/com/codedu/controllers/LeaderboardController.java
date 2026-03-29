@@ -97,9 +97,23 @@ public class LeaderboardController {
             return;
         }
 
-        int myRank = leaderboard.getUserRank();
         int total = competitors.size();
-        int myIndex = Math.max(0, Math.min(total - 1, myRank - 1));
+        int myIndex = -1;
+        if (currentUser != null) {
+            for (int i = 0; i < competitors.size(); i++) {
+                Competitor c = competitors.get(i);
+                if (c.getUser() != null && c.getUser().getId() == currentUser.getId()) {
+                    myIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // If not found (shouldn't happen with the new service logic), default to 0 or
+        // handle
+        if (myIndex == -1)
+            myIndex = 0;
+        int myRank = myIndex + 1;
         Competitor me = competitors.get(myIndex);
 
         myCard.getChildren().clear();

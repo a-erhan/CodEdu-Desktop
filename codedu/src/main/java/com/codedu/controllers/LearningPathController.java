@@ -119,6 +119,7 @@ public class LearningPathController {
         // ══════════════════════════════════════════════════════════════════
 
         private void loadPlaceholderChapters() {
+                chapters.clear();
                 // ── 1. Hello World ────────────────────────────────
                 Chapter ch1 = new Chapter(
                                 "Hello, World!",

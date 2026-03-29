@@ -16,13 +16,8 @@ public class QuestionEvaluationService {
         this.codeExecutionService = codeExecutionService;
     }
 
-    /**
-     * Soru tipine göre doğru değerlendirme stratejisini seçer.
-     */
     public boolean evaluate(Question question, String userAnswer) {
 
-        // 1. Eğer soru "Kod Yazma" sorusu ise (Senin yolladığın class)
-        // (Java 16+ Pattern Matching özelliğini kullanıyoruz)
         if (question instanceof CodeImplementationQuestion codeQuestion) {
 
             List<TestCase> testCases = codeQuestion.getTestCases();
@@ -30,22 +25,26 @@ public class QuestionEvaluationService {
                 return false;
             }
 
-            // Test senaryolarını Judge0 üzerinden geçir
             for (TestCase tc : testCases) {
-                // Kod motoruna kullanıcının yazdığı kodu ve test case'in gizli girdisini yolluyoruz
                 String actualOutput = codeExecutionService.executeJavaCode(userAnswer, tc.getInput());
 
-                // Gelen çıktı (actualOutput), beklenen çıktıyla (expectedOutput) eşleşmiyor mu?
-                if (actualOutput == null || !actualOutput.trim().equals(tc.getExpectedOutput().trim())) {
-                    System.out.println("Test patladı! Beklenen: " + tc.getExpectedOutput() + " | Gelen: " + actualOutput);
+                if (actualOutput != null && (actualOutput.startsWith("EXECUTION ERROR")
+                        || actualOutput.startsWith("CONNECTION ERROR"))) {
+                    return false;
+                }
+
+                String safeActual = (actualOutput != null) ? actualOutput.trim().replace("\r\n", "\n") : "";
+                String safeExpected = (tc.getExpectedOutput() != null)
+                        ? tc.getExpectedOutput().trim().replace("\r\n", "\n")
+                        : "";
+
+                if (!safeActual.equals(safeExpected)) {
                     return false;
                 }
             }
-            return true; // Tüm kod testlerini geçti!
+            return true;
         }
 
-        // 2. Eğer soru Diğer Tiplerden biriyse (Çoktan Seçmeli, Boşluk Doldurma vs.)
-        // OOP'nin gücünü kullan: Modelin kendi içindeki validateAnswer metodunu çağır!
         else {
             return question.validateAnswer(userAnswer);
         }

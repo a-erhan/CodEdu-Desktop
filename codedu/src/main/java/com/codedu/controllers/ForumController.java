@@ -21,21 +21,31 @@ import java.util.function.Consumer;
 @Scope("prototype")
 public class ForumController {
 
-    @FXML private Label titleLabel;
-    @FXML private VBox newPostCard;
-    @FXML private TextField newPostTitleField;
-    @FXML private TextArea newPostBodyArea;
-    @FXML private Button postButton;
-    @FXML private VBox threadList;
-    @FXML private VBox selectedPostCard;
-    @FXML private Label selectedTitle;
-    @FXML private Label selectedMeta;
-    @FXML private TextArea selectedContent;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private VBox newPostCard;
+    @FXML
+    private TextField newPostTitleField;
+    @FXML
+    private TextArea newPostBodyArea;
+    @FXML
+    private Button postButton;
+    @FXML
+    private VBox threadList;
+    @FXML
+    private VBox selectedPostCard;
+    @FXML
+    private Label selectedTitle;
+    @FXML
+    private Label selectedMeta;
+    @FXML
+    private TextArea selectedContent;
 
     private List<ForumPostListDto> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<Integer> onOpenPost;
-    private Consumer<User> onOpenProfile;
+    private Consumer<String> onOpenProfile;
 
     @Autowired
     private ForumService forumService;
@@ -73,7 +83,10 @@ public class ForumController {
                     this.posts = result;
                     if (onSuccess != null) onSuccess.run();
                 }))
-                .exceptionally(ex -> { ex.printStackTrace(); return null; });
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
     private void handleCreatePost() {
@@ -111,40 +124,36 @@ public class ForumController {
             card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
             card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.INTERACTIVE);
 
-            // 1. Title - Record accessor is usually title()
             Label postTitle = new Label(post.title());
             postTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            // 2. Metadata
-            Label meta = new Label("By " + post.authorUsername() + " • " + post.replyCount() + " replies");
+            String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
+            Label meta = new Label("By " + authorName + " • " + post.replyCount() + " replies");
             meta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
-            // FIX: Using authorUsername for logic if author() object is missing from DTO
-            // If your DTO has a getAuthor() or author() method, use it here.
-            // If not, we can't open a profile by User object without that data.
-            meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
-            meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            if (post.authorUsername() != null) {
+                meta.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null) onOpenProfile.accept(post.authorUsername());
+                    e.consume();
+                });
+                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            }
 
-            // 3. Snippet
-            // FIX: If .content() fails, try .getContent() or verify the field name in the DTO
-            String previewText = post.content();
-            Label snippet = new Label(truncate(previewText, 120));
+            Label snippet = new Label(truncate(post.content(), 120));
             snippet.setWrapText(true);
 
             card.getChildren().addAll(postTitle, meta, snippet);
 
-            // Interaction logic
             card.setOnMouseClicked(e -> {
-                if (onOpenPost != null) {
-                    onOpenPost.accept(post.id());
-                } else {
-                    fetchAndShowPost(post.id());
-                }
+                if (onOpenPost != null) onOpenPost.accept(post.id());
+                else fetchAndShowPost(post.id());
             });
 
             threadList.getChildren().add(card);
         }
     }
+
     private void fetchAndShowPost(int id) {
         CompletableFuture.supplyAsync(() -> forumService.getPostWithReplies(id))
                 .thenAccept(detailDto -> Platform.runLater(() -> {
@@ -152,7 +161,10 @@ public class ForumController {
                     selectedMeta.setText("Posted by " + detailDto.authorUsername());
                     selectedContent.setText(detailDto.content());
                 }))
-                .exceptionally(ex -> { ex.printStackTrace(); return null; });
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
     private String truncate(String text, int length) {
@@ -161,12 +173,12 @@ public class ForumController {
     }
 
     private void updatePostButtonState() {
-        boolean disable = newPostTitleField.getText().trim().isEmpty()
-                || newPostBodyArea.getText().trim().isEmpty();
+        if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
+        boolean disable = newPostTitleField.getText().trim().isEmpty() || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
     }
 
     public void setCurrentUser(User user) { this.currentUser = user; }
     public void setOnOpenPost(Consumer<Integer> onOpenPost) { this.onOpenPost = onOpenPost; }
-    public void setOnOpenProfile(Consumer<User> onOpenProfile) { this.onOpenProfile = onOpenProfile; }
+    public void setOnOpenProfile(Consumer<String> onOpenProfile) { this.onOpenProfile = onOpenProfile; }
 }

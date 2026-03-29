@@ -13,7 +13,11 @@ import java.util.Map;
 @Service
 public class CodeExecutionService {
 
-    private static final String JUDGE0_URL = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true";
+    private static final String JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
+
+    private static final String CLIENT_ID = "7da6169882cd9ffe322f57e4bc8ad9d6";
+    private static final String CLIENT_SECRET = "380c588ef361353aec4cb3839e8c9a4a4cfd477ff58b0e0a545aacb2dd16f858";
+
     private final RestTemplate restTemplate;
 
     public CodeExecutionService() {
@@ -24,38 +28,37 @@ public class CodeExecutionService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        //RapidAPI keys will be entered here
-        headers.set("x-rapidapi-host", "judge0-ce.p.rapidapi.com");
-        headers.set("x-rapidapi-key", "API_KEY_WILL_BE_HERE");
-
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("source_code", sourceCode);
-        requestBody.put("language_id", 62);
-        requestBody.put("stdin", input);
+        requestBody.put("clientId", CLIENT_ID);
+        requestBody.put("clientSecret", CLIENT_SECRET);
+        requestBody.put("script", sourceCode);
+        requestBody.put("language", "java");
+        requestBody.put("versionIndex", "4");
+
+        if (input != null && !input.trim().isEmpty()) {
+            requestBody.put("stdin", input);
+        }
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(JUDGE0_URL, entity, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(JDOODLE_URL, entity, Map.class);
             Map<String, Object> responseBody = response.getBody();
 
             if (responseBody != null) {
-                String stderr = (String) responseBody.get("stderr");
-                String compileOutput = (String) responseBody.get("compile_output");
+                String output = (String) responseBody.get("output");
 
-                if (stderr != null && !stderr.trim().isEmpty()) {
-                    return "RUNTIME ERROR:\n" + stderr;
+                if (output != null) {
+                    if (output.contains("error:") || output.contains("Exception in thread")
+                            || output.contains("standard error")) {
+                        return "EXECUTION ERROR:\n" + output.trim();
+                    }
+                    return output.trim();
                 }
-                if (compileOutput != null && !compileOutput.trim().isEmpty()) {
-                    return "COMPILE ERROR:\n" + compileOutput;
-                }
-
-                String stdout = (String) responseBody.get("stdout");
-                return stdout != null ? stdout.trim() : "";
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return "CONNECTION ERROR";
+            return "CONNECTION ERROR: " + e.getMessage();
         }
 
         return "";

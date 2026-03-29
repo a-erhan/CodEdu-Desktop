@@ -42,6 +42,13 @@
                 </HBox>
             </VBox>
 
+            <!-- Navigation buttons -->
+            <HBox fx:id="navigationRow" spacing="8" alignment="CENTER_LEFT">
+                <Button fx:id="easyNavBtn" text="1. Easy" prefWidth="110"/>
+                <Button fx:id="mediumNavBtn" text="2. Medium" prefWidth="110"/>
+                <Button fx:id="hardNavBtn" text="3. Hard" prefWidth="110"/>
+            </HBox>
+
             <!-- Challenge card -->
             <VBox fx:id="challengeCard" spacing="6">
                 <Label fx:id="challengeHeader" text="Challenge"/>
