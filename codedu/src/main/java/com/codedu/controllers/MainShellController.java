@@ -558,6 +558,8 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
+            MatchmakingController controller = loader.getController();
+            controller.setCurrentUser(user);   // triggers real queue join via WebSocket
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();

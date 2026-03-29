@@ -2,6 +2,7 @@ package com.codedu.models.user;
 
 import com.codedu.models.BaseEntity;
 import com.codedu.models.matchmaking.Competitor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+// Prevent Jackson from traversing Hibernate lazy-proxy fields during STOMP serialisation.
+// 'hibernateLazyInitializer' and 'handler' are Hibernate proxy internals.
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory"})
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)

@@ -2,11 +2,14 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.learning.CodeImplementationQuestion;
-import com.codedu.models.learning.TestCase;
+import com.codedu.models.matchmaking.GameRoom;
+import com.codedu.models.user.User;
 import com.codedu.services.CodeExecutionService;
 import com.codedu.services.MatchmakingService;
 import com.codedu.services.DailyChallengeService;
 import com.codedu.services.QuestionEvaluationService;
+import com.codedu.services.WebSocketClientService;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -17,173 +20,204 @@ import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class MatchmakingController {
 
-    // --- UI Elements ---
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private Label timeLabel;
-    @FXML
-    private Label subtitleLabel;
-    @FXML
-    private VBox statusCard;
-    @FXML
-    private Label statusLabel;
-    @FXML
-    private Label statusValue;
-    @FXML
-    private VBox challengeCard;
-    @FXML
-    private Label challengeHeader;
-    @FXML
-    private Label problemTitle;
-    @FXML
-    private Label problemDescription;
-    @FXML
-    private VBox editorCard;
-    @FXML
-    private Label editorLabel;
-    @FXML
-    private TextArea codeArea;
-    @FXML
-    private HBox actionRow;
-    @FXML
-    private Button runButton;
-    @FXML
-    private Button submitButton;
-    @FXML
-    private Label outputLabel;
-    @FXML
-    private TextArea outputArea;
-    @FXML
-    private VBox scoreCard;
-    @FXML
-    private Label scoreTitle;
-    @FXML
-    private Label youScore;
-    @FXML
-    private Label opponentScore;
-    @FXML
-    private Label attemptsTitle;
-    @FXML
-    private Label youAttempts;
-    @FXML
-    private Label opponentAttempts;
+    // -------------------------------------------------------------------------
+    // FXML bindings
+    // -------------------------------------------------------------------------
+    @FXML private Label titleLabel;
+    @FXML private Label timeLabel;
+    @FXML private Label subtitleLabel;
+    @FXML private VBox statusCard;
+    @FXML private Label statusLabel;
+    @FXML private Label statusValue;
+    @FXML private VBox challengeCard;
+    @FXML private Label challengeHeader;
+    @FXML private Label problemTitle;
+    @FXML private Label problemDescription;
+    @FXML private VBox editorCard;
+    @FXML private Label editorLabel;
+    @FXML private TextArea codeArea;
+    @FXML private HBox actionRow;
+    @FXML private Button runButton;
+    @FXML private Button submitButton;
+    @FXML private Label outputLabel;
+    @FXML private TextArea outputArea;
+    @FXML private VBox scoreCard;
+    @FXML private Label scoreTitle;
+    @FXML private Label youScore;
+    @FXML private Label opponentScore;
+    @FXML private Label attemptsTitle;
+    @FXML private Label youAttempts;
+    @FXML private Label opponentAttempts;
+    @FXML private HBox navigationRow;
+    @FXML private Button easyNavBtn;
+    @FXML private Button mediumNavBtn;
+    @FXML private Button hardNavBtn;
 
-    @FXML
-    private HBox navigationRow;
-    @FXML
-    private Button easyNavBtn;
-    @FXML
-    private Button mediumNavBtn;
-    @FXML
-    private Button hardNavBtn;
-
+    // -------------------------------------------------------------------------
+    // State
+    // -------------------------------------------------------------------------
+    private User currentUser;
     private CodeImplementationQuestion activeQuestion;
     private List<CodeImplementationQuestion> matchQuestions = new ArrayList<>();
     private int currentQuestionIndex = 0;
     private final List<String> userSolutions = new ArrayList<>(java.util.Arrays.asList("", "", ""));
     private final List<Boolean> questionsPassed = new ArrayList<>(java.util.Arrays.asList(false, false, false));
 
-    // --- Backend Services ---
+    // -------------------------------------------------------------------------
+    // Backend services
+    // -------------------------------------------------------------------------
     private final CodeExecutionService codeExecutionService;
     private final MatchmakingService matchmakingService;
     private final DailyChallengeService dailyChallengeService;
     private final QuestionEvaluationService evaluationService;
     private final com.codedu.repositories.interfaces.QuestionRepository questionRepository;
+    private final WebSocketClientService webSocketClientService;
 
     @Autowired
     public MatchmakingController(CodeExecutionService codeExecutionService,
-            MatchmakingService matchmakingService,
-            DailyChallengeService dailyChallengeService,
-            QuestionEvaluationService evaluationService,
-            com.codedu.repositories.interfaces.QuestionRepository questionRepository) {
+                                 MatchmakingService matchmakingService,
+                                 DailyChallengeService dailyChallengeService,
+                                 QuestionEvaluationService evaluationService,
+                                 com.codedu.repositories.interfaces.QuestionRepository questionRepository,
+                                 WebSocketClientService webSocketClientService) {
         this.codeExecutionService = codeExecutionService;
         this.matchmakingService = matchmakingService;
         this.dailyChallengeService = dailyChallengeService;
         this.evaluationService = evaluationService;
         this.questionRepository = questionRepository;
+        this.webSocketClientService = webSocketClientService;
     }
 
-    // --- Initialization ---
+    // -------------------------------------------------------------------------
+    // Lifecycle
+    // -------------------------------------------------------------------------
+
     @FXML
     public void initialize() {
-        if (titleLabel != null)
-            titleLabel.getStyleClass().add(Styles.TITLE_3);
-        if (statusCard != null) {
-            statusCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
-            statusCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (statusLabel != null)
-            statusLabel.getStyleClass().add(Styles.TEXT_BOLD);
-        if (statusValue != null)
-            statusValue.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (challengeCard != null) {
-            challengeCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
-            challengeCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (challengeHeader != null)
-            challengeHeader.getStyleClass().add(Styles.TEXT_BOLD);
-        if (problemTitle != null)
-            problemTitle.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (editorCard != null) {
-            editorCard.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
-            editorCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (editorLabel != null)
-            editorLabel.getStyleClass().add(Styles.TEXT_BOLD);
-        if (outputLabel != null)
-            outputLabel.getStyleClass().add(Styles.TEXT_BOLD);
-        if (scoreCard != null) {
-            scoreCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
-            scoreCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-        if (scoreTitle != null)
-            scoreTitle.getStyleClass().add(Styles.TEXT_BOLD);
-        if (youScore != null)
-            youScore.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (opponentScore != null)
-            opponentScore.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (attemptsTitle != null)
-            attemptsTitle.getStyleClass().add(Styles.TEXT_BOLD);
-        if (youAttempts != null)
-            youAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
-        if (opponentAttempts != null)
-            opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
-
-        if (runButton != null) {
-            runButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
-            runButton.setOnAction(e -> handleRunCode());
-        }
-
-        if (easyNavBtn != null)
-            easyNavBtn.setOnAction(e -> switchQuestion(0));
-        if (mediumNavBtn != null)
-            mediumNavBtn.setOnAction(e -> switchQuestion(1));
-        if (hardNavBtn != null)
-            hardNavBtn.setOnAction(e -> switchQuestion(2));
-        if (submitButton != null) {
-            submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
-            submitButton.setOnAction(e -> handleSubmitCode());
-        }
-
-        loadMatchQuestions();
+        applyStyles();
+        wireButtons();
+        showSearchingState();
+        // Actual queue join happens in setCurrentUser(), called by MainShellController
+        // after the FXML has been loaded and this controller is fully constructed.
     }
 
-    private void switchQuestion(int index) {
-        if (index < 0 || index >= matchQuestions.size())
-            return;
+    /**
+     * Called by {@code MainShellController} immediately after FXML loading.
+     * Stores the logged-in user, then joins the real matchmaking queue.
+     */
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        joinMatchmakingQueue();
+    }
 
-        // Save current solution
-        if (activeQuestion != null && codeArea != null) {
-            userSolutions.set(currentQuestionIndex, codeArea.getText());
+    // -------------------------------------------------------------------------
+    // Matchmaking queue
+    // -------------------------------------------------------------------------
+
+    private void joinMatchmakingQueue() {
+        if (currentUser == null) return;
+
+        // 1. Open a dedicated STOMP session and subscribe to the private match channel.
+        // 2. The onMatchFound callback will be called from the STOMP receive thread.
+        webSocketClientService.connectForMatchmaking(currentUser.getId(), this::onMatchFound);
+
+        // 3. Tell the server to add us to the waiting queue.
+        webSocketClientService.sendJoinQueue(currentUser.getId());
+    }
+
+    /**
+     * Called on the STOMP receive thread when the server broadcasts a {@link GameRoom}.
+     * All JavaFX UI mutations are wrapped in {@code Platform.runLater()}.
+     */
+    private void onMatchFound(GameRoom gameRoom) {
+        // Determine opponent: player1 is whoever joined first.
+        User opponent = (gameRoom.getPlayer1().getId() == currentUser.getId())
+                ? gameRoom.getPlayer2()
+                : gameRoom.getPlayer1();
+
+        // Reload full question from DB so testCases are available for code evaluation.
+        // (testCases are @JsonIgnored in the wire DTO to avoid lazy-loading errors.)
+        CodeImplementationQuestion fullQuestion = null;
+        if (gameRoom.getQuestion() != null) {
+            fullQuestion = (CodeImplementationQuestion) questionRepository
+                    .findById(gameRoom.getQuestion().getId())
+                    .orElse(gameRoom.getQuestion());
         }
+
+        final CodeImplementationQuestion question = fullQuestion;
+        final String opponentName = opponent != null ? opponent.getUsername() : "Opponent";
+
+        Platform.runLater(() -> showMatchFoundState(opponentName, question));
+    }
+
+    // -------------------------------------------------------------------------
+    // UI state transitions
+    // -------------------------------------------------------------------------
+
+    /** Initial "waiting" state shown as soon as the screen opens. */
+    private void showSearchingState() {
+        if (statusValue != null)
+            statusValue.setText("Searching for opponent...");
+        if (subtitleLabel != null)
+            subtitleLabel.setText("You'll be matched with a player of similar level.");
+
+        disableActionButtons(true);
+        disableNavButtons(true);
+
+        if (problemTitle != null)
+            problemTitle.setText("Waiting for match...");
+        if (problemDescription != null)
+            problemDescription.setText("A coding challenge will appear here once you're matched.");
+        if (codeArea != null)
+            codeArea.setText("");
+    }
+
+    /** Called on the JavaFX thread once the server confirms a match. */
+    private void showMatchFoundState(String opponentName, CodeImplementationQuestion question) {
+        if (statusValue != null)
+            statusValue.setText("Match Active");
+        if (subtitleLabel != null)
+            subtitleLabel.setText("VS  " + opponentName);
+
+        if (question != null) {
+            activeQuestion = question;
+            matchQuestions.clear();
+            matchQuestions.add(question);
+            currentQuestionIndex = 0;
+
+            if (problemTitle != null)
+                problemTitle.setText(question.getTitle()
+                        + (question.getQuestionDifficulity() != null
+                        ? "  (" + question.getQuestionDifficulity() + ")" : ""));
+            if (problemDescription != null)
+                problemDescription.setText(question.getContent());
+            if (codeArea != null)
+                codeArea.setText(question.getBoilerplateCode() != null
+                        ? question.getBoilerplateCode() : "");
+        }
+
+        if (outputArea != null)
+            outputArea.setText("");
+
+        disableActionButtons(false);   // unlock Run / Submit
+        disableNavButtons(false);
+    }
+
+    // -------------------------------------------------------------------------
+    // Navigation
+    // -------------------------------------------------------------------------
+
+    private void switchQuestion(int index) {
+        if (index < 0 || index >= matchQuestions.size()) return;
+
+        if (activeQuestion != null && codeArea != null)
+            userSolutions.set(currentQuestionIndex, codeArea.getText());
 
         currentQuestionIndex = index;
         loadCurrentQuestionToUI();
@@ -191,15 +225,14 @@ public class MatchmakingController {
     }
 
     private void updateNavigationStyles() {
-        if (easyNavBtn == null || mediumNavBtn == null || hardNavBtn == null)
-            return;
+        if (easyNavBtn == null || mediumNavBtn == null || hardNavBtn == null) return;
 
-        Button[] btns = { easyNavBtn, mediumNavBtn, hardNavBtn };
+        Button[] btns = {easyNavBtn, mediumNavBtn, hardNavBtn};
         for (int i = 0; i < btns.length; i++) {
             btns[i].getStyleClass().removeAll(Styles.SUCCESS, Styles.ACCENT, Styles.BUTTON_OUTLINED);
             if (i == currentQuestionIndex) {
                 btns[i].getStyleClass().add(Styles.ACCENT);
-            } else if (questionsPassed.get(i)) {
+            } else if (i < questionsPassed.size() && questionsPassed.get(i)) {
                 btns[i].getStyleClass().add(Styles.SUCCESS);
             } else {
                 btns[i].getStyleClass().add(Styles.BUTTON_OUTLINED);
@@ -207,165 +240,162 @@ public class MatchmakingController {
         }
     }
 
-    // --- Data Setup ---
-    private void loadMatchQuestions() {
-        if (statusValue != null)
-            statusValue.setText("Match Active");
-
-        matchQuestions.clear();
-        currentQuestionIndex = 0;
-
-        matchQuestions.add(getRandomQuestionByDiff(com.codedu.models.learning.QuestionDifficulity.EASY));
-        matchQuestions.add(getRandomQuestionByDiff(com.codedu.models.learning.QuestionDifficulity.MEDIUM));
-        matchQuestions.add(getRandomQuestionByDiff(com.codedu.models.learning.QuestionDifficulity.HARD));
-
-        loadCurrentQuestionToUI();
-    }
-
-    private CodeImplementationQuestion getRandomQuestionByDiff(
-            com.codedu.models.learning.QuestionDifficulity difficulity) {
-        java.util.List<com.codedu.models.learning.Question> questions = questionRepository
-                .findByQuestionDifficulity(difficulity);
-        java.util.List<CodeImplementationQuestion> codeQs = questions.stream()
-                .filter(q -> q instanceof CodeImplementationQuestion)
-                .map(q -> (CodeImplementationQuestion) q)
-                .collect(java.util.stream.Collectors.toList());
-
-        if (codeQs.isEmpty()) {
-            return null;
-        }
-        java.util.Random rand = new java.util.Random();
-        return codeQs.get(rand.nextInt(codeQs.size()));
-    }
-
     private void loadCurrentQuestionToUI() {
-        if (currentQuestionIndex >= matchQuestions.size()) {
-            if (problemTitle != null)
-                problemTitle.setText("Match Completed!");
-            if (problemDescription != null)
-                problemDescription.setText("You have passed all the challenges!");
-            if (codeArea != null)
-                codeArea.setText("");
-            if (runButton != null)
-                runButton.setDisable(true);
-            if (submitButton != null)
-                submitButton.setDisable(true);
-            return;
-        }
-
+        if (currentQuestionIndex >= matchQuestions.size()) return;
         activeQuestion = matchQuestions.get(currentQuestionIndex);
-        if (activeQuestion == null) {
-            System.err.println("Question not found for index " + currentQuestionIndex);
-            return;
-        }
+        if (activeQuestion == null) return;
 
         if (problemTitle != null)
-            problemTitle.setText(activeQuestion.getTitle() + " (" + activeQuestion.getQuestionDifficulity() + ")");
+            problemTitle.setText(activeQuestion.getTitle()
+                    + (activeQuestion.getQuestionDifficulity() != null
+                    ? "  (" + activeQuestion.getQuestionDifficulity() + ")" : ""));
         if (problemDescription != null)
             problemDescription.setText(activeQuestion.getContent());
 
         if (codeArea != null) {
-            String existingSol = userSolutions.get(currentQuestionIndex);
-            if (existingSol == null || existingSol.trim().isEmpty()) {
-                codeArea.setText(activeQuestion.getBoilerplateCode());
-            } else {
-                codeArea.setText(existingSol);
-            }
+            String saved = currentQuestionIndex < userSolutions.size()
+                    ? userSolutions.get(currentQuestionIndex) : "";
+            codeArea.setText((saved == null || saved.trim().isEmpty())
+                    ? (activeQuestion.getBoilerplateCode() != null ? activeQuestion.getBoilerplateCode() : "")
+                    : saved);
         }
-        if (runButton != null)
-            runButton.setDisable(false);
-        if (submitButton != null)
-            submitButton.setDisable(false);
-        if (outputArea != null)
-            outputArea.setText("");
-
+        if (outputArea != null) outputArea.setText("");
         updateNavigationStyles();
     }
 
-    // --- Execution Handling ---
+    // -------------------------------------------------------------------------
+    // Code execution
+    // -------------------------------------------------------------------------
+
     private void handleRunCode() {
+        if (activeQuestion == null || codeArea == null) return;
         String code = codeArea.getText();
         if (code == null || code.trim().isEmpty()) {
-            outputArea.setText("Please write some code first!");
+            if (outputArea != null) outputArea.setText("Please write some code first!");
             return;
         }
 
-        // Use the first test case's input for the "Run" feature
-        String sampleInput = "";
-        if (activeQuestion != null && !activeQuestion.getTestCases().isEmpty()) {
-            sampleInput = activeQuestion.getTestCases().get(0).getInput();
-        }
+        String sampleInput = (activeQuestion.getTestCases() != null && !activeQuestion.getTestCases().isEmpty())
+                ? activeQuestion.getTestCases().get(0).getInput() : "";
 
-        outputArea.setText("Executing Sample Input: " + (sampleInput.isEmpty() ? "(none)" : sampleInput) + "\n");
+        if (outputArea != null)
+            outputArea.setText("Executing Sample Input: " + (sampleInput.isEmpty() ? "(none)" : sampleInput) + "\n");
         runButton.setDisable(true);
 
         final String finalInput = sampleInput;
-        Task<String> executionTask = new Task<>() {
+        Task<String> task = new Task<>() {
             @Override
             protected String call() {
                 return codeExecutionService.executeJavaCode(code, finalInput);
             }
         };
-
-        executionTask.setOnSucceeded(event -> {
-            outputArea.setText("Output:\n" + executionTask.getValue());
+        task.setOnSucceeded(e -> {
+            if (outputArea != null) outputArea.setText("Output:\n" + task.getValue());
             runButton.setDisable(false);
         });
-
-        executionTask.setOnFailed(event -> {
-            outputArea.setText("An error occurred during execution.");
+        task.setOnFailed(e -> {
+            if (outputArea != null) outputArea.setText("An error occurred during execution.");
             runButton.setDisable(false);
         });
-
-        new Thread(executionTask).start();
+        new Thread(task).start();
     }
 
     private void handleSubmitCode() {
+        if (activeQuestion == null || codeArea == null) return;
         String code = codeArea.getText();
         if (code == null || code.trim().isEmpty()) {
-            outputArea.setText("Please write some code first!");
+            if (outputArea != null) outputArea.setText("Please write some code first!");
             return;
         }
 
-        outputArea.setText("Evaluating all test cases...\n");
+        if (outputArea != null) outputArea.setText("Evaluating all test cases...\n");
         submitButton.setDisable(true);
         runButton.setDisable(true);
 
-        Task<Boolean> evaluateTask = new Task<>() {
+        Task<Boolean> task = new Task<>() {
             @Override
             protected Boolean call() {
                 return evaluationService.evaluate(activeQuestion, code);
             }
         };
-
-        evaluateTask.setOnSucceeded(event -> {
-            boolean passedAll = evaluateTask.getValue();
-            if (passedAll) {
-                outputArea.setText("Congratulations! You passed all test cases for this challenge.");
-                questionsPassed.set(currentQuestionIndex, true);
+        task.setOnSucceeded(e -> {
+            boolean passed = task.getValue();
+            if (passed) {
+                if (outputArea != null)
+                    outputArea.setText("Congratulations! You passed all test cases.");
+                if (currentQuestionIndex < questionsPassed.size())
+                    questionsPassed.set(currentQuestionIndex, true);
                 updateNavigationStyles();
-
-                if (currentQuestionIndex < matchQuestions.size() - 1) {
-                    outputArea.appendText("\nYou can move to the next challenge using the buttons above.");
-                } else {
-                    boolean allDone = questionsPassed.stream().allMatch(p -> p);
-                    if (allDone) {
-                        outputArea.appendText("\nMatch finished! You've completed all difficulty levels.");
-                    }
-                }
             } else {
-                outputArea.setText("Some test cases failed or your code threw an error. Please try again.");
+                if (outputArea != null)
+                    outputArea.setText("Some test cases failed. Please try again.");
             }
             submitButton.setDisable(false);
             runButton.setDisable(false);
         });
-
-        evaluateTask.setOnFailed(event -> {
-            outputArea.setText("A system error occurred during evaluation.");
+        task.setOnFailed(e -> {
+            if (outputArea != null) outputArea.setText("A system error occurred during evaluation.");
             submitButton.setDisable(false);
             runButton.setDisable(false);
         });
+        new Thread(task).start();
+    }
 
-        new Thread(evaluateTask).start();
+    // -------------------------------------------------------------------------
+    // Style / wiring helpers
+    // -------------------------------------------------------------------------
+
+    private void applyStyles() {
+        if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
+        styleCard(statusCard);
+        if (statusLabel != null) statusLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (statusValue != null) statusValue.getStyleClass().add(Styles.TEXT_SUBTLE);
+        styleCard(challengeCard);
+        if (challengeHeader != null) challengeHeader.getStyleClass().add(Styles.TEXT_BOLD);
+        if (problemTitle != null) problemTitle.getStyleClass().add(Styles.TEXT_SUBTLE);
+        styleCard(editorCard);
+        if (editorLabel != null) editorLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (outputLabel != null) outputLabel.getStyleClass().add(Styles.TEXT_BOLD);
+        if (scoreCard != null) {
+            scoreCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+            scoreCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+        }
+        if (scoreTitle != null) scoreTitle.getStyleClass().add(Styles.TEXT_BOLD);
+        if (youScore != null) youScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (opponentScore != null) opponentScore.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (attemptsTitle != null) attemptsTitle.getStyleClass().add(Styles.TEXT_BOLD);
+        if (youAttempts != null) youAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+        if (opponentAttempts != null) opponentAttempts.getStyleClass().add(Styles.TEXT_SUBTLE);
+    }
+
+    private void styleCard(VBox card) {
+        if (card == null) return;
+        card.setPadding(new javafx.geometry.Insets(10, 12, 10, 12));
+        card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+    }
+
+    private void wireButtons() {
+        if (runButton != null) {
+            runButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
+            runButton.setOnAction(e -> handleRunCode());
+        }
+        if (submitButton != null) {
+            submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+            submitButton.setOnAction(e -> handleSubmitCode());
+        }
+        if (easyNavBtn != null) easyNavBtn.setOnAction(e -> switchQuestion(0));
+        if (mediumNavBtn != null) mediumNavBtn.setOnAction(e -> switchQuestion(1));
+        if (hardNavBtn != null) hardNavBtn.setOnAction(e -> switchQuestion(2));
+    }
+
+    private void disableActionButtons(boolean disable) {
+        if (runButton != null) runButton.setDisable(disable);
+        if (submitButton != null) submitButton.setDisable(disable);
+    }
+
+    private void disableNavButtons(boolean disable) {
+        if (easyNavBtn != null) easyNavBtn.setDisable(disable);
+        if (mediumNavBtn != null) mediumNavBtn.setDisable(disable);
+        if (hardNavBtn != null) hardNavBtn.setDisable(disable);
     }
 }
