@@ -36,6 +36,14 @@ public class LearningPathDataSeeder implements CommandLineRunner {
         this.chapterRepository = chapterRepository;
     }
 
+    // Add this just in case
+    public LearningPathDataSeeder() {
+        this.userRepository = null;
+        this.learningPathRepository = null;
+        this.progressRepository = null;
+        this.chapterRepository = null;
+    }
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {

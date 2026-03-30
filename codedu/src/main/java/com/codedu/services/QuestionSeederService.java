@@ -1,7 +1,7 @@
 package com.codedu.services;
 
 import com.codedu.models.learning.CodeImplementationQuestion;
-import com.codedu.models.learning.QuestionDifficulity;
+import com.codedu.models.learning.QuestionDifficulty;
 import com.codedu.models.learning.QuestionType;
 import com.codedu.models.learning.TestCase;
 import com.codedu.repositories.interfaces.QuestionRepository;
@@ -49,15 +49,15 @@ public class QuestionSeederService implements CommandLineRunner {
             q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
 
             // Assign Difficulty
-            QuestionDifficulity diff;
+            QuestionDifficulty diff;
             if (i <= 35) {
-                diff = QuestionDifficulity.EASY;
+                diff = QuestionDifficulty.EASY;
             } else if (i <= 70) {
-                diff = QuestionDifficulity.MEDIUM;
+                diff = QuestionDifficulty.MEDIUM;
             } else {
-                diff = QuestionDifficulity.HARD;
+                diff = QuestionDifficulty.HARD;
             }
-            q.setQuestionDifficulity(diff);
+            q.setQuestionDifficulty(diff);
 
             // Assign Topic / Template
             int topicSelector = i % 5;

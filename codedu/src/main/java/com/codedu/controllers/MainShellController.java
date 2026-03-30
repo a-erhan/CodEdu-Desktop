@@ -59,9 +59,7 @@ public class MainShellController {
     private com.codedu.services.UserService userService;
 
     @FXML
-    private Label badgeLabel, tokenLabel, xpLabel, welcomeNavLabel, profileIconLabel, taglineLabel;
-    @FXML
-    private ProgressBar xpProgressBar;
+    private Label taglineLabel;
     @FXML
     private VBox sidebar, sidebarContainer;
     @FXML

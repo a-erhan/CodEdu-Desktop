@@ -192,8 +192,8 @@ public class MatchmakingController {
 
             if (problemTitle != null)
                 problemTitle.setText(question.getTitle()
-                        + (question.getQuestionDifficulity() != null
-                        ? "  (" + question.getQuestionDifficulity() + ")" : ""));
+                        + (question.getQuestionDifficulty() != null
+                        ? "  (" + question.getQuestionDifficulty() + ")" : ""));
             if (problemDescription != null)
                 problemDescription.setText(question.getContent());
             if (codeArea != null)
@@ -246,8 +246,8 @@ public class MatchmakingController {
 
         if (problemTitle != null)
             problemTitle.setText(activeQuestion.getTitle()
-                    + (activeQuestion.getQuestionDifficulity() != null
-                    ? "  (" + activeQuestion.getQuestionDifficulity() + ")" : ""));
+                    + (activeQuestion.getQuestionDifficulty() != null
+                    ? "  (" + activeQuestion.getQuestionDifficulty() + ")" : ""));
         if (problemDescription != null)
             problemDescription.setText(activeQuestion.getContent());
 
