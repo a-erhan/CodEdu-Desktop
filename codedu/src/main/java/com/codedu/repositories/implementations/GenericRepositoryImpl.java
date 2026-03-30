@@ -1,6 +1,7 @@
 package com.codedu.repositories.implementations;
 
 import com.codedu.models.BaseEntity;
+import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.GenericRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Transactional
-public class GenericRepositoryImpl<T extends BaseEntity> implements GenericRepository<T> {
+public abstract class GenericRepositoryImpl<T extends BaseEntity> implements GenericRepository<T> {
 
     @Getter
     @PersistenceContext

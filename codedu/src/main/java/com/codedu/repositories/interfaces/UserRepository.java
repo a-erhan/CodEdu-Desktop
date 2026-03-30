@@ -11,5 +11,6 @@ public interface UserRepository extends GenericRepository<User> {
 
     boolean existsByEmail(String email);
 
+    Optional<User> findByUsernameWithAchievements(String username);
     boolean existsByUsername(String username);
 }

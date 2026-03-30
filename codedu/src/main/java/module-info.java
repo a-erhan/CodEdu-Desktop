@@ -35,7 +35,7 @@ module com.codedu {
     opens com.codedu.config to spring.core, spring.beans, spring.context;
     opens com.codedu.dtos
             to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;
-    opens com.codedu.seeders to spring.core, spring.beans, spring.context;
+    opens com.codedu.seeders;
 
     exports com.codedu;
     exports com.codedu.models;

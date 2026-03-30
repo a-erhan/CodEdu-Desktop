@@ -237,11 +237,17 @@ public class MainShellController {
 
     private void loadAchievements() {
         try {
+            // FETCH FRESH DATA HERE
+            User freshUser = userService.getUserWithProfileData(user.getUsername())
+                    .orElse(this.user);
+
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Achievements.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
-            controller.setCurrentUser(user);
+
+            // Pass the fresh user with initialized achievements
+            controller.setCurrentUser(freshUser);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -415,7 +421,12 @@ public class MainShellController {
     }
 
     private void loadProfile() {
-        openUserProfile(this.user);
+        // Instead of openUserProfile(this.user), fetch first:
+        userService.getUserWithProfileData(user.getUsername())
+                .ifPresentOrElse(
+                        this::openUserProfile,
+                        () -> openUserProfile(this.user)
+                );
     }
 
     private void updateHeader() {

@@ -22,6 +22,24 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     }
 
     @Override
+    public Optional<User> findByUsernameWithAchievements(String username) {
+        try {
+            User user = entityManager
+                    .createQuery(
+                            "SELECT u FROM User u " +
+                                    "LEFT JOIN FETCH u.gameState gs " +
+                                    "LEFT JOIN FETCH gs.achievements " +
+                                    "WHERE u.username = :username AND u.isDeleted = false",
+                            User.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<User> findByEmail(String email) {
         try {
             User user = entityManager
