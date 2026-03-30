@@ -35,8 +35,22 @@ public class MainShellController {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
-    private com.codedu.repositories.interfaces.UserRepository userRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codedu.services.UserChapterProgressService progressService;
+
+    // ========== FXML: Header ==========
+    @FXML
+    private Label badgeLabel;
+    @FXML
+    private Label tokenLabel;
+    @FXML
+    private ProgressBar xpProgressBar;
+    @FXML
+    private Label xpLabel;
+    @FXML
+    private Label welcomeNavLabel;
+    @FXML
+    private Label profileIconLabel;
 
     @Autowired
     private com.codedu.services.ChatWindowManager chatWindowManager;
@@ -188,11 +202,20 @@ public class MainShellController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ChapterView.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
+            Parent chapterView = loader.load();
+
             ChapterViewController controller = loader.getController();
-            controller.setChapter(chapter);
-            controller.setOnBack(this::loadLearningPath);
-            setContentAndFill(view);
+
+            // 2. Fetch the progress record for this specific user and chapter
+            // We use the 'user' object already present in this Shell controller
+            com.codedu.models.learning.UserChapterProgress progress =
+                    progressService.getProgress(this.user, chapter);
+
+            // 3. Pass BOTH to the controller
+            controller.setChapter(chapter, progress);
+
+            controller.setOnBack(() -> loadLearningPath());
+            setContentAndFill(chapterView);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Chapter", "Error loading chapter view.");

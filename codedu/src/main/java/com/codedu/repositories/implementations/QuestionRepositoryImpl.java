@@ -2,7 +2,7 @@ package com.codedu.repositories.implementations;
 
 import com.codedu.models.learning.Question;
 import com.codedu.repositories.interfaces.QuestionRepository;
-import com.codedu.models.learning.QuestionDifficulity;
+import com.codedu.models.learning.QuestionDifficulty;
 import com.codedu.models.learning.QuestionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -32,7 +32,7 @@ public class QuestionRepositoryImpl extends GenericRepositoryImpl<Question> impl
     }
 
     @Override
-    public List<Question> findByQuestionDifficulity(QuestionDifficulity difficulity) {
+    public List<Question> findByQuestionDifficulity(QuestionDifficulty difficulity) {
         return entityManager.createQuery(
                 "SELECT q FROM Question q WHERE q.questionDifficulity = :difficulity AND q.isDeleted = false", 
                 Question.class)

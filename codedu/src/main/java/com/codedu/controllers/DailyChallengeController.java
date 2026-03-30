@@ -104,7 +104,7 @@ public class DailyChallengeController {
             Label chTitle = new Label("Task " + questionNumber + " - " + q.getQuestionType());
             chTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            Label chBody = new Label("Difficulty: " + q.getQuestionDifficulity() + " level algorithm challenge.");
+            Label chBody = new Label("Difficulty: " + q.getQuestionDifficulty() + " level algorithm challenge.");
             chBody.setWrapText(true);
 
             Label chMeta = new Label(xpPerQuestion + " XP");

@@ -32,28 +32,13 @@ public class Chapter extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty;
 
-    private Integer totalLessons;
-    private Integer completedLessons;
-    private Integer xpReward;
-    private Boolean locked;
+    private int totalLessons;
+    private int xpReward;
 
-    public boolean isLocked() {
-        return locked != null && locked;
-    }
-
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "content_id")
     private ChapterContent content;
 
-    public boolean isCompleted() {
-        return !locked && completedLessons >= totalLessons;
-    }
-
-    public double getProgress() {
-        if (totalLessons == 0)
-            return 0;
-        return (double) completedLessons / totalLessons;
-    }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "path_id")
@@ -62,14 +47,12 @@ public class Chapter extends BaseEntity {
     private String topicName;
 
     public Chapter(String title,
-            String description,
-            String iconEmoji,
-            String iconImage,
-            Difficulty difficulty,
-            int totalLessons,
-            int completedLessons,
-            int xpReward,
-            boolean locked) {
+                   String description,
+                   String iconEmoji,
+                   String iconImage,
+                   Difficulty difficulty,
+                   int totalLessons,
+                   int xpReward) {
 
         this.title = title;
         this.description = description;
@@ -77,35 +60,11 @@ public class Chapter extends BaseEntity {
         this.iconImage = iconImage;
         this.difficulty = difficulty;
         this.totalLessons = totalLessons;
-        this.completedLessons = completedLessons;
         this.xpReward = xpReward;
-        this.locked = locked;
     }
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id")
-    @Builder.Default
-    private List<Question> questions = new ArrayList<>();
+    private int tokenReward;
 
-    private Integer tokenReward;
-
-    public int getTotalLessons() {
-        return totalLessons == null ? 0 : totalLessons;
-    }
-
-    public int getCompletedLessons() {
-        return completedLessons == null ? 0 : completedLessons;
-    }
-
-    public int getXpReward() {
-        return xpReward == null ? 0 : xpReward;
-    }
-
-    public int getTokenReward() {
-        return tokenReward == null ? 0 : tokenReward;
-    }
-
-    public boolean isCompleted(User user) {
-        return questions != null && !questions.isEmpty();
-    }
+    @Column(name = "order_index")
+    private int orderIndex; // e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
 }

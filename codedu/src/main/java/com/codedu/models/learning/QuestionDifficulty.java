@@ -1,6 +1,6 @@
 package com.codedu.models.learning;
 
-public enum QuestionDifficulity {
+public enum QuestionDifficulty {
     EASY,
     MEDIUM,
     HARD

@@ -30,6 +30,11 @@ public class ChapterRepositoryImpl extends GenericRepositoryImpl<Chapter> implem
     }
 
     @Override
+    public List<Chapter> findAll() {
+        return entityManager.createQuery("SELECT c FROM Chapter c", Chapter.class).getResultList();
+    }
+
+    @Override
     public List<Chapter> findByTopicName(String topicName) {
         return entityManager.createQuery(
                 "SELECT c FROM Chapter c WHERE c.topicName = :topicName AND c.isDeleted = false", 
