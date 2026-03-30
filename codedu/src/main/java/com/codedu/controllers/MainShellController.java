@@ -43,6 +43,9 @@ public class MainShellController {
     @org.springframework.beans.factory.annotation.Autowired
     private org.springframework.context.ApplicationContext applicationContext;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.codedu.services.UserChapterProgressService progressService;
+
     // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
@@ -426,8 +429,17 @@ public class MainShellController {
                     getClass().getResource("/com/codedu/views/ChapterView.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent chapterView = loader.load();
+
             ChapterViewController controller = loader.getController();
-            controller.setChapter(chapter);
+
+            // 2. Fetch the progress record for this specific user and chapter
+            // We use the 'user' object already present in this Shell controller
+            com.codedu.models.learning.UserChapterProgress progress =
+                    progressService.getProgress(this.user, chapter);
+
+            // 3. Pass BOTH to the controller
+            controller.setChapter(chapter, progress);
+
             controller.setOnBack(() -> loadLearningPath());
             setContentAndFill(chapterView);
         } catch (IOException ex) {

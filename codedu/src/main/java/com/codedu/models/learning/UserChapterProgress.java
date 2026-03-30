@@ -17,11 +17,11 @@ import lombok.*;
 @Builder
 public class UserChapterProgress extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "chapter_id", nullable = false)
     private Chapter chapter;
 
@@ -33,15 +33,18 @@ public class UserChapterProgress extends BaseEntity {
     @Builder.Default
     private boolean isCompleted = false;
 
+    @Column(name = "is_unlocked", nullable = false)
+    @Builder.Default
+    private boolean isUnlocked = false;
 
     public void incrementProgress() {
-        if (!this.isCompleted) {
+        // Use getChapter() instead of this.chapter
+        if (!this.isCompleted && getChapter() != null) {
             this.completedLessons++;
 
-            // If the user has finished all lessons in the chapter, mark it as complete
-            if (this.completedLessons >= this.chapter.getTotalLessons()) {
+            if (this.completedLessons >= getChapter().getTotalLessons()) {
                 this.isCompleted = true;
-                this.completedLessons = this.chapter.getTotalLessons(); // Cap it just in case
+                this.completedLessons = getChapter().getTotalLessons();
             }
         }
     }
