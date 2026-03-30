@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import com.codedu.repositories.interfaces.UserRepository;
-import com.codedu.services.MatchmakingService;
+import com.codedu.services.implementations.MatchmakingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;

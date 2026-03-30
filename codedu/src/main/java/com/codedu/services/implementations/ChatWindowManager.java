@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.dtos.ChatMessageDTO;

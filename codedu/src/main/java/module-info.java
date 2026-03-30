@@ -31,7 +31,6 @@ module com.codedu {
     opens com.codedu to spring.core, spring.beans, spring.context;
     opens com.codedu.repositories.interfaces to spring.core, spring.beans, spring.context;
     opens com.codedu.repositories.implementations to spring.core, spring.beans, spring.context, org.hibernate.orm.core;
-    opens com.codedu.services to spring.core, spring.beans, spring.context;
     opens com.codedu.config to spring.core, spring.beans, spring.context;
     opens com.codedu.dtos
             to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;
@@ -41,7 +40,6 @@ module com.codedu {
     exports com.codedu.models;
     exports com.codedu.controllers;
     exports com.codedu.repositories.interfaces;
-    exports com.codedu.services;
     exports com.codedu.dtos;
     exports com.codedu.config;
     exports com.codedu.dtos.forumpost;
@@ -67,4 +65,6 @@ module com.codedu {
     exports com.codedu.models.user;
 
     opens com.codedu.models.user to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.services.implementations;
+    opens com.codedu.services.implementations to spring.beans, spring.context, spring.core;
 }

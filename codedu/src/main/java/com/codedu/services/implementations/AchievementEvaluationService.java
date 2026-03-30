@@ -1,12 +1,10 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.models.gamification.Achievement;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class AchievementEvaluationService {

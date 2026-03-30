@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.services.AIChatbotService;
+import com.codedu.services.implementations.AIChatbotService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;

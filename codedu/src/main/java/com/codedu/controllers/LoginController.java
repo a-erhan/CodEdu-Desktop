@@ -13,7 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import com.codedu.services.AuthService;
+import com.codedu.services.implementations.AuthService;
 /**
  * Controller for the Login screen.
  * Validates credentials and transitions to MainShell on success.

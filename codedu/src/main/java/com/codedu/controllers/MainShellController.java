@@ -8,6 +8,9 @@ import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.learning.Question;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
+import com.codedu.services.implementations.ChatWindowManager;
+import com.codedu.services.implementations.UserChapterProgressService;
+import com.codedu.services.implementations.UserService;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -36,7 +39,7 @@ public class MainShellController {
     private ApplicationContext applicationContext;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.codedu.services.UserChapterProgressService progressService;
+    private UserChapterProgressService progressService;
 
     // ========== FXML: Header ==========
     @FXML
@@ -53,10 +56,10 @@ public class MainShellController {
     private Label profileIconLabel;
 
     @Autowired
-    private com.codedu.services.ChatWindowManager chatWindowManager;
+    private ChatWindowManager chatWindowManager;
 
     @Autowired
-    private com.codedu.services.UserService userService;
+    private UserService userService;
 
     @FXML
     private Label taglineLabel;

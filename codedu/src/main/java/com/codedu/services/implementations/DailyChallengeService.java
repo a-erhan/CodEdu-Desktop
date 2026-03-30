@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.models.learning.DailyChallenge;
 import com.codedu.models.learning.Question;

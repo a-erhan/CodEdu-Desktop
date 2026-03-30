@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;

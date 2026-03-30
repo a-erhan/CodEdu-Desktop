@@ -1,7 +1,6 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import javafx.fxml.FXML;
@@ -11,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import com.codedu.models.gamification.Achievement;
 import com.codedu.repositories.interfaces.AchievementRepository;
-import com.codedu.services.AchievementEvaluationService;
+import com.codedu.services.implementations.AchievementEvaluationService;
 import java.util.List;
 
 @Controller

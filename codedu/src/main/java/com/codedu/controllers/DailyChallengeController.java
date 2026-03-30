@@ -3,7 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.learning.DailyChallenge;
 import com.codedu.models.learning.Question;
-import com.codedu.services.DailyChallengeService;
+import com.codedu.services.implementations.DailyChallengeService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;

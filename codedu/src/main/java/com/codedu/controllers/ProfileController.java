@@ -4,8 +4,8 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
-import com.codedu.services.ChatWindowManager;
-import com.codedu.services.FriendshipUIManager;
+import com.codedu.services.implementations.ChatWindowManager;
+import com.codedu.services.implementations.FriendshipUIManager;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;

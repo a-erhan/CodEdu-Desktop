@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.models.gamification.Achievement;
 import com.codedu.models.gamification.Badge;

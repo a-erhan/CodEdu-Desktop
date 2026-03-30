@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.models.learning.Question;
 import com.codedu.repositories.interfaces.QuestionRepository;

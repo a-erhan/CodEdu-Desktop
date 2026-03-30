@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.dtos.UserProfileDTO;
 import com.codedu.models.social.Friendship;

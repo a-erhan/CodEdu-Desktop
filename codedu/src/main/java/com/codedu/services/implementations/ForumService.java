@@ -1,4 +1,4 @@
-package com.codedu.services;
+package com.codedu.services.implementations;
 
 import com.codedu.dtos.forumpost.*;
 import com.codedu.models.social.ForumPost;
