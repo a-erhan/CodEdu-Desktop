@@ -58,38 +58,47 @@ public class WebSocketClientService {
      *                      message arrives; wrap UI mutations in
      *                      {@code Platform.runLater()}
      */
-    public void connect(String currentUserId, Consumer<ChatMessageDTO> onMessage) {
+public void connect(String currentUserId, Consumer<ChatMessageDTO> onMessage) {
         // Disconnect any stale session first
         if (chatSession != null && chatSession.isConnected()) {
             chatSession.disconnect();
         }
 
-        buildStompClient().connectAsync(wsUrl, new StompSessionHandlerAdapter() {
+        System.out.println("[WS-Chat] WebSocket baglantisi deneniyor... ID: " + currentUserId);
 
-            @Override
-            public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
-                chatSession = session;
+        try {
+            buildStompClient().connectAsync(wsUrl, new StompSessionHandlerAdapter() {
 
-                session.subscribe("/queue/messages/" + currentUserId,
-                        new StompSessionHandlerAdapter() {
-                            @Override
-                            public Type getPayloadType(StompHeaders headers) {
-                                return ChatMessageDTO.class;
-                            }
+                @Override
+                public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
+                    System.out.println("[WS-Chat] BASARILI! Sunucuya baglanildi. Session ID: " + session.getSessionId());
+                    chatSession = session;
 
-                            @Override
-                            public void handleFrame(StompHeaders headers, Object payload) {
-                                onMessage.accept((ChatMessageDTO) payload);
-                            }
-                        });
-            }
+                    session.subscribe("/queue/messages/" + currentUserId,
+                            new StompSessionHandlerAdapter() {
+                                @Override
+                                public Type getPayloadType(StompHeaders headers) {
+                                    return ChatMessageDTO.class;
+                                }
 
-            @Override
-            public void handleTransportError(StompSession session, Throwable ex) {
-                System.err.println("[WS-Chat] Transport error for user " + currentUserId
-                        + ": " + ex.getMessage());
-            }
-        });
+                                @Override
+                                public void handleFrame(StompHeaders headers, Object payload) {
+                                    System.out.println("[WS-Chat] Yeni mesaj yakalandi!");
+                                    onMessage.accept((ChatMessageDTO) payload);
+                                }
+                            });
+                }
+
+                @Override
+                public void handleTransportError(StompSession session, Throwable ex) {
+                    System.err.println("[WS-Chat] WEBSOCKET KOPTU VEYA BAGLANAMADI! ID: " + currentUserId);
+                    ex.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("[WS-Chat] BAGLANTI ILK ASAMADA COKTU! ID: " + currentUserId);
+            e.printStackTrace();
+        }
     }
 
     /** Sends a chat message to {@code /app/chat.send}. */
