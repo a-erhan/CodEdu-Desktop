@@ -158,4 +158,19 @@ public class UserService {
                 .badges(new ArrayList<>())
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    public Optional<User> getUserWithProfileData(String username) {
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            User u = userOpt.get();
+            if (u.getGameState() != null)
+                u.getGameState().getId();
+            if (u.getInventory() != null)
+                u.getInventory().getId();
+            if (u.getCompetitor() != null)
+                u.getCompetitor().getId();
+        }
+        return userOpt;
+    }
 }

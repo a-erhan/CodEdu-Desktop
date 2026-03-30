@@ -15,7 +15,7 @@ import lombok.*;
 public class Badge extends BaseEntity {
     private String title;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "achievement_id")
     private Achievement achievement;
 

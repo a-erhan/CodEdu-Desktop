@@ -23,9 +23,11 @@ public class DailyChallengeService {
     private UserGameStateRepository userGameStateRepository;
 
     public DailyChallengeService(DailyChallengeRepository dailyChallengeRepository,
-                                 QuestionRepository questionRepository) {
+            QuestionRepository questionRepository,
+            UserGameStateRepository userGameStateRepository) {
         this.dailyChallengeRepository = dailyChallengeRepository;
         this.questionRepository = questionRepository;
+        this.userGameStateRepository = userGameStateRepository;
     }
 
     @Transactional
@@ -34,14 +36,22 @@ public class DailyChallengeService {
 
         Optional<DailyChallenge> existingChallenge = dailyChallengeRepository.findByTargetDate(today);
         if (existingChallenge.isPresent()) {
-            return existingChallenge.get();
+            DailyChallenge dc = existingChallenge.get();
+            if (dc.getQuestions() != null) {
+                dc.getQuestions().size(); // Force initialization
+            }
+            return dc;
         }
 
         List<Question> todaysQuestions = questionRepository.getRandomQuestions(3);
 
         if (todaysQuestions.isEmpty()) {
-            throw new RuntimeException("No questions found for the daily challenge.");
+            System.err.println("[DailyChallengeService] No questions found in DB to create a challenge!");
+            return null; // Controller will handle this
         }
+
+        System.out.println(
+                "[DailyChallengeService] Creating new challenge with " + todaysQuestions.size() + " questions.");
 
         Reward dailyReward = new Reward();
         dailyReward.setXp(50);
@@ -58,6 +68,7 @@ public class DailyChallengeService {
 
         return newChallenge;
     }
+
     /**
      * Called when the user submits their daily challenge answers.
      */
