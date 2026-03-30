@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.forumpost.*;
+import com.codedu.services.interfaces.ForumService;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.ForumPostRepository;
@@ -12,12 +13,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ForumService {
+public class ForumServiceImpl implements ForumService {
 
     private final ForumPostRepository forumPostRepository;
     private final UserRepository userRepository;
 
-    public ForumService(ForumPostRepository forumPostRepository, UserRepository userRepository) {
+    public ForumServiceImpl(ForumPostRepository forumPostRepository, UserRepository userRepository) {
         this.forumPostRepository = forumPostRepository;
         this.userRepository = userRepository;
     }

@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.services.interfaces.CodeExecutionService;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class CodeExecutionService {
+public class CodeExecutionServiceImpl implements CodeExecutionService {
 
     private static final String JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
 
@@ -20,7 +21,7 @@ public class CodeExecutionService {
 
     private final RestTemplate restTemplate;
 
-    public CodeExecutionService() {
+    public CodeExecutionServiceImpl() {
         this.restTemplate = new RestTemplate();
     }
 

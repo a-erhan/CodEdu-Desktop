@@ -1,6 +1,8 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.learning.CodeImplementationQuestion;
+import com.codedu.services.interfaces.CodeExecutionService;
+import com.codedu.services.interfaces.QuestionEvaluationService;
 import com.codedu.models.learning.Question;
 import com.codedu.models.learning.TestCase;
 import com.codedu.repositories.interfaces.QuestionRepository;
@@ -10,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class QuestionEvaluationService {
+public class QuestionEvaluationServiceImpl implements QuestionEvaluationService {
 
     private final CodeExecutionService codeExecutionService;
     private final QuestionRepository questionRepository;
 
-    public QuestionEvaluationService(CodeExecutionService codeExecutionService, QuestionRepository questionRepository) {
+    public QuestionEvaluationServiceImpl(CodeExecutionService codeExecutionService, QuestionRepository questionRepository) {
         this.codeExecutionService = codeExecutionService;
         this.questionRepository = questionRepository;
     }

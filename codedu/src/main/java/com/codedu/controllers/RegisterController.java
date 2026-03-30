@@ -2,7 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.User;
-import com.codedu.services.implementations.AuthService;
+import com.codedu.services.interfaces.AuthService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

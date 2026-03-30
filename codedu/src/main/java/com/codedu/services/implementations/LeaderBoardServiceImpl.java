@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.matchmaking.Competitor;
+import com.codedu.services.interfaces.LeaderBoardService;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.CompetitorRepository;
@@ -15,13 +16,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class LeaderBoardService {
+public class LeaderBoardServiceImpl implements LeaderBoardService {
 
     private final LeaderBoardRepository leaderBoardRepository;
     private final UserRepository userRepository;
     private final CompetitorRepository competitorRepository;
 
-    public LeaderBoardService(LeaderBoardRepository leaderBoardRepository,
+    public LeaderBoardServiceImpl(LeaderBoardRepository leaderBoardRepository,
             UserRepository userRepository,
             CompetitorRepository competitorRepository) {
         this.leaderBoardRepository = leaderBoardRepository;

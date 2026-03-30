@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.services.interfaces.AIChatbotService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AIChatbotService {
+public class AIChatbotServiceImpl implements AIChatbotService {
 
     @Value("${gemini.url}")
     private String geminiUrl;
@@ -23,7 +24,7 @@ public class AIChatbotService {
 
     private final RestTemplate restTemplate;
 
-    public AIChatbotService() {
+    public AIChatbotServiceImpl() {
         this.restTemplate = new RestTemplate();
     }
 

@@ -5,7 +5,7 @@ import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.Chapter.Difficulty;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.UserRepository;
-import com.codedu.services.implementations.LearningPathService;
+import com.codedu.services.interfaces.LearningPathService;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;

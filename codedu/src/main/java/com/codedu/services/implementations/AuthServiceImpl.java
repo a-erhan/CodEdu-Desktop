@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.user.User;
+import com.codedu.services.interfaces.AuthService;
 import com.codedu.models.user.Role;
 import com.codedu.repositories.interfaces.UserRepository;
 import org.springframework.stereotype.Service;
@@ -8,11 +9,11 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class AuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

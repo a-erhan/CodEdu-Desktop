@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.ChapterProgressDTO;
+import com.codedu.services.interfaces.LearningPathService;
 import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.UserChapterProgress;
 import com.codedu.models.user.User;
@@ -15,12 +16,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class LearningPathService {
+public class LearningPathServiceImpl implements LearningPathService {
 
     private final ChapterRepository chapterRepository;
     private final UserChapterProgressRepository progressRepository;
 
-    public LearningPathService(ChapterRepository chapterRepository,
+    public LearningPathServiceImpl(ChapterRepository chapterRepository,
                                UserChapterProgressRepository progressRepository) {
         this.chapterRepository = chapterRepository;
         this.progressRepository = progressRepository;

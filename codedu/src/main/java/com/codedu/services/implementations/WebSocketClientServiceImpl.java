@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.ChatMessageDTO;
+import com.codedu.services.interfaces.WebSocketClientService;
 import com.codedu.models.matchmaking.GameRoom;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -32,7 +33,7 @@ import java.util.function.Consumer;
  * {@code ws://192.168.1.100:8080/ws-chat}.
  */
 @Service
-public class WebSocketClientService {
+public class WebSocketClientServiceImpl implements WebSocketClientService {
 
     @Value("${app.websocket.server-url:ws://localhost:8080/ws-chat}")
     private String wsUrl;

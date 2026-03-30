@@ -2,6 +2,8 @@ package com.codedu.services.implementations;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.dtos.ChatMessageDTO;
+import com.codedu.services.interfaces.ChatWindowManager;
+import com.codedu.services.interfaces.WebSocketClientService;
 import com.codedu.models.social.ChatMessage;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.ChatMessageRepository;
@@ -22,7 +24,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class ChatWindowManager {
+public class ChatWindowManagerImpl implements ChatWindowManager {
 
     private final WebSocketClientService webSocketClientService;
     private final ChatMessageRepository chatMessageRepository;
@@ -31,7 +33,7 @@ public class ChatWindowManager {
     private ScrollPane activeScrollPane;
     private User currentUser;
 
-    public ChatWindowManager(WebSocketClientService webSocketClientService,
+    public ChatWindowManagerImpl(WebSocketClientService webSocketClientService,
             ChatMessageRepository chatMessageRepository) {
         this.webSocketClientService = webSocketClientService;
         this.chatMessageRepository = chatMessageRepository;

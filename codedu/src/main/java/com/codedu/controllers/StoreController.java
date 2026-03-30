@@ -19,7 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import com.codedu.services.implementations.UserService;
+import com.codedu.services.interfaces.UserService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

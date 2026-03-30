@@ -1,11 +1,11 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.learning.CodeImplementationQuestion;
+import com.codedu.services.interfaces.QuestionSeederService;
 import com.codedu.models.learning.QuestionDifficulty;
 import com.codedu.models.learning.QuestionType;
 import com.codedu.models.learning.TestCase;
 import com.codedu.repositories.interfaces.QuestionRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Random;
 
 @Service
-public class QuestionSeederService implements CommandLineRunner {
+public class QuestionSeederServiceImpl implements QuestionSeederService {
 
     private final QuestionRepository questionRepository;
 
-    public QuestionSeederService(QuestionRepository questionRepository) {
+    public QuestionSeederServiceImpl(QuestionRepository questionRepository) {
         this.questionRepository = questionRepository;
     }
 

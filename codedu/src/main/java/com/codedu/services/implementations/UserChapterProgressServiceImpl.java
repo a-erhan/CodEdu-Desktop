@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.learning.Chapter;
+import com.codedu.services.interfaces.UserChapterProgressService;
 import com.codedu.models.learning.UserChapterProgress;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.UserChapterProgressRepository;
@@ -9,12 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UserChapterProgressService {
+public class UserChapterProgressServiceImpl implements UserChapterProgressService {
 
     private final UserChapterProgressRepository progressRepository;
 
     @Autowired
-    public UserChapterProgressService(UserChapterProgressRepository progressRepository) {
+    public UserChapterProgressServiceImpl(UserChapterProgressRepository progressRepository) {
         this.progressRepository = progressRepository;
     }
 

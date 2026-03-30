@@ -65,6 +65,8 @@ module com.codedu {
     exports com.codedu.models.user;
 
     opens com.codedu.models.user to org.hibernate.orm.core, spring.beans, spring.core;
+    exports com.codedu.services.interfaces;
     exports com.codedu.services.implementations;
+    opens com.codedu.services.interfaces to spring.beans, spring.context, spring.core;
     opens com.codedu.services.implementations to spring.beans, spring.context, spring.core;
 }

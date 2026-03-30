@@ -4,7 +4,7 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
-import com.codedu.services.implementations.LeaderBoardService;
+import com.codedu.services.interfaces.LeaderBoardService;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;

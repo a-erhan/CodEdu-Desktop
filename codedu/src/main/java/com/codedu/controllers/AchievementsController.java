@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import com.codedu.models.gamification.Achievement;
 import com.codedu.repositories.interfaces.AchievementRepository;
-import com.codedu.services.implementations.AchievementEvaluationService;
+import com.codedu.services.interfaces.AchievementEvaluationService;
 import java.util.List;
 
 @Controller

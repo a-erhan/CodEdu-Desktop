@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.learning.DailyChallenge;
+import com.codedu.services.interfaces.DailyChallengeService;
 import com.codedu.models.learning.Question;
 import com.codedu.models.learning.Reward;
 import com.codedu.models.user.UserGameState;
@@ -16,13 +17,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DailyChallengeService {
+public class DailyChallengeServiceImpl implements DailyChallengeService {
 
     private DailyChallengeRepository dailyChallengeRepository;
     private QuestionRepository questionRepository;
     private UserGameStateRepository userGameStateRepository;
 
-    public DailyChallengeService(DailyChallengeRepository dailyChallengeRepository,
+    public DailyChallengeServiceImpl(DailyChallengeRepository dailyChallengeRepository,
             QuestionRepository questionRepository,
             UserGameStateRepository userGameStateRepository) {
         this.dailyChallengeRepository = dailyChallengeRepository;

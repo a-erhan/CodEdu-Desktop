@@ -1,6 +1,9 @@
 package com.codedu.services.implementations;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.services.interfaces.ChatWindowManager;
+import com.codedu.services.interfaces.FriendshipUIManager;
+import com.codedu.services.interfaces.UserService;
 import com.codedu.models.user.User;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,12 +21,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Component
-public class FriendshipUIManager {
+public class FriendshipUIManagerImpl implements FriendshipUIManager {
 
     private final UserService userService;
     private final ChatWindowManager chatWindowManager;
 
-    public FriendshipUIManager(UserService userService, ChatWindowManager chatWindowManager) {
+    public FriendshipUIManagerImpl(UserService userService, ChatWindowManager chatWindowManager) {
         this.userService = userService;
         this.chatWindowManager = chatWindowManager;
     }

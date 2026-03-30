@@ -1,17 +1,19 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.gamification.Achievement;
+import com.codedu.services.interfaces.AchievementEvaluationService;
+import com.codedu.services.interfaces.UserService;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AchievementEvaluationService {
+public class AchievementEvaluationServiceImpl implements AchievementEvaluationService {
 
     private final UserService userService;
 
-    public AchievementEvaluationService(UserService userService) {
+    public AchievementEvaluationServiceImpl(UserService userService) {
         this.userService = userService;
     }
 

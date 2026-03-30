@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.learning.CodeImplementationQuestion;
+import com.codedu.services.interfaces.MatchmakingService;
 import com.codedu.models.learning.Question;
 import com.codedu.models.matchmaking.GameRoom;
 import com.codedu.models.user.User;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * to prevent race conditions when multiple players join simultaneously.
  */
 @Service
-public class MatchmakingService {
+public class MatchmakingServiceImpl implements MatchmakingService {
 
     private final ConcurrentLinkedQueue<User> playerQueue = new ConcurrentLinkedQueue<>();
 
@@ -31,7 +32,7 @@ public class MatchmakingService {
     private final QuestionRepository questionRepository;
 
     @Autowired
-    public MatchmakingService(SimpMessagingTemplate messagingTemplate,
+    public MatchmakingServiceImpl(SimpMessagingTemplate messagingTemplate,
                               QuestionRepository questionRepository) {
         this.messagingTemplate = messagingTemplate;
         this.questionRepository = questionRepository;

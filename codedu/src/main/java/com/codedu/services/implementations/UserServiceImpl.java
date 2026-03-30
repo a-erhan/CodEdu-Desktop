@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.UserProfileDTO;
+import com.codedu.services.interfaces.UserService;
 import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
@@ -14,12 +15,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
 
-    public UserService(UserRepository userRepository, FriendshipRepository friendshipRepository) {
+    public UserServiceImpl(UserRepository userRepository, FriendshipRepository friendshipRepository) {
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
     }

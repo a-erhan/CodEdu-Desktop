@@ -3,8 +3,8 @@ package com.codedu.controllers;
 import com.codedu.models.learning.*;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
-import com.codedu.services.implementations.UserChapterProgressService;
-import com.codedu.services.implementations.UserService; // ✅ Added Import
+import com.codedu.services.interfaces.UserChapterProgressService;
+import com.codedu.services.interfaces.UserService;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;

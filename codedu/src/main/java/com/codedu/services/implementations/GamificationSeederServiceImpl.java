@@ -1,21 +1,21 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.gamification.Achievement;
+import com.codedu.services.interfaces.GamificationSeederService;
 import com.codedu.models.gamification.Badge;
 import com.codedu.models.learning.Reward;
 import com.codedu.repositories.interfaces.AchievementRepository;
 import com.codedu.repositories.interfaces.BadgeRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class GamificationSeederService implements CommandLineRunner {
+public class GamificationSeederServiceImpl implements GamificationSeederService {
 
     private final AchievementRepository achievementRepository;
     private final BadgeRepository badgeRepository;
 
-    public GamificationSeederService(AchievementRepository achievementRepository, BadgeRepository badgeRepository) {
+    public GamificationSeederServiceImpl(AchievementRepository achievementRepository, BadgeRepository badgeRepository) {
         this.achievementRepository = achievementRepository;
         this.badgeRepository = badgeRepository;
     }

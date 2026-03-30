@@ -3,7 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.dtos.forumpost.*;
 import com.codedu.models.user.User;
-import com.codedu.services.implementations.ForumService;
+import com.codedu.services.interfaces.ForumService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
