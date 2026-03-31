@@ -173,4 +173,9 @@ public class UserService {
         }
         return userOpt;
     }
+
+    @Transactional(readOnly = true)
+    public Optional<User> getUserById(int id) {
+        return userRepository.findById(id);
+    }
 }

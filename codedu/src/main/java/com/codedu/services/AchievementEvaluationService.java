@@ -4,17 +4,152 @@ import com.codedu.models.gamification.Achievement;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
+import com.codedu.repositories.interfaces.AchievementRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.hibernate.Hibernate;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AchievementEvaluationService {
 
     private final UserService userService;
+    private final AchievementRepository achievementRepository;
 
-    public AchievementEvaluationService(UserService userService) {
+    public AchievementEvaluationService(UserService userService, AchievementRepository achievementRepository) {
         this.userService = userService;
+        this.achievementRepository = achievementRepository;
+    }
+
+    // Only called silently on login/profile load to fix corrupted accounts (0 XP
+    // but owns achievements)
+    @Transactional
+    public void fixMissingXPOnLogin(User detachedUser) {
+        if (detachedUser == null)
+            return;
+
+        Optional<User> uOpt = userService.getUserById(detachedUser.getId());
+        if (uOpt.isEmpty())
+            return;
+        User user = uOpt.get();
+
+        UserGameState state = user.getGameState();
+        if (state == null)
+            return;
+
+        // Force initialization
+        if (state.getAchievements() != null) {
+            state.getAchievements().size();
+        }
+
+        // --- Fail-safe bug fix logic ---
+        if (state.getAchievements() != null && !state.getAchievements().isEmpty()
+                && state.getXp() == 0 && state.getTokenBalance() == 0) {
+            System.out.println("Retroactively fixing missing XP/Tokens for user: " + user.getUsername());
+            for (Achievement earned : state.getAchievements()) {
+                if (earned.getReward() != null) {
+                    state.setTokenBalance(state.getTokenBalance() + earned.getReward().getToken());
+                    state.setXp(state.getXp() + earned.getReward().getXp());
+                    while (state.getXp() >= state.getLevel() * 1000) {
+                        state.setXp(state.getXp() - state.getLevel() * 1000);
+                        state.setLevel(state.getLevel() + 1);
+                    }
+                }
+            }
+            userService.saveUser(user);
+        }
+
+        detachedUser.setGameState(state);
+        if (detachedUser.getGameState().getAchievements() != null) {
+            detachedUser.getGameState().getAchievements().size();
+        }
+    }
+
+    @Transactional
+    public boolean claimAchievement(User detachedUser, int achievementId) {
+        if (detachedUser == null)
+            return false;
+
+        Optional<User> uOpt = userService.getUserById(detachedUser.getId());
+        if (uOpt.isEmpty())
+            return false;
+        User user = uOpt.get();
+
+        UserGameState state = user.getGameState();
+        if (state == null)
+            return false;
+
+        Optional<Achievement> aOpt = achievementRepository.findById(achievementId);
+        if (aOpt.isEmpty())
+            return false;
+        Achievement a = aOpt.get();
+
+        if (state.getAchievements() != null) {
+            state.getAchievements().size();
+            for (Achievement earned : state.getAchievements()) {
+                if (earned.getBadge() != null)
+                    Hibernate.initialize(earned.getBadge());
+                if (earned.getId() == a.getId())
+                    return false; // Already claimed
+            }
+        }
+
+        if (getProgressPercentage(a, user) >= 1.0) {
+            if (a.getBadge() != null)
+                Hibernate.initialize(a.getBadge());
+            state.getAchievements().add(a);
+            if (a.getReward() != null) {
+                state.setTokenBalance(state.getTokenBalance() + a.getReward().getToken());
+                state.setXp(state.getXp() + a.getReward().getXp());
+                while (state.getXp() >= state.getLevel() * 1000) {
+                    state.setXp(state.getXp() - state.getLevel() * 1000);
+                    state.setLevel(state.getLevel() + 1);
+                }
+            }
+            userService.saveUser(user);
+            detachedUser.setGameState(state);
+            if (detachedUser.getGameState().getAchievements() != null) {
+                detachedUser.getGameState().getAchievements().size(); // sync proxy
+            }
+            return true;
+        }
+        return false;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Achievement> getAllAchievementsWithBadges() {
+        List<Achievement> achievements = achievementRepository.getAll();
+        for (Achievement a : achievements) {
+            if (a.getBadge() != null) {
+                Hibernate.initialize(a.getBadge()); // Force deep initialization
+            }
+        }
+        return achievements;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Achievement> getUserAchievementsWithBadges(User detachedUser) {
+        if (detachedUser == null)
+            return new java.util.ArrayList<>();
+        Optional<User> uOpt = userService.getUserById(detachedUser.getId());
+        if (uOpt.isEmpty())
+            return new java.util.ArrayList<>();
+
+        User user = uOpt.get();
+        if (user.getGameState() == null || user.getGameState().getAchievements() == null) {
+            return new java.util.ArrayList<>();
+        }
+
+        List<Achievement> achievements = user.getGameState().getAchievements();
+        achievements.size(); // Init list
+        for (Achievement a : achievements) {
+            if (a.getBadge() != null) {
+                Hibernate.initialize(a.getBadge());
+            }
+        }
+        return achievements;
     }
 
     public double getProgressPercentage(Achievement achievement, User user) {

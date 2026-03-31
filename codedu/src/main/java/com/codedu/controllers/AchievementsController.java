@@ -34,6 +34,8 @@ public class AchievementsController {
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
+        // Passive evaluateAndGrantAchievements was removed so users must manually claim
+        // rewards.
         buildAchievements();
     }
 
@@ -55,7 +57,7 @@ public class AchievementsController {
         }
         achievementList.getChildren().clear();
 
-        List<Achievement> allAchievements = achievementRepository.getAll();
+        List<Achievement> allAchievements = achievementEvaluationService.getAllAchievementsWithBadges();
 
         final String baseStyle = "-fx-background-radius: 15; " + "-fx-border-radius: 15; " + "-fx-border-width: 2.5; " +
                 "-fx-border-color: -color-border-default;";
@@ -84,17 +86,49 @@ public class AchievementsController {
                             + "-fx-border-color: -color-border-muted; " + "-fx-border-radius: 40; "
                             + "-fx-border-width: 1;");
 
+            boolean alreadyClaimed = false;
+            if (currentUser != null && currentUser.getGameState() != null
+                    && currentUser.getGameState().getAchievements() != null) {
+                for (com.codedu.models.gamification.Achievement earned : currentUser.getGameState().getAchievements()) {
+                    if (earned.getId() == a.getId()) {
+                        alreadyClaimed = true;
+                        break;
+                    }
+                }
+            }
+
+            double progressVal = achievementEvaluationService.getProgressPercentage(a, currentUser);
+            boolean isCompleted = progressVal >= 1.0;
+
             javafx.scene.image.ImageView badgeIcon = new javafx.scene.image.ImageView();
             badgeIcon.setFitWidth(50);
             badgeIcon.setFitHeight(50);
             badgeIcon.setPreserveRatio(true);
 
-            // when we use icon url, use this after cleaning the placeholder:
-            // badgeIcon.setImage(new javafx.scene.image.Image(c.getBadge().getIconURL()));
+            try {
+                String rawPath = a.getBadge().getIconURL();
+                if (rawPath == null)
+                    rawPath = "badge.png";
+                String fileName = java.nio.file.Paths.get(rawPath).getFileName().toString();
+                String iconPath = "/assets/badges/" + fileName;
 
-            Label placeholderText = new Label("BADGE");
-            placeholderText.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_MUTED);
-            badgeContainer.getChildren().add(placeholderText);
+                java.net.URL resource = getClass().getResource(iconPath);
+                if (resource != null) {
+                    javafx.scene.image.Image img = new javafx.scene.image.Image(resource.toExternalForm());
+                    badgeIcon.setImage(img);
+                    if (!alreadyClaimed && !isCompleted) {
+                        // Apply a grayscale or dark effect for locked achievements!
+                        javafx.scene.effect.ColorAdjust colorAdjust = new javafx.scene.effect.ColorAdjust();
+                        colorAdjust.setSaturation(-1.0);
+                        colorAdjust.setBrightness(-0.5);
+                        badgeIcon.setEffect(colorAdjust);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Could not load badge image: " + e.getMessage());
+            }
+
+            badgeContainer.getChildren().add(badgeIcon);
 
             javafx.scene.layout.VBox textContainer = new javafx.scene.layout.VBox(6);
             javafx.scene.layout.HBox.setHgrow(textContainer, javafx.scene.layout.Priority.ALWAYS);
@@ -104,18 +138,18 @@ public class AchievementsController {
             Label goalTitle = new Label(nameText);
             goalTitle.getStyleClass().addAll(Styles.TITLE_4, Styles.TEXT_BOLD);
 
-            double progressVal = achievementEvaluationService.getProgressPercentage(a, currentUser);
-            boolean isCompleted = progressVal >= 1.0;
-
-            if (isCompleted) {
+            if (alreadyClaimed) {
                 goalTitle.setStyle("-fx-text-fill: -color-success-emphasis;");
+            } else if (isCompleted) {
+                goalTitle.setStyle("-fx-text-fill: #F1C40F;"); // Gold/Yellow indicating ready to claim
             } else {
-                goalTitle.setStyle("-fx-text-fill: #E67E22;");
+                goalTitle.setStyle("-fx-text-fill: #E67E22;"); // Standard active orange
             }
 
-            Label goalMeta = new Label(isCompleted ? "COMPLETED" : "COMPLETION GOAL");
+            String metaText = alreadyClaimed ? "CLAIMED" : (isCompleted ? "READY TO CLAIM!" : "COMPLETION GOAL");
+            Label goalMeta = new Label(metaText);
             goalMeta.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_CAPTION,
-                    isCompleted ? Styles.SUCCESS : Styles.DANGER);
+                    alreadyClaimed ? Styles.SUCCESS : (isCompleted ? Styles.WARNING : Styles.DANGER));
 
             Label goalBody = new Label(a.getCriteria());
             goalBody.setWrapText(true);
@@ -125,16 +159,29 @@ public class AchievementsController {
             Label goalProgressText = new Label(textProgress);
             goalProgressText.getStyleClass().add(Styles.TEXT_CAPTION);
 
-            javafx.scene.control.ProgressBar progressBar = new javafx.scene.control.ProgressBar(progressVal);
-            progressBar.setMaxWidth(Double.MAX_VALUE);
-            progressBar.getStyleClass().add(Styles.SMALL);
-            progressBar.setStyle("-fx-min-height: 12; " + "-fx-max-height: 12; " +
-                    "-fx-background-radius: 10; " + "-fx-border-radius: 10;");
-            if (isCompleted) {
-                progressBar.getStyleClass().add(Styles.SUCCESS);
-            }
+            textContainer.getChildren().addAll(goalTitle, goalMeta, goalBody, goalProgressText);
 
-            textContainer.getChildren().addAll(goalTitle, goalMeta, goalBody, goalProgressText, progressBar);
+            if (!alreadyClaimed && isCompleted) {
+                javafx.scene.control.Button claimBtn = new javafx.scene.control.Button("Claim Reward (XP & Tokens)");
+                claimBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.SUCCESS);
+                claimBtn.setOnAction(e -> {
+                    boolean success = achievementEvaluationService.claimAchievement(currentUser, a.getId());
+                    if (success) {
+                        buildAchievements(); // Refresh list to update UI
+                    }
+                });
+                textContainer.getChildren().add(claimBtn);
+            } else {
+                javafx.scene.control.ProgressBar progressBar = new javafx.scene.control.ProgressBar(progressVal);
+                progressBar.setMaxWidth(Double.MAX_VALUE);
+                progressBar.getStyleClass().add(Styles.SMALL);
+                progressBar.setStyle("-fx-min-height: 12; " + "-fx-max-height: 12; " +
+                        "-fx-background-radius: 10; " + "-fx-border-radius: 10;");
+                if (alreadyClaimed) {
+                    progressBar.getStyleClass().add(Styles.SUCCESS);
+                }
+                textContainer.getChildren().add(progressBar);
+            }
 
             goalCard.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
                 @Override

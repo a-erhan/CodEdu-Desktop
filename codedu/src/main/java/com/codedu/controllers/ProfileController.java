@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.function.Consumer;
 import com.codedu.models.gamification.Achievement;
+import com.codedu.services.AchievementEvaluationService;
 
 @Controller
 public class ProfileController {
@@ -30,6 +31,9 @@ public class ProfileController {
 
     @Autowired
     private FriendshipUIManager friendshipUIManager;
+
+    @Autowired
+    private AchievementEvaluationService achievementEvaluationService;
 
     // ========== FXML bindings ==========
     @FXML
@@ -143,6 +147,11 @@ public class ProfileController {
         if (profileUser == null)
             return;
 
+        // Silently retro-fetch XP/Tokens if the account's state desynced
+        if (viewingSelf) {
+            achievementEvaluationService.fixMissingXPOnLogin(profileUser);
+        }
+
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
@@ -218,10 +227,10 @@ public class ProfileController {
         badgesContainer.getChildren().clear();
 
         List<Achievement> earnedAchievements = null;
-        if (gameState != null) {
+        if (profileUser != null) {
+            earnedAchievements = achievementEvaluationService.getUserAchievementsWithBadges(profileUser);
+        } else if (gameState != null) {
             earnedAchievements = gameState.getAchievements();
-        } else if (profileUser != null && profileUser.getGameState() != null) {
-            earnedAchievements = profileUser.getGameState().getAchievements();
         }
 
         if (earnedAchievements == null || earnedAchievements.isEmpty()) {
@@ -232,23 +241,39 @@ public class ProfileController {
             noBadgesLabel.setManaged(false);
 
             for (Achievement a : earnedAchievements) {
-                javafx.scene.layout.StackPane badgeContainer = new javafx.scene.layout.StackPane();
-                badgeContainer.setMinWidth(60);
-                badgeContainer.setMinHeight(60);
-                badgeContainer.setMaxWidth(60);
-                badgeContainer.setMaxHeight(60);
+                javafx.scene.layout.VBox badgeWrapper = new javafx.scene.layout.VBox();
+                badgeWrapper.setAlignment(Pos.CENTER);
 
-                badgeContainer.setStyle(
-                        "-fx-background-color: -color-accent-subtle; " + "-fx-background-radius: 30; "
-                                + "-fx-border-color: -color-accent-emphasis; " + "-fx-border-radius: 30; "
-                                + "-fx-border-width: 2;");
+                javafx.scene.image.ImageView badgeIcon = new javafx.scene.image.ImageView();
+                try {
+                    String rawPath = a.getBadge().getIconURL();
+                    if (rawPath == null)
+                        rawPath = "badge.png";
+                    String fileName = java.nio.file.Paths.get(rawPath).getFileName().toString();
+                    String iconPath = "/assets/badges/" + fileName;
 
-                Label badgeText = new Label(a.getName().substring(0, Math.min(3, a.getName().length())).toUpperCase());
-                badgeText.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_BOLD);
-                badgeText.setStyle("-fx-text-fill: -color-accent-emphasis;");
+                    java.net.URL resource = getClass().getResource(iconPath);
+                    if (resource != null) {
+                        javafx.scene.image.Image img = new javafx.scene.image.Image(resource.toExternalForm());
+                        badgeIcon.setImage(img);
+                        badgeIcon.setFitWidth(60);
+                        badgeIcon.setFitHeight(60);
+                        badgeIcon.setPreserveRatio(true);
+                    } else {
+                        System.err.println("Badge image not found: " + iconPath);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Could not load badge image: " + e.getMessage());
+                }
 
-                badgeContainer.getChildren().add(badgeText);
-                badgesContainer.getChildren().add(badgeContainer);
+                // Add a tooltip for the badge title and description!
+                javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(
+                        a.getBadge().getTitle() + "\n" + a.getBadge().getDescription());
+                tooltip.setShowDelay(javafx.util.Duration.millis(200));
+                javafx.scene.control.Tooltip.install(badgeIcon, tooltip);
+
+                badgeWrapper.getChildren().add(badgeIcon);
+                badgesContainer.getChildren().add(badgeWrapper);
             }
         }
     }
