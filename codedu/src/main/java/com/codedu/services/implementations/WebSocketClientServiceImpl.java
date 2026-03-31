@@ -151,7 +151,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
                 matchSession = session;
-                String destination = "/queue/match/" + userId;
+                String destination = "/topic/match/" + userId;
                 System.out.println("[WS-Match] Connected. Session ID: " + session.getSessionId()
                         + ". Subscribing to: " + destination);
 

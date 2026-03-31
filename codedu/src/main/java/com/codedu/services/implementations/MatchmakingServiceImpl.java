@@ -83,8 +83,8 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         GameRoom gameRoom = new GameRoom(roomId, player1, player2, question);
 
         // Send to each player's private channel
-        String dest1 = "/queue/match/" + player1.getId();
-        String dest2 = "/queue/match/" + player2.getId();
+        String dest1 = "/topic/match/" + player1.getId();
+        String dest2 = "/topic/match/" + player2.getId();
         System.out.println("[Matchmaking] Sending GameRoom to destinations: " + dest1 + " and " + dest2);
         try {
             messagingTemplate.convertAndSend(dest1, gameRoom);
