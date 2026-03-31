@@ -19,8 +19,10 @@ import java.util.stream.Collectors;
 /**
  * Thread-safe matchmaking service.
  *
- * <p>Uses a {@link ConcurrentLinkedQueue} for safe multi-threaded access.
- * The critical compound check-and-double-poll is wrapped in {@code synchronized}
+ * <p>
+ * Uses a {@link ConcurrentLinkedQueue} for safe multi-threaded access.
+ * The critical compound check-and-double-poll is wrapped in
+ * {@code synchronized}
  * to prevent race conditions when multiple players join simultaneously.
  */
 @Service
@@ -33,7 +35,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 
     @Autowired
     public MatchmakingServiceImpl(SimpMessagingTemplate messagingTemplate,
-                              QuestionRepository questionRepository) {
+            QuestionRepository questionRepository) {
         this.messagingTemplate = messagingTemplate;
         this.questionRepository = questionRepository;
     }
@@ -62,7 +64,8 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     }
 
     /**
-     * Removes the user with the given id from the waiting queue (cancel matchmaking).
+     * Removes the user with the given id from the waiting queue (cancel
+     * matchmaking).
      */
     public synchronized void leaveQueue(int userId) {
         playerQueue.removeIf(u -> u.getId() == userId);
@@ -80,8 +83,23 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         GameRoom gameRoom = new GameRoom(roomId, player1, player2, question);
 
         // Send to each player's private channel
-        messagingTemplate.convertAndSend("/queue/match/" + player1.getId(), gameRoom);
-        messagingTemplate.convertAndSend("/queue/match/" + player2.getId(), gameRoom);
+        String dest1 = "/topic/match/" + player1.getId();
+        String dest2 = "/topic/match/" + player2.getId();
+        System.out.println("[Matchmaking] Sending GameRoom to destinations: " + dest1 + " and " + dest2);
+        try {
+            messagingTemplate.convertAndSend(dest1, gameRoom);
+            System.out.println("[Matchmaking] Successfully sent to " + dest1);
+        } catch (Exception e) {
+            System.err.println("[Matchmaking] ERROR sending to " + dest1 + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        try {
+            messagingTemplate.convertAndSend(dest2, gameRoom);
+            System.out.println("[Matchmaking] Successfully sent to " + dest2);
+        } catch (Exception e) {
+            System.err.println("[Matchmaking] ERROR sending to " + dest2 + ": " + e.getMessage());
+            e.printStackTrace();
+        }
 
         System.out.println("[Matchmaking] Match created — "
                 + player1.getUsername() + " vs " + player2.getUsername()

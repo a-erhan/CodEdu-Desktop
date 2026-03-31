@@ -1,8 +1,8 @@
 package com.codedu.models.matchmaking;
 
-import com.codedu.models.BaseEntity;
 import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.models.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +17,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameRoom extends BaseEntity {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GameRoom {
 
     private String roomId;
     private User player1;
