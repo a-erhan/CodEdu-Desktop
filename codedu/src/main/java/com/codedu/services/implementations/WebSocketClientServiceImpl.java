@@ -18,16 +18,20 @@ import java.util.function.Consumer;
 /**
  * Manages all STOMP/WebSocket connections for the JavaFX client.
  *
- * <p>Two independent sessions are maintained:
+ * <p>
+ * Two independent sessions are maintained:
  * <ul>
- *   <li>{@code chatSession}  — private chat messages</li>
- *   <li>{@code matchSession} — matchmaking queue and game-room delivery</li>
+ * <li>{@code chatSession} — private chat messages</li>
+ * <li>{@code matchSession} — matchmaking queue and game-room delivery</li>
  * </ul>
  *
- * <p>Both connections are <b>fully asynchronous</b> (no blocking {@code .get()}).
- * All work runs on the STOMP networking thread, keeping the JavaFX UI thread free.
+ * <p>
+ * Both connections are <b>fully asynchronous</b> (no blocking {@code .get()}).
+ * All work runs on the STOMP networking thread, keeping the JavaFX UI thread
+ * free.
  *
- * <p>The server URL is read from {@code app.websocket.server-url} in
+ * <p>
+ * The server URL is read from {@code app.websocket.server-url} in
  * {@code application.properties}. For multi-machine setups, set it to the IP of
  * the machine running the Spring Boot server, e.g.
  * {@code ws://192.168.1.100:8080/ws-chat}.
@@ -52,7 +56,8 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
      * Opens an async STOMP connection and subscribes to
      * {@code /queue/messages/{currentUserId}} for real-time chat delivery.
      *
-     * <p>Safe to call on the JavaFX Application Thread — does NOT block.
+     * <p>
+     * Safe to call on the JavaFX Application Thread — does NOT block.
      *
      * @param currentUserId the logged-in user's id (as a string)
      * @param onMessage     callback invoked on the STOMP receive thread when a
@@ -80,7 +85,12 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
 
                             @Override
                             public void handleFrame(StompHeaders headers, Object payload) {
-                                onMessage.accept((ChatMessageDTO) payload);
+                                try {
+                                    onMessage.accept((ChatMessageDTO) payload);
+                                } catch (Exception e) {
+                                    System.err.println("[WS-Chat] Error in handleFrame: " + e.getMessage());
+                                    e.printStackTrace();
+                                }
                             }
                         });
             }
@@ -109,20 +119,23 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
     /**
      * Opens an async STOMP connection for matchmaking.
      *
-     * <p>Inside {@code afterConnected}, the client:
+     * <p>
+     * Inside {@code afterConnected}, the client:
      * <ol>
-     *   <li>Subscribes to {@code /queue/match/{userId}} — the private channel
-     *       where the server delivers a {@link GameRoom} when a match is found.</li>
-     *   <li>Immediately sends a join request to {@code /app/match.join}.</li>
+     * <li>Subscribes to {@code /queue/match/{userId}} — the private channel
+     * where the server delivers a {@link GameRoom} when a match is found.</li>
+     * <li>Immediately sends a join request to {@code /app/match.join}.</li>
      * </ol>
      *
-     * <p>Steps 1 and 2 happen in that exact order on the same TCP connection,
+     * <p>
+     * Steps 1 and 2 happen in that exact order on the same TCP connection,
      * so there is <b>no race condition</b>: the subscription is always
      * established before the server can ever try to deliver a match.
      *
-     * <p>Safe to call on the JavaFX Application Thread — does NOT block.
+     * <p>
+     * Safe to call on the JavaFX Application Thread — does NOT block.
      *
-     * @param userId      the current user's database id
+     * @param userId       the current user's database id
      * @param onMatchFound callback invoked on the STOMP receive thread when a
      *                     {@link GameRoom} arrives; wrap UI mutations in
      *                     {@code Platform.runLater()}
@@ -149,7 +162,12 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
 
                             @Override
                             public void handleFrame(StompHeaders headers, Object payload) {
-                                onMatchFound.accept((GameRoom) payload);
+                                try {
+                                    onMatchFound.accept((GameRoom) payload);
+                                } catch (Exception e) {
+                                    System.err.println("[WS-Match] Error in handleFrame: " + e.getMessage());
+                                    e.printStackTrace();
+                                }
                             }
                         });
 
@@ -185,8 +203,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
     // =========================================================================
 
     private WebSocketStompClient buildStompClient() {
-        WebSocketStompClient client =
-                new WebSocketStompClient(new StandardWebSocketClient());
+        WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
         client.setMessageConverter(new MappingJackson2MessageConverter());
         return client;
     }
