@@ -3,6 +3,7 @@ package com.codedu.models.learning;
 import com.codedu.models.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,8 +19,8 @@ public class ChapterContent extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String learnText;
 
-
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    // 🚀 Changed EAGER to LAZY to stop the massive data downloads!
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_content_id")
     @Builder.Default
     private List<Question> questions = new ArrayList<>();
@@ -27,6 +28,7 @@ public class ChapterContent extends BaseEntity {
     public void addQuestion(Question question) {
         this.questions.add(question);
     }
+
     public void removeQuestion(Question question) {
         this.questions.remove(question);
     }

@@ -108,7 +108,32 @@ public class ChapterViewController {
 
     private void buildLearnSection(String text) {
         learnContainer.getChildren().clear();
-        // [Existing Parsing Logic]
+
+        // 1. Handle empty states just in case
+        if (text == null || text.isEmpty()) {
+            text = "No learning material available for this chapter yet.";
+        }
+
+        // 2. Create a Label to hold the text
+        Label learnLabel = new Label(text);
+
+        // 3. CRITICAL: This makes the text wrap to the next line instead of going off-screen
+        learnLabel.setWrapText(true);
+
+        // 4. Make it look nice and readable (You can move this to your CSS file later)
+        learnLabel.setStyle(
+                "-fx-font-size: 16px; " +
+                        "-fx-padding: 20px; " +
+                        "-fx-line-spacing: 0.5em; " +
+                        "-fx-text-fill: #333333;"
+        );
+
+        // 5. Ensure the label resizes properly inside the VBox/ScrollPane
+        learnLabel.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(learnLabel, Priority.ALWAYS);
+
+        // 6. Add it to the screen!
+        learnContainer.getChildren().add(learnLabel);
     }
 
     private void buildQuizSection(List<Question> mcqs, List<Question> fills) {
