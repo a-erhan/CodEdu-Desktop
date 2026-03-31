@@ -140,7 +140,8 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
      *                     {@link GameRoom} arrives; wrap UI mutations in
      *                     {@code Platform.runLater()}
      */
-    public void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound) {
+    public void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
+            Consumer<com.codedu.models.matchmaking.MatchResult> onMatchResult) {
         // Clean up any previous matchmaking session
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.disconnect();
@@ -160,18 +161,48 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                         new StompSessionHandlerAdapter() {
                             @Override
                             public Type getPayloadType(StompHeaders headers) {
-                                return GameRoom.class;
+                                // Use String so the STOMP converter never tries to
+                                // deserialize complex DTOs — avoids silent failures
+                                // caused by Question's @JsonTypeInfo hierarchy.
+                                return String.class;
                             }
 
                             @Override
                             public void handleFrame(StompHeaders headers, Object payload) {
-                                System.out.println("[WS-Match] >>> handleFrame INVOKED! Payload type: "
-                                        + (payload != null ? payload.getClass().getSimpleName() : "null"));
+                                System.out.println("[WS-Match] >>> handleFrame INVOKED!");
+                                System.out.println("[WS-Match] RAW PAYLOAD: " + payload);
                                 try {
-                                    onMatchFound.accept((GameRoom) payload);
-                                    System.out.println("[WS-Match] >>> onMatchFound callback completed successfully.");
+                                    String json = payload instanceof String
+                                            ? (String) payload
+                                            : new String((byte[]) payload);
+
+                                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                                    mapper.configure(
+                                            com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                                            false);
+
+                                    com.fasterxml.jackson.databind.JsonNode node = mapper.readTree(json);
+                                    System.out.println("[WS-Match] JSON keys: " + node.fieldNames());
+
+                                    if (node.has("roomId") && node.has("player1")) {
+                                        System.out.println("[WS-Match] Identified as GameRoom.");
+                                        GameRoom room = mapper.treeToValue(node, GameRoom.class);
+                                        System.out.println("[WS-Match] GameRoom parsed OK. roomId="
+                                                + room.getRoomId());
+                                        onMatchFound.accept(room);
+                                        System.out.println("[WS-Match] onMatchFound callback completed.");
+                                    } else if (node.has("winnerId")) {
+                                        System.out.println("[WS-Match] Identified as MatchResult.");
+                                        com.codedu.models.matchmaking.MatchResult result = mapper.treeToValue(node,
+                                                com.codedu.models.matchmaking.MatchResult.class);
+                                        onMatchResult.accept(result);
+                                        System.out.println("[WS-Match] onMatchResult callback completed.");
+                                    } else {
+                                        System.err.println("[WS-Match] Unknown message type: "
+                                                + json.substring(0, Math.min(200, json.length())));
+                                    }
                                 } catch (Exception e) {
-                                    System.err.println("[WS-Match] Error in handleFrame: " + e.getMessage());
+                                    System.err.println("[WS-Match] ERROR in handleFrame: " + e.getMessage());
                                     e.printStackTrace();
                                 }
                             }
@@ -202,6 +233,19 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
             matchSession.disconnect();
         }
         matchSession = null;
+    }
+
+    /**
+     * Sends the match result (win) to the server.
+     */
+    public void sendMatchResult(com.codedu.models.matchmaking.MatchResult result) {
+        if (matchSession != null && matchSession.isConnected()) {
+            matchSession.send("/app/match.win", result);
+            System.out.println(
+                    "[WS-Match] Sent match.win for roomId=" + result.getRoomId() + ", winner=" + result.getWinnerId());
+        } else {
+            System.err.println("[WS-Match] Error: Cannot send MatchResult, session disconnected.");
+        }
     }
 
     // =========================================================================

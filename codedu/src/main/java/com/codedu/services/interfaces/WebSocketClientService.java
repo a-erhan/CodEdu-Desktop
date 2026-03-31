@@ -2,6 +2,7 @@ package com.codedu.services.interfaces;
 
 import com.codedu.dtos.ChatMessageDTO;
 import com.codedu.models.matchmaking.GameRoom;
+import com.codedu.models.matchmaking.MatchResult;
 
 import java.util.function.Consumer;
 
@@ -11,7 +12,10 @@ public interface WebSocketClientService {
 
     void sendMessage(ChatMessageDTO message);
 
-    void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound);
+    void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
+            Consumer<MatchResult> onMatchResult);
 
     void leaveMatchmaking(int userId);
+
+    void sendMatchResult(MatchResult result);
 }

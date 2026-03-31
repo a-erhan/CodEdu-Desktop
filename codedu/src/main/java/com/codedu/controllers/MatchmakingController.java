@@ -140,7 +140,7 @@ public class MatchmakingController {
         System.out.println("[MC] Find Match clicked. Connecting to matchmaking...");
 
         webSocketClientService.connectAndJoinMatchmaking(
-                currentUser.getId(), this::onMatchFound);
+                currentUser.getId(), this::onMatchFound, this::onMatchResult);
     }
 
     // ====================================================================
@@ -171,6 +171,35 @@ public class MatchmakingController {
         final String opponentName = opponent != null ? opponent.getUsername() : "Opponent";
 
         Platform.runLater(() -> showMatch(opponentName, question));
+    }
+
+    // ====================================================================
+    // Match result callback (runs on STOMP thread)
+    // ====================================================================
+
+    private void onMatchResult(com.codedu.models.matchmaking.MatchResult result) {
+        System.out.println("[MC] >>> onMatchResult! Winner: " + result.getWinnerId());
+        Platform.runLater(() -> {
+            // Stop the match timer
+            if (matchTimer != null) {
+                matchTimer.stop();
+            }
+            // Disable answer input
+            if (codeArea != null) {
+                codeArea.setDisable(true);
+            }
+            if (submitButton != null) {
+                submitButton.setDisable(true);
+            }
+            // Show result
+            boolean won = (currentUser != null && result.getWinnerId() == currentUser.getId());
+            if (subtitleLabel != null) {
+                subtitleLabel.setText(won ? "🏆 You Won!" : "😔 You Lost!");
+            }
+            if (timerLabel != null) {
+                timerLabel.setText(won ? "Winner!" : "Better luck next time");
+            }
+        });
     }
 
     // ====================================================================
