@@ -71,7 +71,7 @@ public class MainShellController {
     private StackPane contentArea;
     @FXML
     private Button btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnStore,
-            btnMatchmaking, btnAskAI, btnSettings;
+            btnItemCatalog, btnMatchmaking, btnAskAI, btnSettings;
 
     private User user = new User();
     private UserGameState gameState;
@@ -141,7 +141,7 @@ public class MainShellController {
 
     private void styleAndWireNavigation() {
         Button[] navButtons = { btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum,
-                btnMatchmaking, btnStore, btnAskAI, btnSettings };
+                btnMatchmaking, btnStore, btnItemCatalog, btnAskAI, btnSettings };
         for (Button btn : navButtons) {
             styleNavButton(btn);
             setupNavButtonWithHover(btn);
@@ -174,6 +174,10 @@ public class MainShellController {
         btnStore.setOnAction(e -> {
             setActiveButton(btnStore);
             loadStore();
+        });
+        btnItemCatalog.setOnAction(e -> {
+            setActiveButton(btnItemCatalog);
+            loadItemCatalog();
         });
         btnAskAI.setOnAction(e -> {
             setActiveButton(btnAskAI);
@@ -347,6 +351,20 @@ public class MainShellController {
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Store", "Error loading store module.");
+        }
+    }
+
+    private void loadItemCatalog() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Item.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent view = loader.load();
+            ItemController controller = loader.getController();
+            controller.setUserModel(user);
+            setContentAndFill(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Item catalog", "Error loading item catalog.");
         }
     }
 
