@@ -44,5 +44,12 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
         return progressRepository.findByUserAndChapter(user, chapter).orElse(null);
     }
 
+    @Override
+    @Transactional(readOnly = true) // Use Transactional to keep the session open during the fetch
+    public UserChapterProgress getDetailedProgress(Long userId, Long chapterId) {
+        return progressRepository.findByUserIdAndChapterIdDetailed(userId, chapterId)
+                .orElseThrow(() -> new RuntimeException("Chapter progress not found for User: " + userId));
+    }
+
 
 }
