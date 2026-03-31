@@ -64,11 +64,7 @@ public class RegisterController {
             return;
         }
 
-        // Derive username from email (e.g., "john.doe" from "john.doe@example.com")
-        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
-
-        // Attempt to register the user via AuthService
-        String registrationResult = authService.register(username, email, password);
+        String registrationResult = authService.register(email, password);
 
         // If registration fails (e.g., email already exists), show the error and stop
         if (!"SUCCESS".equals(registrationResult)) {

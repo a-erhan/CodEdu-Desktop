@@ -80,20 +80,23 @@ public class MainShellController {
 
     public void setUser(User user) {
         this.user = user;
+        this.gameState = null;
         initDemoModelsIfNeeded();
         updateHeader();
         chatWindowManager.connectUser(user);
+        Platform.runLater(() -> {
+            setActiveButton(btnLearningPath);
+            loadLearningPath();
+        });
     }
 
     @FXML
     public void initialize() {
-        initDemoModelsIfNeeded();
-        updateHeader();
         initSidebarAndHeaderStyles();
         styleAndWireNavigation();
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
-        loadLearningPath();
+        showSectionPlaceholder("Loading", "Preparing your workspace…");
     }
 
     private void ensureShellFillsScene() {
@@ -192,6 +195,8 @@ public class MainShellController {
             Parent view = loader.load();
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
+            lpController.setCurrentUser(this.user);
+            lpController.refreshPath();
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -514,10 +519,14 @@ public class MainShellController {
     }
 
     private void initDemoModelsIfNeeded() {
-        if (gameState == null) {
-            gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
-            if (user != null)
-                user.setGameState(gameState);
+        if (user == null) {
+            return;
         }
+        if (user.getGameState() != null) {
+            this.gameState = user.getGameState();
+            return;
+        }
+        this.gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
+        user.setGameState(gameState);
     }
 }
