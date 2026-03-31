@@ -1,0 +1,23 @@
+package com.codedu.services.interfaces;
+
+import com.codedu.models.user.InventoryItem;
+import com.codedu.models.user.Item;
+import com.codedu.models.user.User;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface InventoryItemService {
+
+    List<InventoryItem> getItemsForUser(User user);
+
+    Optional<InventoryItem> getById(int id);
+
+    Optional<InventoryItem> findByUserAndItem(User user, Item item);
+
+    void save(InventoryItem inventoryItem);
+
+    void update(InventoryItem inventoryItem);
+
+    void setEquipped(InventoryItem inventoryItem, boolean equipped);
+}

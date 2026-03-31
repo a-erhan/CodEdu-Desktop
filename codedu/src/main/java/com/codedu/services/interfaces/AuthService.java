@@ -4,7 +4,7 @@ import com.codedu.models.user.User;
 
 public interface AuthService {
 
-    String register(String username, String email, String password);
+    String register(String email, String password);
 
     User login(String email, String password);
 }

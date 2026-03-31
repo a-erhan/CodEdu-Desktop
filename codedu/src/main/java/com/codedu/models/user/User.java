@@ -51,6 +51,12 @@ public class User extends BaseEntity {
     private UserInventory inventory;
 
     public boolean login(String email, String password) {
-        return this.email.equals(email) && this.password.equals(password) && isActive;
+        if (email == null || password == null) {
+            return false;
+        }
+        return this.email != null
+                && this.email.equalsIgnoreCase(email.trim())
+                && this.password.equals(password)
+                && isActive;
     }
 }

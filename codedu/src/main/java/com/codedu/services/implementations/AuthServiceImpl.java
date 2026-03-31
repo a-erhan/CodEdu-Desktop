@@ -5,7 +5,9 @@ import com.codedu.services.interfaces.AuthService;
 import com.codedu.models.user.Role;
 import com.codedu.repositories.interfaces.UserRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -17,21 +19,41 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository = userRepository;
     }
 
+    private static String normalizeEmail(String email) {
+        if (email == null) {
+            return "";
+        }
+        return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Derives a unique username from the email (avoids collisions on the local part only, e.g. two "john@" accounts).
+     */
+    private static String usernameFromEmail(String normalizedEmail) {
+        return normalizedEmail.replace("@", "_at_").replace(".", "_");
+    }
+
     /**
      * Handles the user registration process.
      */
-    public String register(String username, String email, String password) {
-        if (userRepository.existsByEmail(email)) {
+    @Override
+    @Transactional
+    public String register(String email, String password) {
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return "ERROR: Email is required.";
+        }
+        if (userRepository.existsByEmail(normalizedEmail)) {
             return "ERROR: This email is already registered.";
         }
-        if (userRepository.existsByUsername(username)) {
+        String finalUsername = usernameFromEmail(normalizedEmail);
+        if (userRepository.existsByUsername(finalUsername)) {
             return "ERROR: This username is already taken.";
         }
 
-        // Using the Builder pattern from your User model
         User newUser = User.builder()
-                .username(username)
-                .email(email)
+                .username(finalUsername)
+                .email(normalizedEmail)
                 .password(password)
                 .role(Role.STUDENT)
                 .isActive(true)
@@ -44,18 +66,22 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Logs the user in using the custom validation method defined in the User entity.
      */
+    @Override
+    @Transactional(readOnly = true)
     public User login(String email, String password) {
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        String normalizedEmail = normalizeEmail(email);
+        if (normalizedEmail.isEmpty()) {
+            return null;
+        }
+        Optional<User> userOptional = userRepository.findByEmail(normalizedEmail);
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-
-            // Calling the login validation method YOU wrote inside User.java
-            if (user.login(email, password)) {
-                return user; // Login successful
+            if (user.login(normalizedEmail, password)) {
+                return user;
             }
         }
 
-        return null; // Login failed (wrong email, wrong password, or inactive account)
+        return null;
     }
 }

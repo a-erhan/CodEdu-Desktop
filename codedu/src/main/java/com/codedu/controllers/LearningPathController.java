@@ -4,7 +4,6 @@ import com.codedu.dtos.ChapterProgressDTO;
 import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.Chapter.Difficulty;
 import com.codedu.models.user.User;
-import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.LearningPathService;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -21,6 +20,7 @@ import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -34,8 +34,7 @@ public class LearningPathController {
         @Autowired
         private LearningPathService learningPathService;
 
-        @Autowired
-        private UserRepository userRepository;
+        private User currentUser;
 
         @FXML
         private VBox pathContainer;
@@ -71,20 +70,35 @@ public class LearningPathController {
                 this.onStartChapter = callback;
         }
 
+        public void setCurrentUser(User user) {
+                this.currentUser = user;
+        }
+
+        /**
+         * Loads chapters for {@link #currentUser}. Called from {@link MainShellController} after the shell user is set.
+         */
+        public void refreshPath() {
+                if (pathContainer != null) {
+                        pathContainer.getChildren().clear();
+                }
+                if (currentUser == null || currentUser.getId() <= 0) {
+                        this.chapters = Collections.emptyList();
+                        if (chapterCountLabel != null) {
+                                chapterCountLabel.setText("—");
+                        }
+                        return;
+                }
+                this.chapters = learningPathService.getLearningPathForUser(currentUser);
+                if (chapterCountLabel != null) {
+                        chapterCountLabel.setText(chapters.size() + " Chapters");
+                }
+                buildPath();
+        }
+
         @FXML
         public void initialize() {
-                User currentUser = userRepository.findByUsername("yusif.axmedov.2008").orElse(null);
-
-                if (currentUser != null) {
-                        this.chapters = learningPathService.getLearningPathForUser(currentUser);
-
-                        // DEBUG PRINT:
-                        System.out.println("Chapters found in DB: " + chapters.size());
-
-                        chapterCountLabel.setText(chapters.size() + " Chapters");
-                        buildPath();
-                } else {
-                        System.out.println("ERROR: User yusif.axmedov.2008 not found in database!");
+                if (chapterCountLabel != null) {
+                        chapterCountLabel.setText("—");
                 }
         }
 

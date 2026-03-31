@@ -71,7 +71,7 @@ public class MainShellController {
     private StackPane contentArea;
     @FXML
     private Button btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnStore,
-            btnItemCatalog, btnMatchmaking, btnAskAI, btnSettings;
+            btnInventory, btnMatchmaking, btnAskAI, btnSettings;
 
     private User user = new User();
     private UserGameState gameState;
@@ -80,20 +80,23 @@ public class MainShellController {
 
     public void setUser(User user) {
         this.user = user;
+        this.gameState = null;
         initDemoModelsIfNeeded();
         updateHeader();
         chatWindowManager.connectUser(user);
+        Platform.runLater(() -> {
+            setActiveButton(btnLearningPath);
+            loadLearningPath();
+        });
     }
 
     @FXML
     public void initialize() {
-        initDemoModelsIfNeeded();
-        updateHeader();
         initSidebarAndHeaderStyles();
         styleAndWireNavigation();
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
-        loadLearningPath();
+        showSectionPlaceholder("Loading", "Preparing your workspace…");
     }
 
     private void ensureShellFillsScene() {
@@ -141,7 +144,7 @@ public class MainShellController {
 
     private void styleAndWireNavigation() {
         Button[] navButtons = { btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum,
-                btnMatchmaking, btnStore, btnItemCatalog, btnAskAI, btnSettings };
+                btnMatchmaking, btnStore, btnInventory, btnAskAI, btnSettings };
         for (Button btn : navButtons) {
             styleNavButton(btn);
             setupNavButtonWithHover(btn);
@@ -175,9 +178,10 @@ public class MainShellController {
             setActiveButton(btnStore);
             loadStore();
         });
-        btnItemCatalog.setOnAction(e -> {
-            setActiveButton(btnItemCatalog);
-            loadItemCatalog();
+
+        btnInventory.setOnAction(e -> {
+            setActiveButton(btnInventory);
+            loadInventory();
         });
         btnAskAI.setOnAction(e -> {
             setActiveButton(btnAskAI);
@@ -196,6 +200,8 @@ public class MainShellController {
             Parent view = loader.load();
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
+            lpController.setCurrentUser(this.user);
+            lpController.refreshPath();
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -354,17 +360,17 @@ public class MainShellController {
         }
     }
 
-    private void loadItemCatalog() {
+    private void loadInventory() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Item.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/InventoryItem.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
-            ItemController controller = loader.getController();
+            InventoryItemController controller = loader.getController();
             controller.setUserModel(user);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
-            showSectionPlaceholder("Item catalog", "Error loading item catalog.");
+            showSectionPlaceholder("Inventory", "Error loading inventory.");
         }
     }
 
@@ -532,10 +538,14 @@ public class MainShellController {
     }
 
     private void initDemoModelsIfNeeded() {
-        if (gameState == null) {
-            gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
-            if (user != null)
-                user.setGameState(gameState);
+        if (user == null) {
+            return;
         }
+        if (user.getGameState() != null) {
+            this.gameState = user.getGameState();
+            return;
+        }
+        this.gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
+        user.setGameState(gameState);
     }
 }
