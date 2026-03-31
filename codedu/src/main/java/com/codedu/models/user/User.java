@@ -4,6 +4,7 @@ import com.codedu.models.BaseEntity;
 import com.codedu.models.matchmaking.Competitor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.*;
 
 @Entity
@@ -42,9 +43,26 @@ public class User extends BaseEntity {
     @JoinColumn(name = "competitor_id")
     private Competitor competitor;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "game_state_id")
+    /**
+     * Inverse side: FK {@code user_id} is stored on {@link UserGameState} ({@code user_game_states.user_id}).
+     * Use {@link #setGameState(UserGameState)} so the owning side stays in sync.
+     */
+    @Setter(AccessLevel.NONE)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private UserGameState gameState;
+
+    public void setGameState(UserGameState gameState) {
+        if (this.gameState == gameState) {
+            return;
+        }
+        if (this.gameState != null) {
+            this.gameState.internalSetUser(null);
+        }
+        this.gameState = gameState;
+        if (gameState != null) {
+            gameState.internalSetUser(this);
+        }
+    }
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "inventory_id")

@@ -6,6 +6,7 @@ import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.ChatWindowManager;
 import com.codedu.services.interfaces.FriendshipUIManager;
+import com.codedu.services.interfaces.UserService;
 
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -30,6 +31,9 @@ public class ProfileController {
 
     @Autowired
     private FriendshipUIManager friendshipUIManager;
+
+    @Autowired
+    private UserService userService;
 
     // ========== FXML bindings ==========
     @FXML
@@ -120,10 +124,9 @@ public class ProfileController {
         }
 
         if (this.gameState == null && profileUser != null) {
-            this.gameState = UserGameState.builder()
-                    .user(profileUser)
-                    .level(1).xp(0).heartCount(3)
-                    .build();
+            this.gameState = UserGameState.newDefault();
+            profileUser.setGameState(this.gameState);
+            userService.saveUser(profileUser);
         }
         bindUI();
     }

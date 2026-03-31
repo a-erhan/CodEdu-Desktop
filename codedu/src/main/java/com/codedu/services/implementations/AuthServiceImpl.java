@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.models.user.User;
+import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.AuthService;
 import com.codedu.models.user.Role;
 import com.codedu.repositories.interfaces.UserRepository;
@@ -59,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
                 .isActive(true)
                 .build();
 
+        newUser.setGameState(UserGameState.newDefault());
         userRepository.save(newUser);
         return "SUCCESS";
     }

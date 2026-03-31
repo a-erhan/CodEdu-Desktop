@@ -81,7 +81,9 @@ public class MainShellController {
     public void setUser(User user) {
         this.user = user;
         this.gameState = null;
-        initDemoModelsIfNeeded();
+        if (initDemoModelsIfNeeded()) {
+            userService.saveUser(user);
+        }
         updateHeader();
         chatWindowManager.connectUser(user);
         Platform.runLater(() -> {
@@ -315,15 +317,16 @@ public class MainShellController {
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             boolean isSelf = (user != null && user.getId() > 0 && profileUser.getId() == user.getId());
+            UserGameState state = profileUser.getGameState();
+            if (state == null) {
+                state = UserGameState.newDefault();
+                profileUser.setGameState(state);
+                userService.saveUser(profileUser);
+            }
             controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
             controller.setOnProfileClick(this::openUserProfile);
             controller.setUserModel(profileUser);
-
-            UserGameState state = profileUser.getGameState();
-            if (state == null) {
-                state = UserGameState.builder().user(profileUser).level(1).xp(0).heartCount(3).build();
-            }
             controller.setGameState(state);
             setContentAndFill(profileView);
         } catch (IOException ex) {
@@ -537,15 +540,19 @@ public class MainShellController {
         }
     }
 
-    private void initDemoModelsIfNeeded() {
+    /**
+     * @return true if a new {@link UserGameState} was attached and must be persisted (e.g. legacy users with no row).
+     */
+    private boolean initDemoModelsIfNeeded() {
         if (user == null) {
-            return;
+            return false;
         }
         if (user.getGameState() != null) {
             this.gameState = user.getGameState();
-            return;
+            return false;
         }
-        this.gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
+        this.gameState = UserGameState.newDefault();
         user.setGameState(gameState);
+        return true;
     }
 }
