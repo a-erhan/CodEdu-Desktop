@@ -151,9 +151,12 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
             @Override
             public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
                 matchSession = session;
+                String destination = "/queue/match/" + userId;
+                System.out.println("[WS-Match] Connected. Session ID: " + session.getSessionId()
+                        + ". Subscribing to: " + destination);
 
                 // Step 1 — subscribe FIRST
-                session.subscribe("/queue/match/" + userId,
+                session.subscribe(destination,
                         new StompSessionHandlerAdapter() {
                             @Override
                             public Type getPayloadType(StompHeaders headers) {
@@ -162,8 +165,11 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
 
                             @Override
                             public void handleFrame(StompHeaders headers, Object payload) {
+                                System.out.println("[WS-Match] >>> handleFrame INVOKED! Payload type: "
+                                        + (payload != null ? payload.getClass().getSimpleName() : "null"));
                                 try {
                                     onMatchFound.accept((GameRoom) payload);
+                                    System.out.println("[WS-Match] >>> onMatchFound callback completed successfully.");
                                 } catch (Exception e) {
                                     System.err.println("[WS-Match] Error in handleFrame: " + e.getMessage());
                                     e.printStackTrace();
@@ -171,10 +177,10 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                             }
                         });
 
+                System.out.println("[WS-Match] Subscribed. Now sending /app/match.join for userId=" + userId);
                 // Step 2 — join the queue only after subscription is in place.
-                // TCP guarantees the SUBSCRIBE frame arrives at the server
-                // before the SEND frame on this same connection.
                 session.send("/app/match.join", userId);
+                System.out.println("[WS-Match] Join message sent for userId=" + userId);
             }
 
             @Override
