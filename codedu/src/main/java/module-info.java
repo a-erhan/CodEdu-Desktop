@@ -22,6 +22,7 @@ module com.codedu {
     requires spring.web;
     requires spring.tx;
     requires com.fasterxml.jackson.databind;
+    requires com.fasterxml.jackson.datatype.jsr310;
     requires spring.websocket;
     requires spring.messaging;
 

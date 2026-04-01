@@ -1,18 +1,19 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.models.gamification.Achievement;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.ChatWindowManager;
 import com.codedu.services.interfaces.FriendshipUIManager;
-import com.codedu.services.interfaces.UserService;
-
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
@@ -21,8 +22,11 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.function.Consumer;
-import com.codedu.models.gamification.Achievement;
 
+/**
+ * Controller for the Profile view.
+ * Displays user stats, badges, and friend list.
+ */
 @Controller
 public class ProfileController {
 
@@ -32,56 +36,30 @@ public class ProfileController {
     @Autowired
     private FriendshipUIManager friendshipUIManager;
 
-    @Autowired
-    private UserService userService;
-
     // ========== FXML bindings ==========
-    @FXML
-    private Label avatarDisplay;
-    @FXML
-    private Label usernameDisplay;
-    @FXML
-    private Label badgeDisplay;
-    @FXML
-    private ProgressBar profileXpBar;
-    @FXML
-    private Label profileXpLabel;
-    @FXML
-    private Label profileTokenLabel;
-    @FXML
-    private Label profileItemsLabel;
-    @FXML
-    private VBox avatarsSection;
-    @FXML
-    private VBox avatarCard;
-    @FXML
-    private VBox xpCard;
-    @FXML
-    private VBox tokensCard;
-    @FXML
-    private VBox itemsCard;
-    @FXML
-    private Button addFriendButton;
-    @FXML
-    private Label noAvatarsLabel;
-    @FXML
-    private FlowPane avatarGrid;
-    @FXML
-    private VBox friendsSection;
-    @FXML
-    private Label friendsSectionTitle;
-    @FXML
-    private Label noFriendsLabel;
-    @FXML
-    private VBox friendsList;
-    @FXML
-    private VBox badgesSection;
-    @FXML
-    private Label badgesSectionTitle;
-    @FXML
-    private Label noBadgesLabel;
-    @FXML
-    private FlowPane badgesContainer;
+    @FXML private Label avatarDisplay;
+    @FXML private Label usernameDisplay;
+    @FXML private Label badgeDisplay;
+    @FXML private ProgressBar profileXpBar;
+    @FXML private Label profileXpLabel;
+    @FXML private Label profileTokenLabel;
+    @FXML private Label profileItemsLabel;
+    @FXML private VBox avatarsSection;
+    @FXML private VBox avatarCard; 
+    @FXML private VBox xpCard;
+    @FXML private VBox tokensCard;
+    @FXML private VBox itemsCard;
+    @FXML private Button addFriendButton;
+    @FXML private Label noAvatarsLabel;
+    @FXML private FlowPane avatarGrid;
+    @FXML private VBox friendsSection;
+    @FXML private Label friendsSectionTitle;
+    @FXML private Label noFriendsLabel;
+    @FXML private VBox friendsList;
+    @FXML private VBox badgesSection;
+    @FXML private Label badgesSectionTitle;
+    @FXML private Label noBadgesLabel;
+    @FXML private FlowPane badgesContainer;
 
     // ========== State ==========
     private User currentUser;
@@ -90,7 +68,7 @@ public class ProfileController {
     private boolean viewingSelf;
     private Consumer<User> onProfileClick;
 
-    // ========== Setters called from MainShellController ==========
+    // ========== Setters ==========
 
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
@@ -111,26 +89,6 @@ public class ProfileController {
         }
     }
 
-    public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder) {
-        this.viewingSelf = false;
-        if (competitor != null && competitor.getUser() != null) {
-            this.profileUser = competitor.getUser();
-        }
-        try {
-            if (profileUser != null) {
-                this.gameState = profileUser.getGameState();
-            }
-        } catch (Exception ignored) {
-        }
-
-        if (this.gameState == null && profileUser != null) {
-            this.gameState = UserGameState.newDefault();
-            profileUser.setGameState(this.gameState);
-            userService.saveUser(profileUser);
-        }
-        bindUI();
-    }
-
     public void setCurrentUser(User currentUser) {
         this.currentUser = currentUser;
         chatWindowManager.connectUser(currentUser);
@@ -140,29 +98,55 @@ public class ProfileController {
         this.onProfileClick = onProfileClick;
     }
 
-    // ========== UI binding ==========
+    public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder) {
+        this.viewingSelf = false;
+        if (competitor != null && competitor.getUser() != null) {
+            this.profileUser = competitor.getUser();
+        }
+        try {
+            if (profileUser != null) {
+                this.gameState = profileUser.getGameState();
+            }
+        } catch (Exception ignored) {}
+
+        if (this.gameState == null && profileUser != null) {
+            this.gameState = UserGameState.builder()
+                    .user(profileUser)
+                    .level(1).xp(0).heartCount(3)
+                    .build();
+        }
+        bindUI();
+    }
+
+    // ========== UI Binding ==========
 
     private void bindUI() {
-        if (profileUser == null)
-            return;
+        if (profileUser == null) return;
 
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
+        // Avatar styling
         avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
-        avatarDisplay.setMinSize(80, 80);
-        avatarDisplay.setPrefSize(80, 80);
-        avatarDisplay.setMaxSize(80, 80);
-        avatarDisplay.setShape(new Circle(40));
+        avatarDisplay.setMinSize(100, 100);
+        avatarDisplay.setShape(new Circle(50));
+        avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+        
         if (!avatarDisplay.getStyleClass().contains(Styles.TITLE_2)) {
             avatarDisplay.getStyleClass().add(Styles.TITLE_2);
         }
 
         usernameDisplay.setText(username);
-        if (!usernameDisplay.getStyleClass().contains(Styles.TITLE_3)) {
-            usernameDisplay.getStyleClass().add(Styles.TITLE_3);
-        }
+        usernameDisplay.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-font-size: 26px;");
+
+        profileXpBar.setStyle(
+            "-fx-accent: #D35400; " + 
+            "-fx-control-inner-background: #1E272E; " + 
+            "-fx-background-radius: 15; " + 
+            "-fx-border-radius: 15; " +
+            "-fx-min-height: 24;"
+        );
 
         bindStats();
         bindBadgesSection();
@@ -178,101 +162,80 @@ public class ProfileController {
         if (gameState != null) {
             level = gameState.getLevel();
             xp = gameState.getXp();
-            targetXp = gameState.getXpToNextLevel();
+            targetXp = gameState.getXpToNextLevel() > 0 ? gameState.getXpToNextLevel() : level * 1000;
             tokens = gameState.getTokenBalance();
-        } else if (profileUser != null) {
-            try {
-                UserGameState gs = profileUser.getGameState();
-                if (gs != null) {
-                    level = gs.getLevel();
-                    xp = gs.getXp();
-                    targetXp = gs.getXpToNextLevel();
-                    tokens = gs.getTokenBalance();
-                }
-            } catch (Exception ignored) {
-            }
         }
 
-        if (profileUser != null) {
-            try {
-                if (profileUser.getInventory() != null && profileUser.getInventory().getItems() != null) {
-                    items = profileUser.getInventory().getItems().size();
-                }
-            } catch (Exception ignored) {
-            }
+        if (profileUser != null && profileUser.getInventory() != null) {
+            items = profileUser.getInventory().getItems() != null ? profileUser.getInventory().getItems().size() : 0;
         }
 
         badgeDisplay.setText("Level " + level);
-        double progress = targetXp == 0 ? 0 : Math.min(1.0, (double) xp / (level * 1000));
+        double progress = targetXp == 0 ? 0 : Math.min(1.0, (double) xp / targetXp);
         profileXpBar.setProgress(progress);
-        profileXpLabel.setText(xp + " / " + (level * 1000) + " XP");
+        profileXpLabel.setText(xp + " / " + targetXp + " XP");
+        
         profileTokenLabel.setText(String.valueOf(tokens));
+        profileTokenLabel.setStyle("-fx-text-fill: #F1C40F;");
         profileItemsLabel.setText(String.valueOf(items));
     }
 
     private void bindBadgesSection() {
-        if (badgesSection == null || badgesContainer == null || badgesSectionTitle == null)
-            return;
+        if (badgesSection == null || badgesContainer == null) return;
 
-        if (!badgesSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
+        if (badgesSectionTitle != null && !badgesSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
             badgesSectionTitle.getStyleClass().add(Styles.TITLE_3);
         }
 
         badgesContainer.getChildren().clear();
+        List<Achievement> earned = (gameState != null) ? gameState.getAchievements() : null;
 
-        List<Achievement> earnedAchievements = null;
-        if (gameState != null) {
-            earnedAchievements = gameState.getAchievements();
-        } else if (profileUser != null && profileUser.getGameState() != null) {
-            earnedAchievements = profileUser.getGameState().getAchievements();
-        }
-
-        if (earnedAchievements == null || earnedAchievements.isEmpty()) {
+        if (earned == null || earned.isEmpty()) {
             noBadgesLabel.setVisible(true);
             noBadgesLabel.setManaged(true);
         } else {
             noBadgesLabel.setVisible(false);
             noBadgesLabel.setManaged(false);
 
-            for (Achievement a : earnedAchievements) {
-                javafx.scene.layout.StackPane badgeContainer = new javafx.scene.layout.StackPane();
-                badgeContainer.setMinWidth(60);
-                badgeContainer.setMinHeight(60);
-                badgeContainer.setMaxWidth(60);
-                badgeContainer.setMaxHeight(60);
+            for (Achievement a : earned) {
+                VBox badgePod = new VBox(10);
+                badgePod.setAlignment(Pos.CENTER);
+                badgePod.setPadding(new javafx.geometry.Insets(15));
+                badgePod.setPrefSize(110, 130);
+                
+                badgePod.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.03); " +
+                    "-fx-background-radius: 20; " +
+                    "-fx-border-color: rgba(211, 84, 0, 0.3); " +
+                    "-fx-border-radius: 20; " +
+                    "-fx-border-width: 1;"
+                );
 
-                badgeContainer.setStyle(
-                        "-fx-background-color: -color-accent-subtle; " + "-fx-background-radius: 30; "
-                                + "-fx-border-color: -color-accent-emphasis; " + "-fx-border-radius: 30; "
-                                + "-fx-border-width: 2;");
+                Label trophyIcon = new Label("🏆"); 
+                trophyIcon.setStyle("-fx-font-size: 32px; -fx-effect: dropshadow(two-pass-box, rgba(211, 84, 0, 0.4), 10, 0.5, 0, 0);");
 
-                Label badgeText = new Label(a.getName().substring(0, Math.min(3, a.getName().length())).toUpperCase());
-                badgeText.getStyleClass().addAll(Styles.TEXT_SMALL, Styles.TEXT_BOLD);
-                badgeText.setStyle("-fx-text-fill: -color-accent-emphasis;");
+                Label badgeName = new Label(a.getName());
+                badgeName.setStyle("-fx-text-fill: -color-fg-default; -fx-font-size: 11px; -fx-font-weight: bold;");
+                badgeName.setWrapText(true);
+                badgeName.setAlignment(Pos.CENTER);
 
-                badgeContainer.getChildren().add(badgeText);
-                badgesContainer.getChildren().add(badgeContainer);
+                badgePod.getChildren().addAll(trophyIcon, badgeName);
+                badgesContainer.getChildren().add(badgePod);
             }
         }
     }
 
-    // YENİ: Bütün karmaşık mantık tek bir servise devredildi!
     private void bindAddFriendButton() {
         friendshipUIManager.setupAddFriendButton(addFriendButton, currentUser, profileUser, viewingSelf);
     }
 
-    // YENİ: Liste çizimi tamamen servise bırakıldı. this::bindFriendsSection ile
-    // anlık yenilenme sağlandı.
     private void bindFriendsSection() {
         if (friendsSection != null) {
             friendsSection.setVisible(viewingSelf);
             friendsSection.setManaged(viewingSelf);
         }
-
-        if (viewingSelf && friendsSectionTitle != null) {
-            if (!friendsSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
-                friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
-            }
+        if (viewingSelf && friendsSectionTitle != null && !friendsSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
+            friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
         }
 
         friendshipUIManager.renderFriendsList(friendsList, noFriendsLabel, currentUser, viewingSelf,
@@ -287,13 +250,51 @@ public class ProfileController {
     }
 
     private void applyCardStyles() {
-        if (avatarCard != null)
+        String smoothRadius = "22"; 
+        String softerOrange = "#D35400";
+        
+        // Avatar Card Main Style
+        if (avatarCard != null) {
             avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
-        if (xpCard != null)
-            xpCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        if (tokensCard != null)
-            tokensCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        if (itemsCard != null)
-            itemsCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+            avatarCard.setStyle(
+                "-fx-background-color: #1A1E23; " + 
+                "-fx-background-radius: " + smoothRadius + "; " +
+                "-fx-border-color: " + softerOrange + "; " +
+                "-fx-border-width: 1.5; " +
+                "-fx-border-radius: " + smoothRadius + "; " +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);" 
+            ); 
+        }
+        
+        // Dashboard Cards (XP, Tokens, Items) with Hover Effects
+        VBox[] dashboardCards = {xpCard, tokensCard, itemsCard};
+        for (VBox card : dashboardCards) {
+            if (card == null) continue;
+            
+            card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+            card.setStyle(
+                "-fx-background-color: #1E2329; " +
+                "-fx-border-color: #34495E; " + 
+                "-fx-border-width: 1.2; " +
+                "-fx-background-radius: " + smoothRadius + "; " +
+                "-fx-border-radius: " + smoothRadius + ";"
+            );
+            
+            card.setOnMouseEntered(event -> card.setStyle(
+                "-fx-background-color: #242B33; " +
+                "-fx-border-color: " + softerOrange + "; " + 
+                "-fx-border-width: 1.2; " +
+                "-fx-background-radius: " + smoothRadius + "; " +
+                "-fx-border-radius: " + smoothRadius + ";"
+            ));
+
+            card.setOnMouseExited(event -> card.setStyle(
+                "-fx-background-color: #1E2329; " +
+                "-fx-border-color: #34495E; " + 
+                "-fx-border-width: 1.2; " +
+                "-fx-background-radius: " + smoothRadius + "; " +
+                "-fx-border-radius: " + smoothRadius + ";"
+            ));
+        }
     }
 }
