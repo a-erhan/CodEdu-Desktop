@@ -25,11 +25,12 @@ public abstract class GenericRepositoryImpl<T extends BaseEntity> implements Gen
     }
 
     @Override
-    public void save(T entity) {
+    public User save(T entity) {
         if (entity == null) {
             throw new IllegalArgumentException("Entity cannot be null");
         }
         entityManager.persist(entity);
+        return null;
     }
 
     @Override

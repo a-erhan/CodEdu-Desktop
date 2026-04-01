@@ -10,4 +10,7 @@ public interface ChapterService {
     Optional<Chapter> getChapterById(int id);
 
     List<Chapter> getAllChapters();
+
+
+    Optional<Chapter> getChapterWithQuestions(Long id);
 }

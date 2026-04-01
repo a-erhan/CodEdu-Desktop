@@ -68,4 +68,10 @@ public class UserChapterProgressRepositoryImpl extends GenericRepositoryImpl<Use
             return Optional.empty();
         }
     }
+
+    @Override
+    public void flush() {
+        // This forces the persistence context to sync with the database
+        entityManager.flush();
+    }
 }

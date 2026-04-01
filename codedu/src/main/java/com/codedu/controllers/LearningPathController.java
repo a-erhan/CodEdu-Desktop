@@ -5,10 +5,12 @@ import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.Chapter.Difficulty;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.UserRepository;
+import com.codedu.services.interfaces.ChapterService;
 import com.codedu.services.interfaces.LearningPathService;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,15 +26,14 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Controller for the Learning Path module.
- * Fetches real chapter data and progress from the LearningPathService.
- */
 @Controller
 public class LearningPathController {
 
         @Autowired
         private LearningPathService learningPathService;
+
+        @Autowired
+        private ChapterService chapterService;
 
         @Autowired
         private UserRepository userRepository;
@@ -42,29 +43,19 @@ public class LearningPathController {
         @FXML
         private Label chapterCountLabel;
 
-        // Detail panel
-        @FXML
-        private VBox detailPanel;
-        @FXML
-        private ImageView detailIconImage;
-        @FXML
-        private Label detailTitle;
-        @FXML
-        private Label detailDifficulty;
-        @FXML
-        private Label detailDescription;
-        @FXML
-        private Label detailLessons;
-        @FXML
-        private Label detailXP;
-        @FXML
-        private Label detailAction;
+        // Detail panel fields
+        @FXML private VBox detailPanel;
+        @FXML private ImageView detailIconImage;
+        @FXML private Label detailTitle;
+        @FXML private Label detailDifficulty;
+        @FXML private Label detailDescription;
+        @FXML private Label detailLessons;
+        @FXML private Label detailXP;
+        @FXML private Label detailAction;
 
         private List<ChapterProgressDTO> chapters;
         private HBox selectedCard = null;
         private ChapterProgressDTO selectedChapter = null;
-
-        /** Callback set by MainShellController to load chapter content view. */
         private Consumer<Chapter> onStartChapter;
 
         public void setOnStartChapter(Consumer<Chapter> callback) {
@@ -73,23 +64,42 @@ public class LearningPathController {
 
         @FXML
         public void initialize() {
-                User currentUser = userRepository.findByUsername("yusif.axmedov.2008").orElse(null);
+                // Safety net: if data arrived before FXML was fully linked
+                renderIfReady();
+        }
 
-                if (currentUser != null) {
-                        this.chapters = learningPathService.getLearningPathForUser(currentUser);
+        /**
+         * Entry point called by MainShellController once the user is known.
+         * NO @Transactional here to prevent Spring Proxy issues with JavaFX.
+         */
+        public void loadUserData(User currentUser) {
+                if (currentUser == null || currentUser.getId() == 0) {
+                        System.out.println("No valid user provided to LearningPathController!");
+                        return;
+                }
 
-                        // DEBUG PRINT:
-                        System.out.println("Chapters found in DB: " + chapters.size());
+                // 1. Fetch managed user to avoid Hibernate detachment errors
+                User attachedUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
 
+                // 2. Use the Service to handle data logic (Fetching existing OR Generating new)
+                // This keeps the database work in one safe transaction.
+                this.chapters = learningPathService.getOrCreateLearningPath(attachedUser);
+
+                System.out.println("Chapters loaded for UI: " + (chapters != null ? chapters.size() : 0));
+
+                // 3. Update the UI safely on the FX thread
+                Platform.runLater(this::renderIfReady);
+        }
+
+        private void renderIfReady() {
+                if (chapterCountLabel != null && pathContainer != null && chapters != null && !chapters.isEmpty()) {
                         chapterCountLabel.setText(chapters.size() + " Chapters");
                         buildPath();
-                } else {
-                        System.out.println("ERROR: User yusif.axmedov.2008 not found in database!");
                 }
         }
 
         // ══════════════════════════════════════════════════════════════════
-        // PATH BUILDING (Uses DTO data)
+        // PATH BUILDING & UI LOGIC
         // ══════════════════════════════════════════════════════════════════
 
         private void buildPath() {
@@ -97,13 +107,13 @@ public class LearningPathController {
 
                 for (int i = 0; i < chapters.size(); i++) {
                         ChapterProgressDTO chapterDto = chapters.get(i);
-
                         if (i > 0) {
                                 pathContainer.getChildren().add(buildConnector(chapterDto));
                         }
 
                         HBox card = buildChapterCard(chapterDto, i);
 
+                        // Animation logic
                         FadeTransition fade = new FadeTransition(Duration.millis(400), card);
                         fade.setFromValue(0);
                         fade.setToValue(1);
@@ -126,8 +136,6 @@ public class LearningPathController {
                 VBox connectorBox = new VBox();
                 connectorBox.setAlignment(Pos.CENTER);
                 connectorBox.setPrefHeight(36);
-                connectorBox.setMinHeight(36);
-                connectorBox.setMaxHeight(36);
 
                 Region line = new Region();
                 line.getStyleClass().add("chapter-connector");
@@ -153,183 +161,114 @@ public class LearningPathController {
                 card.setPadding(new Insets(16, 20, 16, 16));
                 card.setAlignment(Pos.CENTER_LEFT);
 
-                if (chapterDto.isCompleted()) {
-                        card.getStyleClass().add("chapter-card-completed");
-                } else if (chapterDto.isLocked()) {
-                        card.getStyleClass().add("chapter-card-locked");
-                }
+                if (chapterDto.isCompleted()) card.getStyleClass().add("chapter-card-completed");
+                else if (chapterDto.isLocked()) card.getStyleClass().add("chapter-card-locked");
 
+                // Icon Setup
                 StackPane iconCircle = new StackPane();
                 iconCircle.getStyleClass().add("chapter-icon");
-
-                if (chapterDto.isCompleted()) {
-                        iconCircle.getStyleClass().add("chapter-icon-completed");
-                } else if (chapterDto.isLocked()) {
-                        iconCircle.getStyleClass().add("chapter-icon-locked");
-                }
-
+                if (chapterDto.isCompleted()) iconCircle.getStyleClass().add("chapter-icon-completed");
+                else if (chapterDto.isLocked()) iconCircle.getStyleClass().add("chapter-icon-locked");
                 iconCircle.setMinSize(52, 52);
-                iconCircle.setMaxSize(52, 52);
 
                 if (chapterDto.isLocked()) {
-                        Label lockLabel = new Label("Locked");
-                        iconCircle.getChildren().add(lockLabel);
+                        iconCircle.getChildren().add(new Label("🔒"));
                 } else if (chapterDto.getChapter().getIconImage() != null) {
                         try {
                                 Image img = new Image(getClass().getResourceAsStream(chapterDto.getChapter().getIconImage()));
                                 ImageView iv = new ImageView(img);
-                                iv.setFitWidth(40);
-                                iv.setFitHeight(40);
-                                iv.setPreserveRatio(true);
-                                iv.setSmooth(true);
+                                iv.setFitWidth(40); iv.setFitHeight(40); iv.setPreserveRatio(true);
                                 iconCircle.getChildren().add(iv);
                         } catch (Exception e) {
-                                Label iconLabel = new Label(chapterDto.getChapter().getIconEmoji());
-                                iconCircle.getChildren().add(iconLabel);
+                                iconCircle.getChildren().add(new Label(chapterDto.getChapter().getIconEmoji()));
                         }
                 } else {
-                        Label iconLabel = new Label(chapterDto.getChapter().getIconEmoji());
-                        iconCircle.getChildren().add(iconLabel);
+                        iconCircle.getChildren().add(new Label(chapterDto.getChapter().getIconEmoji()));
                 }
 
+                // Info Box (Title, Difficulty, Progress)
                 VBox infoBox = new VBox(4);
                 infoBox.setAlignment(Pos.CENTER_LEFT);
                 HBox.setHgrow(infoBox, Priority.ALWAYS);
 
                 HBox titleRow = new HBox(10);
                 titleRow.setAlignment(Pos.CENTER_LEFT);
-
                 Label titleLabel = new Label(chapterDto.getChapter().getTitle());
                 titleLabel.getStyleClass().add("chapter-title");
 
                 Label diffTag = new Label(difficultyText(chapterDto.getChapter().getDifficulty()));
                 diffTag.getStyleClass().addAll("difficulty-tag", difficultyClass(chapterDto.getChapter().getDifficulty()));
-
                 titleRow.getChildren().addAll(titleLabel, diffTag);
 
                 Label descLabel = new Label(chapterDto.getChapter().getDescription());
                 descLabel.getStyleClass().add("chapter-desc");
                 descLabel.setWrapText(true);
-                descLabel.setMaxWidth(420);
-
-                HBox progressRow = new HBox(10);
-                progressRow.setAlignment(Pos.CENTER_LEFT);
 
                 ProgressBar progressBar = new ProgressBar(chapterDto.getProgress());
                 progressBar.getStyleClass().add("chapter-progress-bar");
                 progressBar.setPrefWidth(140);
-                progressBar.setPrefHeight(8);
 
-                Label progressLabel = new Label(chapterDto.getCompletedLessons() + "/" + chapterDto.getChapter().getTotalLessons() + " lessons");
-                progressLabel.getStyleClass().add("chapter-progress-text");
+                infoBox.getChildren().addAll(titleRow, descLabel, progressBar);
 
-                progressRow.getChildren().addAll(progressBar, progressLabel);
-
-                infoBox.getChildren().addAll(titleRow, descLabel, progressRow);
-
+                // XP Box
                 VBox xpBox = new VBox(4);
                 xpBox.setAlignment(Pos.CENTER);
                 xpBox.setMinWidth(70);
-
                 Label xpLabel = new Label("+" + chapterDto.getChapter().getXpReward());
                 xpLabel.getStyleClass().add("chapter-xp-value");
-
-                Label xpText = new Label("XP");
-                xpText.getStyleClass().add("chapter-xp-label");
-
-                if (chapterDto.isCompleted()) {
-                        Label checkLabel = new Label("✓");
-                        checkLabel.getStyleClass().add("chapter-check");
-                        xpBox.getChildren().addAll(checkLabel, xpText);
-                } else {
-                        xpBox.getChildren().addAll(xpLabel, xpText);
-                }
+                xpBox.getChildren().addAll(xpLabel, new Label("XP"));
 
                 card.getChildren().addAll(iconCircle, infoBox, xpBox);
 
                 if (!chapterDto.isLocked()) {
-                        card.setOnMouseEntered(e -> {
-                                ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
-                                st.setToX(1.02);
-                                st.setToY(1.02);
-                                st.play();
-                        });
-                        card.setOnMouseExited(e -> {
-                                ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
-                                st.setToX(1.0);
-                                st.setToY(1.0);
-                                st.play();
-                        });
                         card.setOnMouseClicked(e -> showDetail(chapterDto, card));
+                        card.setOnMouseEntered(e -> { card.setScaleX(1.02); card.setScaleY(1.02); });
+                        card.setOnMouseExited(e -> { card.setScaleX(1.0); card.setScaleY(1.0); });
                 }
 
                 return card;
         }
 
         private void showDetail(ChapterProgressDTO chapterDto, HBox card) {
-                if (selectedCard != null) {
-                        selectedCard.getStyleClass().remove("chapter-card-selected");
-                }
+                if (selectedCard != null) selectedCard.getStyleClass().remove("chapter-card-selected");
                 selectedCard = card;
                 selectedChapter = chapterDto;
                 card.getStyleClass().add("chapter-card-selected");
 
-                if (chapterDto.getChapter().getIconImage() != null) {
-                        try {
-                                Image img = new Image(getClass().getResourceAsStream(chapterDto.getChapter().getIconImage()));
-                                detailIconImage.setImage(img);
-                        } catch (Exception e) {}
-                }
-
                 detailTitle.setText(chapterDto.getChapter().getTitle());
-                detailDifficulty.setText(difficultyText(chapterDto.getChapter().getDifficulty()));
-                detailDifficulty.getStyleClass().removeAll("diff-beginner", "diff-intermediate", "diff-advanced");
-                detailDifficulty.getStyleClass().add(difficultyClass(chapterDto.getChapter().getDifficulty()));
                 detailDescription.setText(chapterDto.getChapter().getDescription());
-                detailLessons.setText(chapterDto.getCompletedLessons() + " / " + chapterDto.getChapter().getTotalLessons() + " lessons completed");
                 detailXP.setText(chapterDto.getChapter().getXpReward() + " XP reward");
 
                 if (chapterDto.isCompleted()) {
-                        detailAction.setText("Completed");
-                        detailAction.getStyleClass().removeAll("lp-detail-action");
-                        detailAction.getStyleClass().add("lp-detail-action-done");
+                        detailAction.setText("Review Chapter");
                 } else {
                         int pct = (int) (chapterDto.getProgress() * 100);
                         detailAction.setText(pct > 0 ? "Continue (" + pct + "%)" : "Start chapter");
-                        detailAction.getStyleClass().removeAll("lp-detail-action-done");
-                        if (!detailAction.getStyleClass().contains("lp-detail-action")) {
-                                detailAction.getStyleClass().add("lp-detail-action");
-                        }
                 }
 
                 detailAction.setOnMouseClicked(e -> {
-                        if (onStartChapter != null)
-                                onStartChapter.accept(selectedChapter.getChapter());
+                        if (onStartChapter != null) {
+                                // 🚀 FIX: Use ChapterService to fetch with questions to avoid LazyInitializationException
+                                chapterService.getChapterWithQuestions((long) chapterDto.getChapter().getId())
+                                        .ifPresent(fullChapter -> onStartChapter.accept(fullChapter));
+                        }
                 });
 
                 if (!detailPanel.isVisible()) {
                         detailPanel.setVisible(true);
                         detailPanel.setManaged(true);
-                        detailPanel.setTranslateX(280);
                         TranslateTransition tt = new TranslateTransition(Duration.millis(300), detailPanel);
+                        detailPanel.setTranslateX(280);
                         tt.setToX(0);
                         tt.play();
                 }
         }
 
         private String difficultyText(Difficulty d) {
-                return switch (d) {
-                        case BEGINNER -> "Beginner";
-                        case INTERMEDIATE -> "Intermediate";
-                        case ADVANCED -> "Advanced";
-                };
+                return d == null ? "" : d.toString().toLowerCase();
         }
 
         private String difficultyClass(Difficulty d) {
-                return switch (d) {
-                        case BEGINNER -> "diff-beginner";
-                        case INTERMEDIATE -> "diff-intermediate";
-                        case ADVANCED -> "diff-advanced";
-                };
+                return d == null ? "diff-beginner" : "diff-" + d.toString().toLowerCase();
         }
 }

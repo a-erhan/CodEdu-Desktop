@@ -25,23 +25,17 @@ public class LearningPathDataSeeder implements CommandLineRunner {
         this.chapterRepository = chapterRepository;
     }
 
-    // Default constructor for Spring proxies
-    public LearningPathDataSeeder() {
-        this.learningPathRepository = null;
-        this.chapterRepository = null;
-    }
-
     @Override
     @Transactional
     public void run(String... args) throws Exception {
 
-        // 🚀 THE FIX: Using your existing getAll() method instead of count()
+        // 1. Check if curriculum already exists
         if (!learningPathRepository.getAll().isEmpty()) {
-            System.out.println("Global Curriculum already seeded. Skipping...");
+            System.out.println(">>> [Seeder] Global Curriculum already seeded. Skipping...");
             return;
         }
 
-        System.out.println("Building Global Curriculum...");
+        System.out.println(">>> [Seeder] Building Global Curriculum...");
 
         // 2. Create the Global Learning Path
         LearningPath javaPath = LearningPath.builder()
@@ -67,33 +61,28 @@ public class LearningPathDataSeeder implements CommandLineRunner {
 
         String ch1Learn = """
             # Chapter 1: Hello, World & Variables
-            
             Welcome to your first step in Java! Every Java program starts with a class and a `main` method. 
             
-            ## Printing to the Console
-            To show text on the screen, use the print command:
-            `System.out.println("Hello, World!");`
-            
             ## Variables & Data Types
-            Variables are containers for storing data values. In Java, you must declare the type of data a variable will hold:
-            
-            * **int**: stores integers (whole numbers). Example: `int age = 20;`
-            * **double**: stores floating point numbers (decimals). Example: `double price = 19.99;`
-            * **String**: stores text, surrounded by double quotes. Example: `String name = "Alice";`
-            * **boolean**: stores values with two states: true or false. Example: `boolean isJavaFun = true;`
+            Variables are containers for storing data values. In Java, you must declare the type:
+            * **int**: integers like `20`
+            * **double**: decimals like `19.99`
+            * **String**: text like `"Alice"`
             """;
 
-        ChapterContent ch1Content = ChapterContent.builder().learnText(ch1Learn).build();
-        List<Question> ch1Questions = new ArrayList<>();
-        ch1Questions.add(createMCQ("Variables", "What is a variable?\nA) A container for data\nB) A type of error\nC) A shortcut\nD) A screen", "A"));
-        ch1Questions.add(createMCQ("Data Types", "Which type stores whole numbers?\nA) double\nB) String\nC) int\nD) boolean", "C"));
-        ch1Questions.add(createMCQ("Output", "How do you print text in Java?\nA) print()\nB) System.out.println()\nC) echo\nD) console.log()", "B"));
-        ch1Questions.add(createFill("Declare an integer variable named 'age' equal to 20.", "int age = 20;"));
-        ch1Questions.add(createFill("Declare a String named 'name' equal to 'CodEdu'.", "String name = \"CodEdu\";"));
-        ch1Questions.add(createFill("Print 'Hello' to the console.", "System.out.println(\"Hello\");"));
-        ch1Questions.add(createCode("First Program", "Write a program that prints exactly: I am learning Java!", "System.out.println(\"I am learning Java!\");"));
+        // Initialize Content and Link back to Chapter
+        ChapterContent ch1Content = ChapterContent.builder()
+                .learnText(ch1Learn)
+                .chapter(ch1)
+                .questions(new ArrayList<>())
+                .build();
 
-        ch1Content.setQuestions(ch1Questions);
+        // Add Questions with parent reference
+        ch1Content.getQuestions().add(createMCQ("Variables", "What is a variable?", "A container for data", ch1Content));
+        ch1Content.getQuestions().add(createMCQ("Data Types", "Which type stores whole numbers?", "int", ch1Content));
+        ch1Content.getQuestions().add(createFill("Declare an int named 'age' equal to 20.", "int age = 20;", ch1Content));
+        ch1Content.getQuestions().add(createCode("First Program", "Print: I am learning Java!", "System.out.println(\"I am learning Java!\");", ch1Content));
+
         ch1.setContent(ch1Content);
         chapterRepository.save(ch1);
 
@@ -111,64 +100,72 @@ public class LearningPathDataSeeder implements CommandLineRunner {
                 .iconEmoji("🔀")
                 .build();
 
-        String ch2Learn = """
-            # Chapter 2: Control Flow (If/Else)
-            
-            Programs need to make decisions based on different conditions. In Java, we use Boolean logic (true/false) to guide our code.
-            """;
+        ChapterContent ch2Content = ChapterContent.builder()
+                .learnText("# Chapter 2: Control Flow\nUse if/else to branch your logic.")
+                .chapter(ch2)
+                .questions(new ArrayList<>())
+                .build();
 
-        ChapterContent ch2Content = ChapterContent.builder().learnText(ch2Learn).build();
-        List<Question> ch2Questions = new ArrayList<>();
-        ch2Questions.add(createMCQ("Boolean Logic", "What type must an if condition evaluate to?\nA) int\nB) String\nC) boolean\nD) double", "C"));
-        ch2Questions.add(createFill("Check if 'score' is greater than 90.", "if (score > 90)"));
-        ch2Questions.add(createCode("Positive/Negative", "Write an if/else block. If num > 0, print 'Positive'. Else print 'Negative'.\n\nint num = -5;\n// Your code here", ""));
+        ch2Content.getQuestions().add(createMCQ("Logic", "What type must an 'if' evaluate to?", "boolean", ch2Content));
+        ch2Content.getQuestions().add(createFill("Check if 'score' is > 90.", "if (score > 90)", ch2Content));
 
-        ch2Content.setQuestions(ch2Questions);
         ch2.setContent(ch2Content);
         chapterRepository.save(ch2);
 
         // ==========================================
-        // EMPTY PLACEHOLDERS
+        // LOCKED PLACEHOLDERS (3-10)
         // ==========================================
-        List<String> chapterTitles = Arrays.asList("Loops", "Methods", "Arrays", "OOP", "Inheritance");
+        List<String> chapterTitles = Arrays.asList("Loops", "Methods", "Arrays", "OOP", "Inheritance", "Exceptions", "Lists", "Trees");
 
         for (int i = 0; i < chapterTitles.size(); i++) {
             Chapter lockedCh = Chapter.builder()
                     .title(chapterTitles.get(i))
-                    .description("Content coming soon.")
+                    .description("Complete previous chapters to unlock.")
                     .difficulty(Chapter.Difficulty.INTERMEDIATE)
-                    .totalLessons(0)
-                    .xpReward(0)
+                    .totalLessons(5)
+                    .xpReward(200)
                     .orderIndex(i + 3)
                     .path(javaPath)
                     .iconEmoji("🔒")
                     .build();
-
             chapterRepository.save(lockedCh);
         }
 
-        System.out.println("Global Curriculum Ready! App is runnable.");
+        System.out.println(">>> [Seeder] Global Curriculum Ready!");
     }
 
-    // --- Helper Methods ---
-    private MultipleChoiceQuestion createMCQ(String title, String content, String solution) {
+    // --- Corrected Helper Methods (Setting the parent back-reference) ---
+
+    private MultipleChoiceQuestion createMCQ(String title, String content, String solution, ChapterContent parent) {
         MultipleChoiceQuestion q = new MultipleChoiceQuestion();
-        q.setTitle(title); q.setContent(content); q.setSolution(solution);
-        q.setQuestionType(QuestionType.MULTIPLE_CHOICES); q.setReward(new Reward(10, 5));
+        q.setTitle(title);
+        q.setContent(content);
+        q.setSolution(solution);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.MULTIPLE_CHOICES);
+        q.setReward(new Reward(10, 5));
         return q;
     }
 
-    private FillInBlankQuestion createFill(String textPrompt, String answer) {
+    private FillInBlankQuestion createFill(String textPrompt, String answer, ChapterContent parent) {
         FillInBlankQuestion q = new FillInBlankQuestion();
-        q.setTitle("Fill in the Blank"); q.setContent(textPrompt); q.setSolution(answer);
-        q.setQuestionType(QuestionType.FILL_IN_THE_BLANKS); q.setReward(new Reward(15, 10));
+        q.setTitle("Fill in the Blank");
+        q.setContent(textPrompt);
+        q.setSolution(answer);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.FILL_IN_THE_BLANKS);
+        q.setReward(new Reward(15, 10));
         return q;
     }
 
-    private CodeImplementationQuestion createCode(String title, String prompt, String boilerplate) {
+    private CodeImplementationQuestion createCode(String title, String prompt, String boilerplate, ChapterContent parent) {
         CodeImplementationQuestion q = new CodeImplementationQuestion();
-        q.setTitle(title); q.setContent(prompt); q.setBoilerplateCode(boilerplate);
-        q.setQuestionType(QuestionType.CODE_IMPLEMENTATION); q.setReward(new Reward(30, 20));
+        q.setTitle(title);
+        q.setContent(prompt);
+        q.setBoilerplateCode(boilerplate);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
+        q.setReward(new Reward(30, 20));
         return q;
     }
 }

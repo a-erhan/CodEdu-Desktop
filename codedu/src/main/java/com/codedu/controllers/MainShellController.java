@@ -83,6 +83,8 @@ public class MainShellController {
         initDemoModelsIfNeeded();
         updateHeader();
         chatWindowManager.connectUser(user);
+
+        loadLearningPath();
     }
 
     @FXML
@@ -93,7 +95,6 @@ public class MainShellController {
         styleAndWireNavigation();
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
-        loadLearningPath();
     }
 
     private void ensureShellFillsScene() {
@@ -186,16 +187,22 @@ public class MainShellController {
     }
 
     private void loadLearningPath() {
+        if (this.user == null) return; // Safety check
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/LearningPath.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
+
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
+
+            // 🚀 Pass the user here
+            lpController.loadUserData(this.user);
+
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
-            showSectionPlaceholder("Learning path", "Error loading learning path module.");
         }
     }
 

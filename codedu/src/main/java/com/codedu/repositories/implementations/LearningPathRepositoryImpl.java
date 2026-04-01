@@ -12,4 +12,5 @@ public class LearningPathRepositoryImpl extends GenericRepositoryImpl<LearningPa
     public LearningPathRepositoryImpl() {
         super(LearningPath.class);
     }
+
 }

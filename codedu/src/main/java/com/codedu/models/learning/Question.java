@@ -13,6 +13,9 @@ import lombok.*;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 
 public abstract class Question extends BaseEntity {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chapter_content_id")
+    private ChapterContent chapterContent;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "question_difficulty")
