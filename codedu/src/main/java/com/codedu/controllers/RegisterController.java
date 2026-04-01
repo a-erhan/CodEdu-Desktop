@@ -3,10 +3,8 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.User;
 import com.codedu.services.interfaces.AuthService;
+import com.codedu.ui.StageNavigator;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -37,7 +35,7 @@ public class RegisterController {
     @Autowired
     private AuthService authService;
     @Autowired
-    private org.springframework.context.ApplicationContext context;
+    private StageNavigator navigator;
 
     @FXML
     public void initialize() {
@@ -80,19 +78,9 @@ public class RegisterController {
         }
 
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/MainShell.fxml"));
-            loader.setControllerFactory(context::getBean);
-            Parent root = loader.load();
-
-            MainShellController controller = loader.getController();
-            controller.setUser(loggedInUser);
-
             Stage stage = (Stage) emailField.getScene().getWindow();
-            double w = Math.max(800, stage.getWidth());
-            double h = Math.max(600, stage.getHeight());
-            Scene scene = new Scene(root, w, h);
-            stage.setScene(scene);
+            navigator.replaceScene(stage, "/com/codedu/views/MainShell.fxml", MainShellController.class,
+                    c -> c.setUser(loggedInUser));
             stage.setMaximized(true);
         } catch (Exception e) {
             errorLabel.setText("Failed to create account.");
@@ -103,14 +91,9 @@ public class RegisterController {
     @FXML
     private void handleBackToLogin() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/Login.fxml"));
-            loader.setControllerFactory(context::getBean);
-            Parent root = loader.load();
-
             Stage stage = (Stage) emailField.getScene().getWindow();
-            Scene scene = new Scene(root, 1200, 750);
-            stage.setScene(scene);
+            navigator.replaceSceneFixed(stage, "/com/codedu/views/Login.fxml", LoginController.class, null,
+                    1200, 750);
         } catch (Exception e) {
             errorLabel.setText("Failed to go back to login.");
             e.printStackTrace();

@@ -47,8 +47,12 @@ public class User extends BaseEntity {
      * Inverse side: FK {@code user_id} is stored on {@link UserGameState} ({@code user_game_states.user_id}).
      * Use {@link #setGameState(UserGameState)} so the owning side stays in sync.
      */
-    @Setter(AccessLevel.NONE)
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToOne(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY
+    )
     private UserGameState gameState;
 
     public void setGameState(UserGameState gameState) {

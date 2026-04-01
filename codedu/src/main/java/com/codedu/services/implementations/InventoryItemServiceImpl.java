@@ -2,6 +2,7 @@ package com.codedu.services.implementations;
 
 import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.InventoryItemRepository;
 import com.codedu.services.interfaces.InventoryItemService;
@@ -61,10 +62,39 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional
     public void setEquipped(InventoryItem inventoryItem, boolean equipped) {
-        if (inventoryItem == null) {
+        if (inventoryItem == null || inventoryItem.getId() <= 0) {
             return;
         }
-        inventoryItem.setEquipped(equipped);
-        inventoryItemRepository.update(inventoryItem);
+
+        InventoryItem managed = inventoryItemRepository.findById(inventoryItem.getId()).orElse(null);
+        if (managed == null || managed.isDeleted() || managed.getItem() == null) {
+            return;
+        }
+
+        ItemType type = managed.getItem().getType();
+
+        // Only AVATAR items are equipable (boosters/AI usage are consumables/features).
+        if (type != ItemType.AVATAR) {
+            if (managed.isEquipped()) {
+                managed.setEquipped(false);
+                inventoryItemRepository.update(managed);
+            }
+            return;
+        }
+
+        if (!equipped) {
+            managed.setEquipped(false);
+            inventoryItemRepository.update(managed);
+            return;
+        }
+
+        if (managed.getInventory() == null || managed.getInventory().getId() <= 0) {
+            return;
+        }
+
+        // Enforce: only one equipped avatar per inventory.
+        inventoryItemRepository.unequipAllByInventoryAndType(managed.getInventory().getId(), ItemType.AVATAR);
+        managed.setEquipped(true);
+        inventoryItemRepository.update(managed);
     }
 }

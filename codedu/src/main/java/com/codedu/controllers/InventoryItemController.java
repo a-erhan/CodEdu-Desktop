@@ -2,6 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.InventoryItem;
+import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
 import com.codedu.services.interfaces.InventoryItemService;
 import javafx.fxml.FXML;
@@ -86,8 +87,13 @@ public class InventoryItemController {
             equippedBadge.getStyleClass().addAll(Styles.TEXT_SUBTLE, Styles.TEXT_BOLD);
         }
 
+        boolean equipable = invItem.getItem() != null && invItem.getItem().getType() == ItemType.AVATAR;
         Button toggleBtn = new Button(invItem.isEquipped() ? "Unequip" : "Equip");
         toggleBtn.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED, Styles.SMALL);
+        toggleBtn.setVisible(equipable);
+        toggleBtn.setManaged(equipable);
+        equippedBadge.setVisible(equipable && invItem.isEquipped());
+        equippedBadge.setManaged(equipable);
         toggleBtn.setOnAction(e -> {
             if (user == null) {
                 return;

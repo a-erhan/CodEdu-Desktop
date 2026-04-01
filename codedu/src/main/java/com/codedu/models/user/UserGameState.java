@@ -28,18 +28,17 @@ public class UserGameState extends BaseEntity {
                 .level(1)
                 .xp(0)
                 .heartCount(3)
-                .tokenBalance(0)
+                .tokenBalance(5000)
                 .currentStreak(0)
                 .build();
     }
 
     /**
      * Owning side of the one-to-one: {@code user_game_states.user_id} references {@code users.id}.
-     * {@link User#setGameState(UserGameState)} keeps this reference and {@link User#gameState} aligned.
      */
     @Setter(AccessLevel.NONE)
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true, nullable = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true, nullable = false) // Changed nullable to false
     private User user;
 
     /**

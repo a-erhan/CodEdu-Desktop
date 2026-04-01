@@ -2,6 +2,7 @@ package com.codedu.repositories.implementations;
 
 import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
 import com.codedu.models.user.UserInventory;
 import com.codedu.repositories.interfaces.InventoryItemRepository;
 import jakarta.persistence.EntityManager;
@@ -54,5 +55,21 @@ public class InventoryItemRepositoryImpl extends GenericRepositoryImpl<Inventory
         } catch (NoResultException e) {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public int unequipAllByInventoryAndType(int inventoryId, ItemType type) {
+        if (inventoryId <= 0 || type == null) {
+            return 0;
+        }
+        return entityManager.createQuery(
+                        "UPDATE InventoryItem i " +
+                                "SET i.isEquipped = false " +
+                                "WHERE i.inventory.id = :invId " +
+                                "AND i.item.type = :type " +
+                                "AND i.isDeleted = false")
+                .setParameter("invId", inventoryId)
+                .setParameter("type", type)
+                .executeUpdate();
     }
 }

@@ -33,6 +33,7 @@ module com.codedu {
     opens com.codedu.repositories.interfaces to spring.core, spring.beans, spring.context;
     opens com.codedu.repositories.implementations to spring.core, spring.beans, spring.context, org.hibernate.orm.core;
     opens com.codedu.config to spring.core, spring.beans, spring.context;
+    opens com.codedu.ui to spring.core, spring.beans, spring.context;
     opens com.codedu.dtos
             to spring.core, spring.beans, spring.context, com.fasterxml.jackson.databind, spring.messaging;
     opens com.codedu.seeders;

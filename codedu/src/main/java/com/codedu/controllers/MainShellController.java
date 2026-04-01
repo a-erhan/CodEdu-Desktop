@@ -11,6 +11,7 @@ import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.ChatWindowManager;
 import com.codedu.services.interfaces.UserChapterProgressService;
 import com.codedu.services.interfaces.UserService;
+import com.codedu.ui.FxmlViewLoader;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -37,6 +38,9 @@ public class MainShellController {
 
     @Autowired
     private ApplicationContext applicationContext;
+
+    @Autowired
+    private FxmlViewLoader viewLoader;
 
     @org.springframework.beans.factory.annotation.Autowired
     private UserChapterProgressService progressService;
@@ -197,14 +201,14 @@ public class MainShellController {
 
     private void loadLearningPath() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/LearningPath.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            LearningPathController lpController = loader.getController();
+            LearningPathController lpController = viewLoader.loadCached(
+                    "/com/codedu/views/LearningPath.fxml",
+                    LearningPathController.class,
+                    this::setContentAndFill
+            );
             lpController.setOnStartChapter(this::loadChapterView);
             lpController.setCurrentUser(this.user);
             lpController.refreshPath();
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Learning path", "Error loading learning path module.");
@@ -237,13 +241,13 @@ public class MainShellController {
 
     private void loadDailyChallenge() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            DailyChallengeController controller = loader.getController();
+            DailyChallengeController controller = viewLoader.loadCached(
+                    "/com/codedu/views/DailyChallenge.fxml",
+                    DailyChallengeController.class,
+                    this::setContentAndFill
+            );
             controller.setOnStartQuestion(this::openChallengePage);
             controller.setOnBack(this::loadLearningPath);
-            setContentAndFill(view);
         } catch (Exception ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Daily challenges", "Error loading daily challenges module.");
@@ -272,15 +276,15 @@ public class MainShellController {
 
     private void loadForum() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Forum.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            ForumController controller = loader.getController();
+            ForumController controller = viewLoader.loadCached(
+                    "/com/codedu/views/Forum.fxml",
+                    ForumController.class,
+                    this::setContentAndFill
+            );
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
             controller.setOnOpenProfile(
                     username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Forum", "Error loading forum module.");
@@ -337,12 +341,12 @@ public class MainShellController {
 
     private void loadMatchmaking() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            MatchmakingController controller = loader.getController();
+            MatchmakingController controller = viewLoader.loadCached(
+                    "/com/codedu/views/Matchmaking.fxml",
+                    MatchmakingController.class,
+                    this::setContentAndFill
+            );
             controller.setCurrentUser(user);
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Matchmaking", "Error loading matchmaking module.");
@@ -351,10 +355,11 @@ public class MainShellController {
 
     private void loadStore() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Store.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            StoreController controller = loader.getController();
+            StoreController controller = viewLoader.loadCached(
+                    "/com/codedu/views/Store.fxml",
+                    StoreController.class,
+                    this::setContentAndFill
+            );
             controller.setUserModel(user);
             controller.setOnUserUpdated(updated -> {
                 if (updated == null) {
@@ -364,7 +369,6 @@ public class MainShellController {
                 this.gameState = updated.getGameState();
                 updateHeader();
             });
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Store", "Error loading store module.");
@@ -373,12 +377,12 @@ public class MainShellController {
 
     private void loadInventory() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/InventoryItem.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            InventoryItemController controller = loader.getController();
+            InventoryItemController controller = viewLoader.loadCached(
+                    "/com/codedu/views/InventoryItem.fxml",
+                    InventoryItemController.class,
+                    this::setContentAndFill
+            );
             controller.setUserModel(user);
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Inventory", "Error loading inventory.");
@@ -387,12 +391,12 @@ public class MainShellController {
 
     private void loadAskAI() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/AskAI.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            AIChatbotController controller = loader.getController();
+            AIChatbotController controller = viewLoader.loadCached(
+                    "/com/codedu/views/AskAI.fxml",
+                    AIChatbotController.class,
+                    this::setContentAndFill
+            );
             controller.setRemainingRequests(3);
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Ask AI", "Error loading Ask AI module.");
@@ -401,13 +405,13 @@ public class MainShellController {
 
     private void loadLeaderboard() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            LeaderboardController controller = loader.getController();
+            LeaderboardController controller = viewLoader.loadCached(
+                    "/com/codedu/views/Leaderboard.fxml",
+                    LeaderboardController.class,
+                    this::setContentAndFill
+            );
             controller.setCurrentUser(user);
             controller.setOnOpenProfile(this::openCompetitorProfile);
-            setContentAndFill(view);
         } catch (Exception ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Leaderboard", "Error loading leaderboard module.");
@@ -444,14 +448,14 @@ public class MainShellController {
 
     private void loadSettings() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Settings.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            SettingsController controller = loader.getController();
+            SettingsController controller = viewLoader.loadCached(
+                    "/com/codedu/views/Settings.fxml",
+                    SettingsController.class,
+                    this::setContentAndFill
+            );
             controller.setUserModel(user);
             controller.setThemeToggleCallback(this::toggleTheme);
             controller.setOnLogoutCallback(this::logout);
-            setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Settings", "Error loading settings.");

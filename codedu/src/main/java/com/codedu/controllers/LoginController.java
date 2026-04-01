@@ -3,9 +3,6 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.User;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -14,6 +11,7 @@ import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import com.codedu.services.interfaces.AuthService;
+import com.codedu.ui.StageNavigator;
 /**
  * Controller for the Login screen.
  * Validates credentials and transitions to MainShell on success.
@@ -34,7 +32,7 @@ public class LoginController {
     @Autowired
     private AuthService authService;
     @Autowired
-    private org.springframework.context.ApplicationContext context;
+    private StageNavigator navigator;
 
 
     @FXML
@@ -66,22 +64,10 @@ public class LoginController {
             return;
         }
 
-
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/MainShell.fxml"));
-            loader.setControllerFactory(context::getBean);
-            Parent root = loader.load();
-
-            // Pass user to main shell controller
-            MainShellController controller = loader.getController();
-            controller.setUser(loggedInUser);
-
             Stage stage = (Stage) emailField.getScene().getWindow();
-            double w = Math.max(800, stage.getWidth());
-            double h = Math.max(600, stage.getHeight());
-            Scene scene = new Scene(root, w, h);
-            stage.setScene(scene);
+            navigator.replaceScene(stage, "/com/codedu/views/MainShell.fxml", MainShellController.class,
+                    c -> c.setUser(loggedInUser));
             stage.setMaximized(true);
         } catch (Exception e) {
             errorLabel.setText("Failed to load application.");
@@ -91,14 +77,9 @@ public class LoginController {
     @FXML
     private void handleOpenRegister() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/codedu/views/Register.fxml"));
-            loader.setControllerFactory(context::getBean);
-            Parent root = loader.load();
-
             Stage stage = (Stage) emailField.getScene().getWindow();
-            Scene scene = new Scene(root, 1200, 750);
-            stage.setScene(scene);
+            navigator.replaceSceneFixed(stage, "/com/codedu/views/Register.fxml", RegisterController.class, null,
+                    1200, 750);
         } catch (Exception e) {
             errorLabel.setText("Failed to open registration.");
             e.printStackTrace();

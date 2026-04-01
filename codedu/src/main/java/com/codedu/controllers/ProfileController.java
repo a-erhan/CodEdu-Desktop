@@ -108,10 +108,9 @@ public class ProfileController {
         } catch (Exception ignored) {}
 
         if (this.gameState == null && profileUser != null) {
-            this.gameState = UserGameState.builder()
-                    .user(profileUser)
-                    .level(1).xp(0).heartCount(3)
-                    .build();
+            // Keep defaults consistent with new accounts (e.g. starting tokens).
+            this.gameState = UserGameState.newDefault();
+            profileUser.setGameState(this.gameState);
         }
         bindUI();
     }
