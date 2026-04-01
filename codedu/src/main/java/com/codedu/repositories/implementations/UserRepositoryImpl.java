@@ -22,15 +22,35 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     }
 
     @Override
+    public Optional<User> findByUsernameWithAchievements(String username) {
+        try {
+            User user = entityManager
+                    .createQuery(
+                            "SELECT u FROM User u " +
+                                    "LEFT JOIN FETCH u.gameState gs " +
+                                    "LEFT JOIN FETCH gs.achievements " +
+                                    "WHERE u.username = :username AND u.isDeleted = false",
+                            User.class)
+                    .setParameter("username", username)
+                    .getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<User> findByEmail(String email) {
         try {
             User user = entityManager
-                    .createQuery("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = false", User.class)
+                    .createQuery(
+                            "SELECT u FROM User u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email)) AND u.isDeleted = false",
+                            User.class)
                     .setParameter("email", email)
                     .getSingleResult();
             return Optional.of(user);
         } catch (NoResultException e) {
-            return Optional.empty(); // Returns empty if no user is found with this email
+            return Optional.empty();
         }
     }
 
@@ -50,7 +70,10 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByEmail(String email) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
+        Long count = entityManager
+                .createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email)) AND u.isDeleted = false",
+                        Long.class)
                 .setParameter("email", email)
                 .getSingleResult();
         return count > 0;
@@ -58,7 +81,10 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByUsername(String username) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
+        Long count = entityManager
+                .createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE u.username = :username AND u.isDeleted = false",
+                        Long.class)
                 .setParameter("username", username)
                 .getSingleResult();
         return count > 0;

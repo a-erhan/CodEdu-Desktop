@@ -24,12 +24,11 @@ public class Achievement extends BaseEntity {
 
     private String criteria;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "badge_id")
     private Badge badge;
 
     @ManyToMany(mappedBy = "achievements", fetch = FetchType.LAZY)
     private List<UserGameState> users = new ArrayList<>();
-
 
 }

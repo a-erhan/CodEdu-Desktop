@@ -1,5 +1,6 @@
 package com.codedu.models.learning;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,9 @@ public class CodeImplementationQuestion extends Question {
     @Column(columnDefinition = "TEXT")
     private String boilerplateCode;
 
+    // Excluded from STOMP serialisation: lazily loaded, not needed on the wire.
+    // The JavaFX client reloads the full question from the DB by ID after match found.
+    @JsonIgnore
     @OneToMany(mappedBy = "ques", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestCase> testCases = new ArrayList<>();
 

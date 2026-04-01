@@ -2,7 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.User;
-import com.codedu.services.AuthService;
+import com.codedu.services.interfaces.AuthService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -64,11 +64,7 @@ public class RegisterController {
             return;
         }
 
-        // Derive username from email (e.g., "john.doe" from "john.doe@example.com")
-        String username = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
-
-        // Attempt to register the user via AuthService
-        String registrationResult = authService.register(username, email, password);
+        String registrationResult = authService.register(email, password);
 
         // If registration fails (e.g., email already exists), show the error and stop
         if (!"SUCCESS".equals(registrationResult)) {

@@ -1,5 +1,6 @@
 package com.codedu;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import jakarta.annotation.PostConstruct;
 import javax.sql.DataSource;
@@ -7,6 +8,7 @@ import java.sql.Connection;
 import java.sql.Statement;
 
 @Component
+@ConditionalOnProperty(name = "app.db.run-on-startup-fix", havingValue = "true")
 public class DatabaseFix {
     private final DataSource dataSource;
 

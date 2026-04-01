@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/25"
@@ -10,15 +11,29 @@
       alignment="TOP_CENTER" spacing="20" maxWidth="900">
 
     <padding>
-        <Insets top="10" right="0" bottom="10" left="0"/>
+        <Insets top="20" right="0" bottom="10" left="0"/>
     </padding>
 
     <Label fx:id="titleLabel" text="Achievements"/>
     <Label fx:id="subtitleLabel"
            text="Celebrate your progress with medium‑term learning achievements."
-           wrapText="true"/>
+           wrapText="true"
+           alignment="CENTER"/>
 
-    <VBox fx:id="achievementList" spacing="16" fillWidth="true"/>
+    <ScrollPane fitToWidth="true"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <content>
+            <VBox fx:id="achievementList" spacing="16" fillWidth="true">
+                <padding>
+                    <Insets left="20" right="20" bottom="20"/>
+                </padding>
+            </VBox>
+        </content>
+    </ScrollPane>
 
 </VBox>
+
+
 

@@ -27,17 +27,4 @@ public class LearningPath extends BaseEntity {
     @Builder.Default
     private List<Chapter> chapters = new ArrayList<>();
 
-    public boolean isCompleted(User user) {
-        if (chapters == null || chapters.isEmpty()) {
-            return false;
-        }
-
-        for (Chapter chapter : chapters) {
-            if (chapter == null || !chapter.isCompleted()) {
-                return false;
-            }
-        }
-
-        return true;
-    }
 }

@@ -2,7 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.user.User;
-import com.codedu.services.UserService; // Bunu kendi projene göre uyarla
+import com.codedu.services.interfaces.UserService;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

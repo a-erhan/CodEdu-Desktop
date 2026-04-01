@@ -1,6 +1,7 @@
 package com.codedu.repositories.implementations;
 
 import com.codedu.models.gamification.Achievement;
+import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.AchievementRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;

@@ -3,7 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.learning.DailyChallenge;
 import com.codedu.models.learning.Question;
-import com.codedu.services.DailyChallengeService;
+import com.codedu.services.interfaces.DailyChallengeService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 public class DailyChallengeController {
 
     @FXML
+    private javafx.scene.control.Button btnBack;
+    @FXML
     private Label titleLabel;
     @FXML
     private Label subtitleLabel;
@@ -23,8 +25,11 @@ public class DailyChallengeController {
     private VBox challengeList;
     private final DailyChallengeService dailyChallengeService;
     private DailyChallenge todayChallenge;
+    // Callback to return to previous view
+    private Runnable onBack;
 
-    // 2. Artık karta tıklayınca tüm görevi değil, tıklanan o özel "Soruyu (Question)" başlatacağız
+    // 2. Artık karta tıklayınca tüm görevi değil, tıklanan o özel "Soruyu
+    // (Question)" başlatacağız
     private Consumer<Question> onStartQuestion;
 
     // Spring Boot Dependency Injection (Constructor Injection)
@@ -37,8 +42,18 @@ public class DailyChallengeController {
         buildChallenges();
     }
 
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+    }
+
     @FXML
     public void initialize() {
+        if (btnBack != null) {
+            btnBack.setOnAction(e -> {
+                if (onBack != null)
+                    onBack.run();
+            });
+        }
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
@@ -51,13 +66,27 @@ public class DailyChallengeController {
     }
 
     private void buildChallenges() {
-        if (challengeList == null || todayChallenge == null) {
+        if (challengeList == null) {
             return;
         }
         challengeList.getChildren().clear();
 
-        if (titleLabel != null) titleLabel.setText(todayChallenge.getName());
-        if (subtitleLabel != null) subtitleLabel.setText(todayChallenge.getDescription());
+        if (todayChallenge == null) {
+            if (titleLabel != null)
+                titleLabel.setText("No Challenge Today");
+            if (subtitleLabel != null)
+                subtitleLabel.setText("Check back later or explore other sections!");
+
+            Label emptyLabel = new Label("We couldn't find any questions for today's challenge.");
+            emptyLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
+            challengeList.getChildren().add(emptyLabel);
+            return;
+        }
+
+        if (titleLabel != null)
+            titleLabel.setText(todayChallenge.getName());
+        if (subtitleLabel != null)
+            subtitleLabel.setText(todayChallenge.getDescription());
 
         List<Question> questions = todayChallenge.getQuestions();
 
@@ -75,7 +104,7 @@ public class DailyChallengeController {
             Label chTitle = new Label("Task " + questionNumber + " - " + q.getQuestionType());
             chTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            Label chBody = new Label("Difficulty: " + q.getQuestionDifficulity() + " level algorithm challenge.");
+            Label chBody = new Label("Difficulty: " + q.getQuestionDifficulty() + " level algorithm challenge.");
             chBody.setWrapText(true);
 
             Label chMeta = new Label(xpPerQuestion + " XP");

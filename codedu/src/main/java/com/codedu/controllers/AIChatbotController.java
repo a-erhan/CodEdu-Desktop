@@ -1,7 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.services.AIChatbotService;
+import com.codedu.services.interfaces.AIChatbotService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -11,7 +11,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Controller
 public class AIChatbotController {
@@ -45,8 +49,12 @@ public class AIChatbotController {
 
     private int remainingRequests = 3;
 
-    // --- Backend Service ---
-    private final AIChatbotService geminiAiService = new AIChatbotService();
+    private final AIChatbotService geminiAiService;
+
+    @Autowired
+    public AIChatbotController(AIChatbotService geminiAiService) {
+        this.geminiAiService = geminiAiService;
+    }
 
     public void setRemainingRequests(int remainingRequests) {
         this.remainingRequests = remainingRequests;
@@ -77,7 +85,6 @@ public class AIChatbotController {
 
         if (askButton != null) {
             askButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
-            // Link the button to our handleAsk method
             askButton.setOnAction(e -> handleAsk());
         }
 
@@ -117,10 +124,8 @@ public class AIChatbotController {
             return;
         }
 
-        // 1. Disable button while processing to prevent multiple requests
         askButton.setDisable(true);
 
-        // 2. Add user message to chat UI
         VBox userBubble = new VBox(2);
         userBubble.setAlignment(Pos.TOP_LEFT);
 
@@ -138,7 +143,6 @@ public class AIChatbotController {
         userBubble.getChildren().addAll(who, body);
         chatList.getChildren().add(userBubble);
 
-        // 3. Create AI bubble with a "Thinking..." state
         VBox aiBubble = new VBox(2);
         aiBubble.setAlignment(Pos.TOP_LEFT);
         aiBubble.setPadding(new Insets(6, 0, 0, 0));
@@ -152,7 +156,6 @@ public class AIChatbotController {
         aiBubble.getChildren().addAll(aiWho, aiBody);
         chatList.getChildren().add(aiBubble);
 
-        // 4. Construct the full prompt for the API
         StringBuilder fullPrompt = new StringBuilder();
         fullPrompt.append("User Question: ").append(question).append("\n\n");
         if (!tags.isEmpty())
@@ -161,7 +164,6 @@ public class AIChatbotController {
             fullPrompt.append("Provided Code:\n```java\n").append(code).append("\n```\n");
         fullPrompt.append("\nPlease provide a helpful, educational response.");
 
-        // 5. Run the API call in a background thread
         Task<String> aiTask = new Task<>() {
             @Override
             protected String call() {
@@ -169,15 +171,18 @@ public class AIChatbotController {
             }
         };
 
-        // 6. When the response arrives, update the UI
         aiTask.setOnSucceeded(event -> {
-            aiBody.setText(aiTask.getValue()); // Set the real answer
+            String responseTxt = aiTask.getValue();
+            aiBody.setText(responseTxt);
 
-            // Consume one request only on success
+            String codeBlock = extractCode(responseTxt);
+            if (codeBlock != null && codeArea != null) {
+                codeArea.setText(codeBlock);
+            }
+
             remainingRequests = Math.max(0, remainingRequests - 1);
             updateRequestsLabel();
 
-            // Clear inputs for the next question
             questionArea.clear();
             if (tagsField != null)
                 tagsField.clear();
@@ -185,13 +190,22 @@ public class AIChatbotController {
             updateAskButtonState();
         });
 
-        // 7. Handle network or API errors
         aiTask.setOnFailed(event -> {
             aiBody.setText("Connection Error: Could not reach the AI Tutor.");
-            updateAskButtonState(); // Re-enable button so they can try again
+            updateAskButtonState();
         });
 
-        // Start the background thread
         new Thread(aiTask).start();
+    }
+
+    private String extractCode(String response) {
+        if (response == null)
+            return null;
+        Pattern pattern = Pattern.compile("```(?:java)?\\n?(.*?)```", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(response);
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+        return null;
     }
 }

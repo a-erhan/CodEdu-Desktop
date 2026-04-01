@@ -3,7 +3,7 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.dtos.forumpost.*;
 import com.codedu.models.user.User;
-import com.codedu.services.ForumService;
+import com.codedu.services.interfaces.ForumService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -21,30 +21,37 @@ import java.util.function.Consumer;
 @Scope("prototype")
 public class ForumController {
 
-    @FXML private Label titleLabel;
-    @FXML private VBox newPostCard;
-    @FXML private TextField newPostTitleField;
-    @FXML private TextArea newPostBodyArea;
-    @FXML private Button postButton;
-    @FXML private VBox threadList;
-    @FXML private VBox selectedPostCard;
-    @FXML private Label selectedTitle;
-    @FXML private Label selectedMeta;
-    @FXML private TextArea selectedContent;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private VBox newPostCard;
+    @FXML
+    private TextField newPostTitleField;
+    @FXML
+    private TextArea newPostBodyArea;
+    @FXML
+    private Button postButton;
+    @FXML
+    private VBox threadList;
+    @FXML
+    private VBox selectedPostCard;
+    @FXML
+    private Label selectedTitle;
+    @FXML
+    private Label selectedMeta;
+    @FXML
+    private TextArea selectedContent;
 
-    // Now using the Record DTOs instead of Entities
     private List<ForumPostListDto> posts = new ArrayList<>();
     private User currentUser;
-    private Consumer<Integer> onOpenPost; // Passing ID instead of Entity
+    private Consumer<Integer> onOpenPost;
+    private Consumer<String> onOpenProfile;
 
     @Autowired
     private ForumService forumService;
 
-    // --- Lifecycle & Initialization ---
-
     @FXML
     public void initialize() {
-        // Applying AtlantaFX Styles Manually (This adds a lot of "noise")
         if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
 
         if (newPostCard != null) {
@@ -70,16 +77,12 @@ public class ForumController {
         loadPostsFromDatabase(() -> buildThreads(false));
     }
 
-    // --- Data Management ---
-
     private void loadPostsFromDatabase(Runnable onSuccess) {
         CompletableFuture.supplyAsync(() -> forumService.getAllMainPosts())
-                .thenAccept(result -> {
-                    Platform.runLater(() -> {
-                        this.posts = result;
-                        if (onSuccess != null) onSuccess.run();
-                    });
-                })
+                .thenAccept(result -> Platform.runLater(() -> {
+                    this.posts = result;
+                    if (onSuccess != null) onSuccess.run();
+                }))
                 .exceptionally(ex -> {
                     ex.printStackTrace();
                     return null;
@@ -92,7 +95,6 @@ public class ForumController {
 
         if (this.currentUser == null || title.isEmpty() || body.isEmpty()) return;
 
-        // Creating the Record using the Builder
         ForumPostCreateDto createDto = ForumPostCreateDto.builder()
                 .title(title)
                 .content(body)
@@ -108,8 +110,6 @@ public class ForumController {
                 }));
     }
 
-    // --- UI Construction (The "Crowded" Part) ---
-
     private void buildThreads(boolean loadFromDb) {
         if (loadFromDb) {
             loadPostsFromDatabase(() -> buildThreads(false));
@@ -119,27 +119,35 @@ public class ForumController {
         threadList.getChildren().clear();
 
         for (ForumPostListDto post : posts) {
-            // Manually creating the UI "Card"
             VBox card = new VBox(6);
             card.setAlignment(Pos.TOP_LEFT);
             card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
             card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.INTERACTIVE);
 
-            Label postTitle = new Label(post.title()); // Record Accessor
+            Label postTitle = new Label(post.title());
             postTitle.getStyleClass().add(Styles.TEXT_BOLD);
 
-            Label meta = new Label("By " + post.authorUsername() + " • " + post.replyCount() + " replies");
+            String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
+            Label meta = new Label("By " + authorName + " • " + post.replyCount() + " replies");
             meta.getStyleClass().add(Styles.TEXT_SUBTLE);
 
-            card.getChildren().addAll(postTitle, meta);
+            if (post.authorUsername() != null) {
+                meta.setOnMouseClicked(e -> {
+                    if (onOpenProfile != null) onOpenProfile.accept(post.authorUsername());
+                    e.consume();
+                });
+                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
+                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
+            }
 
-            // Interaction logic
+            Label snippet = new Label(truncate(post.content(), 120));
+            snippet.setWrapText(true);
+
+            card.getChildren().addAll(postTitle, meta, snippet);
+
             card.setOnMouseClicked(e -> {
-                if (onOpenPost != null) {
-                    onOpenPost.accept(post.id());
-                } else {
-                    fetchAndShowPost(post.id());
-                }
+                if (onOpenPost != null) onOpenPost.accept(post.id());
+                else fetchAndShowPost(post.id());
             });
 
             threadList.getChildren().add(card);
@@ -153,22 +161,24 @@ public class ForumController {
                     selectedMeta.setText("Posted by " + detailDto.authorUsername());
                     selectedContent.setText(detailDto.content());
                 }))
-                .exceptionally(ex -> { ex.printStackTrace(); return null; });
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+    }
+
+    private String truncate(String text, int length) {
+        if (text == null || text.length() <= length) return text;
+        return text.substring(0, length).replace("\n", " ") + "...";
     }
 
     private void updatePostButtonState() {
-        boolean disable = newPostTitleField.getText().trim().isEmpty()
-                || newPostBodyArea.getText().trim().isEmpty();
+        if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
+        boolean disable = newPostTitleField.getText().trim().isEmpty() || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
     }
 
-    // --- Setters for Navigation ---
-
-    public void setCurrentUser(User user) {
-        this.currentUser = user;
-    }
-
-    public void setOnOpenPost(Consumer<Integer> onOpenPost) {
-        this.onOpenPost = onOpenPost;
-    }
+    public void setCurrentUser(User user) { this.currentUser = user; }
+    public void setOnOpenPost(Consumer<Integer> onOpenPost) { this.onOpenPost = onOpenPost; }
+    public void setOnOpenProfile(Consumer<String> onOpenProfile) { this.onOpenProfile = onOpenProfile; }
 }

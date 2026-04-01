@@ -17,7 +17,9 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import com.codedu.services.interfaces.UserService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -39,9 +41,16 @@ public class StoreController {
     private User user;
     private final List<Item> allItems = new ArrayList<>();
 
+    @Autowired
+    private UserService userService;
+
     public void setUserModel(User user) {
+        if (user == null)
+            return;
         this.user = user;
-        storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
+        if (user.getGameState() != null) {
+            storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
+        }
         loadMockItems();
         markOwnedItemsFromInventory();
         buildGrid();
@@ -53,7 +62,8 @@ public class StoreController {
         }
         for (InventoryItem inv : user.getInventory().getItems()) {
             Item invItem = inv.getItem();
-            if (invItem == null || invItem.getName() == null) continue;
+            if (invItem == null || invItem.getName() == null)
+                continue;
             for (Item storeItem : allItems) {
                 if (storeItem.getName() != null &&
                         storeItem.getName().equalsIgnoreCase(invItem.getName())) {
@@ -64,6 +74,7 @@ public class StoreController {
     }
 
     private void loadMockItems() {
+        allItems.clear();
         // Avatars
         allItems.add(new Item("Ninja Coder", "A stealthy coding warrior", "", 200, ItemType.AVATAR));
         allItems.add(new Item("Robot Dev", "Automated perfection", "", 300, ItemType.AVATAR));
@@ -158,8 +169,21 @@ public class StoreController {
                         user.getGameState().hasEnoughTokens(item.getPrice())) {
 
                     user.getGameState().setTokenBalance(
-                            user.getGameState().getTokenBalance() - item.getPrice()
-                    );
+                            user.getGameState().getTokenBalance() - item.getPrice());
+
+                    // Actually add to inventory
+                    if (user.getInventory() == null) {
+                        user.setInventory(new com.codedu.models.user.UserInventory());
+                    }
+                    InventoryItem invItem = InventoryItem.builder()
+                            .item(item)
+                            .quantity(1)
+                            .inventory(user.getInventory())
+                            .build();
+                    user.getInventory().addItem(invItem);
+
+                    // Persist
+                    userService.saveUser(user);
 
                     item.setOwned(true);
                     buyBtn.setText("Owned");

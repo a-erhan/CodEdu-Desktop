@@ -4,7 +4,7 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
-import com.codedu.services.LeaderBoardService;
+import com.codedu.services.interfaces.LeaderBoardService;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -58,7 +58,6 @@ public class LeaderboardController {
         buildLeaderboard();
     }
 
-
     @FXML
     public void initialize() {
         if (titleLabel != null) {
@@ -87,9 +86,9 @@ public class LeaderboardController {
         if (leaderboard == null || boardList == null || myCard == null) {
             return;
         }
-        List<Competitor> competitors = leaderboard.getCompetitors();
+        List<Competitor> rawCompetitors = leaderboard.getCompetitors();
 
-        if (competitors == null || competitors.isEmpty()) {
+        if (rawCompetitors == null || rawCompetitors.isEmpty()) {
             myCard.getChildren().clear();
             boardList.getChildren().clear();
             Label emptyLabel = new Label("No one to show!");
@@ -98,10 +97,24 @@ public class LeaderboardController {
             return;
         }
 
-        int myRank = leaderboard.getUserRank();
+        List<Competitor> competitors = new java.util.ArrayList<>(rawCompetitors);
+        competitors.sort((c1, c2) -> Integer.compare(c2.getRankingPoint(), c1.getRankingPoint()));
+
         int total = competitors.size();
-        int myIndex = Math.max(0, Math.min(total - 1, myRank - 1));
-        Competitor me = competitors.get(myIndex);
+        int myIndex = -1;
+        if (currentUser != null) {
+            for (int i = 0; i < competitors.size(); i++) {
+                Competitor c = competitors.get(i);
+                if (c.getUser() != null && c.getUser().getId() == currentUser.getId()) {
+                    myIndex = i;
+                    break;
+                }
+            }
+        }
+
+        boolean isUnranked = (myIndex == -1);
+        int myRank = isUnranked ? -1 : myIndex + 1;
+        Competitor me = isUnranked ? null : competitors.get(myIndex);
 
         myCard.getChildren().clear();
         myCard.setAlignment(javafx.geometry.Pos.CENTER);
@@ -111,13 +124,16 @@ public class LeaderboardController {
                 Styles.BORDERED,
                 Styles.ROUNDED,
                 Styles.BG_ACCENT_SUBTLE,
-                Styles.ELEVATED_1
-        );
+                Styles.ELEVATED_1);
 
         VBox gapContainer = new VBox(5);
         gapContainer.setAlignment(javafx.geometry.Pos.CENTER);
 
-        if (myIndex > 0) {
+        if (isUnranked) {
+            Label topLabel = new Label("Play a match to get ranked!");
+            topLabel.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 11px; -fx-font-style: italic;");
+            gapContainer.getChildren().add(topLabel);
+        } else if (myIndex > 0) {
             Competitor playerAbove = competitors.get(myIndex - 1);
             int gap = playerAbove.getRankingPoint() - me.getRankingPoint();
 
@@ -140,26 +156,26 @@ public class LeaderboardController {
             gapContainer.getChildren().add(topLabel);
         }
 
-        String myName = me.getUser() != null && me.getUser().getUsername() != null
+        String myName = (me != null && me.getUser() != null && me.getUser().getUsername() != null)
                 ? me.getUser().getUsername()
-                : "You";
+                : (currentUser != null && currentUser.getUsername() != null ? currentUser.getUsername() : "You");
 
         Label myTitleLabel = new Label("Your position:");
         myTitleLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
-        Label myRankText = new Label("#" + myRank + " of " + total);
+        Label myRankText = new Label(isUnranked ? "Unranked" : "#" + myRank + " of " + total);
         myRankText.getStyleClass().add(Styles.TITLE_3);
         myRankText.setAlignment(javafx.geometry.Pos.CENTER);
 
         HBox myStatsBox = new HBox(10);
         myStatsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        Label myXp = new Label(me.getRankingPoint() + " XP");
+        Label myXp = new Label((me != null ? me.getRankingPoint() : 0) + " XP");
         myXp.setStyle("-fx-font-weight: bold;");
 
         Label mySep = new Label("|");
 
-        Label myWin = new Label(String.format("%.0f", me.getWinRate()) + "% Win Rate");
+        Label myWin = new Label((me != null ? String.format("%.0f", me.getWinRate()) : "0") + "% Win Rate");
         myWin.setStyle("-fx-font-weight: bold;");
 
         myStatsBox.getChildren().addAll(myXp, mySep, myWin);
@@ -190,7 +206,6 @@ public class LeaderboardController {
             line.setStyle(baseStyle);
             final String finalBaseStyle = baseStyle;
 
-
             int levelVal = (c.getRankingPoint() / 1000) + 1;
             Label levelBadge = new Label("Lvl " + levelVal);
             levelBadge.setStyle(
@@ -200,8 +215,7 @@ public class LeaderboardController {
                             "-fx-background-radius: 10; " +
                             "-fx-font-size: 9px; " +
                             "-fx-font-weight: bold; " +
-                            "-fx-opacity: 0.8;"
-            );
+                            "-fx-opacity: 0.8;");
 
             line.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
                 @Override
@@ -221,6 +235,12 @@ public class LeaderboardController {
                 }
             });
 
+            line.setOnMouseClicked(e -> {
+                if (onOpenProfile != null) {
+                    onOpenProfile.accept(c, competitors);
+                }
+            });
+
             Label pos = new Label("#" + String.valueOf(i + 1));
             pos.getStyleClass().add(Styles.TEXT_BOLD);
 
@@ -228,11 +248,9 @@ public class LeaderboardController {
             posIcon.setMinWidth(30);
             if (i == 0) {
                 pos.setStyle("-fx-text-fill: #FFD700;");
-            }
-            else if (i == 1) {
+            } else if (i == 1) {
                 pos.setStyle("-fx-text-fill: #C0C0C0;");
-            }
-            else if (i == 2) {
+            } else if (i == 2) {
                 pos.setStyle("-fx-text-fill: #CD7F32;");
             }
 
@@ -259,4 +277,3 @@ public class LeaderboardController {
         }
     }
 }
-
