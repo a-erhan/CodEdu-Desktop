@@ -68,6 +68,17 @@ public class UserGameState extends BaseEntity {
         return (this.level * 1000) - this.xp;
     }
 
+    public void addXpAndResolveLevelUps(int xpDelta) {
+        if (xpDelta <= 0) {
+            return;
+        }
+        this.xp += xpDelta;
+        while (this.xp >= (this.level * 1000)) {
+            this.xp -= (this.level * 1000);
+            this.level += 1;
+        }
+    }
+
     public boolean hasEnoughTokens(int amount) {
         return this.tokenBalance >= amount;
     }

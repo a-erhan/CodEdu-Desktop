@@ -21,7 +21,6 @@
             <Label text="Spend your tokens on avatars, themes, power-ups and more."/>
         </VBox>
         <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="storeTokenLabel" text="Tokens: 0"/>
     </HBox>
 
     <!-- Scrollable item grid -->

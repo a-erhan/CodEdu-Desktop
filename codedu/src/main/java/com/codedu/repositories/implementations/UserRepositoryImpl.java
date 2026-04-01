@@ -89,4 +89,21 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
                 .getSingleResult();
         return count > 0;
     }
+
+    @Override
+    public Optional<User> findByIdWithInventoryAndGameState(int id) {
+        return entityManager
+                .createQuery(
+                        "SELECT DISTINCT u FROM User u " +
+                                "LEFT JOIN FETCH u.gameState gs " +
+                                "LEFT JOIN FETCH u.inventory inv " +
+                                "LEFT JOIN FETCH inv.items ii " +
+                                "LEFT JOIN FETCH ii.item it " +
+                                "WHERE u.id = :id AND u.isDeleted = false",
+                        User.class
+                )
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst();
+    }
 }

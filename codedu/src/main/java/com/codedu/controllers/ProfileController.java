@@ -42,12 +42,10 @@ public class ProfileController {
     @FXML private Label badgeDisplay;
     @FXML private ProgressBar profileXpBar;
     @FXML private Label profileXpLabel;
-    @FXML private Label profileTokenLabel;
     @FXML private Label profileItemsLabel;
     @FXML private VBox avatarsSection;
     @FXML private VBox avatarCard; 
     @FXML private VBox xpCard;
-    @FXML private VBox tokensCard;
     @FXML private VBox itemsCard;
     @FXML private Button addFriendButton;
     @FXML private Label noAvatarsLabel;
@@ -157,13 +155,12 @@ public class ProfileController {
     }
 
     private void bindStats() {
-        int level = 1, xp = 0, targetXp = 1000, tokens = 0, items = 0;
+        int level = 1, xp = 0, targetXp = 1000, items = 0;
 
         if (gameState != null) {
             level = gameState.getLevel();
             xp = gameState.getXp();
             targetXp = gameState.getXpToNextLevel() > 0 ? gameState.getXpToNextLevel() : level * 1000;
-            tokens = gameState.getTokenBalance();
         }
 
         if (profileUser != null && profileUser.getInventory() != null) {
@@ -175,8 +172,6 @@ public class ProfileController {
         profileXpBar.setProgress(progress);
         profileXpLabel.setText(xp + " / " + targetXp + " XP");
         
-        profileTokenLabel.setText(String.valueOf(tokens));
-        profileTokenLabel.setStyle("-fx-text-fill: #F1C40F;");
         profileItemsLabel.setText(String.valueOf(items));
     }
 
@@ -267,7 +262,7 @@ public class ProfileController {
         }
         
         // Dashboard Cards (XP, Tokens, Items) with Hover Effects
-        VBox[] dashboardCards = {xpCard, tokensCard, itemsCard};
+        VBox[] dashboardCards = {xpCard, itemsCard};
         for (VBox card : dashboardCards) {
             if (card == null) continue;
             

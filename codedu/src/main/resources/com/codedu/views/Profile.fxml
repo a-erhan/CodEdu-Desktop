@@ -44,12 +44,6 @@
                     <Label fx:id="profileXpLabel" styleClass="text-small, text-muted"/>
                 </VBox>
                 
-                <VBox fx:id="tokensCard" spacing="8" alignment="CENTER" minWidth="150">
-                    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-                    <Label text="Tokens" styleClass="text-caption"/>
-                    <Label fx:id="profileTokenLabel" styleClass="title-2, text-bold"/>
-                </VBox>
-                
                 <VBox fx:id="itemsCard" spacing="8" alignment="CENTER" minWidth="150">
                     <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
                     <Label text="Items" styleClass="text-caption"/>

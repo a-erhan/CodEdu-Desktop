@@ -1,10 +1,11 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
+import com.codedu.services.interfaces.InventoryItemService;
+import com.codedu.services.interfaces.StoreService;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -19,12 +20,12 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import com.codedu.services.interfaces.UserService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Controller for the Store view.
@@ -35,64 +36,44 @@ public class StoreController {
 
     @FXML
     private VBox storeContent;
-    @FXML
-    private Label storeTokenLabel;
 
     private User user;
-    private final List<Item> allItems = new ArrayList<>();
+    private List<Item> allItems = List.of();
+    private Consumer<User> onUserUpdated;
 
     @Autowired
-    private UserService userService;
+    private StoreService storeService;
+
+    @Autowired
+    private InventoryItemService inventoryItemService;
+
+    public void setOnUserUpdated(Consumer<User> onUserUpdated) {
+        this.onUserUpdated = onUserUpdated;
+    }
 
     public void setUserModel(User user) {
         if (user == null)
             return;
+        // Keep Store and Inventory separate:
+        // Store shows a catalog (Store / Items), Inventory shows the user's owned items (InventoryItem).
+        // This method only marks catalog items as owned if the user has them in inventory.
         this.user = user;
-        if (user.getGameState() != null) {
-            storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
-        }
-        loadMockItems();
+        allItems = storeService.getCatalogItems();
         markOwnedItemsFromInventory();
         buildGrid();
     }
 
     private void markOwnedItemsFromInventory() {
-        if (user.getInventory() == null || user.getInventory().getItems() == null) {
+        if (user == null || user.getId() <= 0) {
             return;
         }
-        for (InventoryItem inv : user.getInventory().getItems()) {
-            Item invItem = inv.getItem();
-            if (invItem == null || invItem.getName() == null)
+        for (Item storeItem : allItems) {
+            if (storeItem == null || storeItem.getId() <= 0) {
                 continue;
-            for (Item storeItem : allItems) {
-                if (storeItem.getName() != null &&
-                        storeItem.getName().equalsIgnoreCase(invItem.getName())) {
-                    storeItem.setOwned(true);
-                }
             }
+            boolean owned = inventoryItemService.findByUserAndItem(user, storeItem).isPresent();
+            storeItem.setOwned(owned);
         }
-    }
-
-    private void loadMockItems() {
-        allItems.clear();
-        // Avatars
-        allItems.add(new Item("Ninja Coder", "A stealthy coding warrior", "", 200, ItemType.AVATAR));
-        allItems.add(new Item("Robot Dev", "Automated perfection", "", 300, ItemType.AVATAR));
-        allItems.add(new Item("Wizard Hacker", "Magic meets code", "", 250, ItemType.AVATAR));
-        allItems.add(new Item("Astronaut", "Code among the stars", "", 350, ItemType.AVATAR));
-        allItems.add(new Item("Dragon Master", "Legendary beast tamer", "", 500, ItemType.AVATAR));
-
-        // Power-ups
-        allItems.add(new Item("Double XP (1h)", "Earn double XP for 1 hour", "", 150, ItemType.BOOSTER));
-        allItems.add(new Item("Hint Token", "Get a free hint on any challenge", "", 100,
-                ItemType.BOOSTER));
-        allItems.add(new Item("Streak Shield", "Protect your streak for one day", "", 200,
-                ItemType.BOOSTER));
-
-        // AI Usage
-        allItems.add(new Item("AI Usage", "Get AI-powered feedback on your code", "", 120,
-                ItemType.AI_USAGE));
-
     }
 
     private void buildGrid() {
@@ -168,30 +149,20 @@ public class StoreController {
                         user.getGameState() != null &&
                         user.getGameState().hasEnoughTokens(item.getPrice())) {
 
-                    user.getGameState().setTokenBalance(
-                            user.getGameState().getTokenBalance() - item.getPrice());
-
-                    // Actually add to inventory
-                    if (user.getInventory() == null) {
-                        user.setInventory(new com.codedu.models.user.UserInventory());
+                    // Do purchase inside a transaction (prevents LazyInitializationException)
+                    User updated = storeService.purchaseItem(user.getId(), item.getId()).orElse(null);
+                    if (updated != null) {
+                        user = updated;
                     }
-                    InventoryItem invItem = InventoryItem.builder()
-                            .item(item)
-                            .quantity(1)
-                            .inventory(user.getInventory())
-                            .build();
-                    user.getInventory().addItem(invItem);
-
-                    // Persist
-                    userService.saveUser(user);
 
                     item.setOwned(true);
                     buyBtn.setText("Owned");
                     buyBtn.getStyleClass().clear();
                     buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
                     buyBtn.setOnAction(null);
-
-                    storeTokenLabel.setText("Tokens: " + user.getGameState().getTokenBalance());
+                    if (onUserUpdated != null) {
+                        onUserUpdated.accept(user);
+                    }
 
                     // Purchase animation
                     ScaleTransition st = new ScaleTransition(Duration.millis(200), card);

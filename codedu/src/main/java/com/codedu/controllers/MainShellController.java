@@ -356,6 +356,14 @@ public class MainShellController {
             Parent view = loader.load();
             StoreController controller = loader.getController();
             controller.setUserModel(user);
+            controller.setOnUserUpdated(updated -> {
+                if (updated == null) {
+                    return;
+                }
+                this.user = updated;
+                this.gameState = updated.getGameState();
+                updateHeader();
+            });
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
