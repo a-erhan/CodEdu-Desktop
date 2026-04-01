@@ -161,10 +161,10 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                         new StompSessionHandlerAdapter() {
                             @Override
                             public Type getPayloadType(StompHeaders headers) {
-                                // Use String so the STOMP converter never tries to
-                                // deserialize complex DTOs — avoids silent failures
-                                // caused by Question's @JsonTypeInfo hierarchy.
-                                return String.class;
+                                // Use byte[] so the STOMP converter delivers raw
+                                // bytes without any Jackson deserialization — avoids
+                                // silent failures caused by type mismatches.
+                                return byte[].class;
                             }
 
                             @Override
@@ -172,11 +172,12 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                                 System.out.println("[WS-Match] >>> handleFrame INVOKED!");
                                 System.out.println("[WS-Match] RAW PAYLOAD: " + payload);
                                 try {
-                                    String json = payload instanceof String
-                                            ? (String) payload
-                                            : new String((byte[]) payload);
+                                    String json = payload instanceof byte[]
+                                            ? new String((byte[]) payload, java.nio.charset.StandardCharsets.UTF_8)
+                                            : payload.toString();
 
                                     com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                                    mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
                                     mapper.configure(
                                             com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
                                             false);
@@ -254,7 +255,13 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
 
     private WebSocketStompClient buildStompClient() {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
-        client.setMessageConverter(new MappingJackson2MessageConverter());
+        org.springframework.messaging.converter.ByteArrayMessageConverter byteConverter =
+                new org.springframework.messaging.converter.ByteArrayMessageConverter();
+        MappingJackson2MessageConverter jacksonConverter = new MappingJackson2MessageConverter();
+        org.springframework.messaging.converter.CompositeMessageConverter composite =
+                new org.springframework.messaging.converter.CompositeMessageConverter(
+                        java.util.Arrays.asList(byteConverter, jacksonConverter));
+        client.setMessageConverter(composite);
         return client;
     }
 }
