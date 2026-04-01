@@ -24,7 +24,8 @@ public class Competitor extends BaseEntity {
     private int totalMatches;
 
     public double getWinRate() {
-        if (totalMatches == 0) return 0.0;
+        if (totalMatches == 0)
+            return 0.0;
         return (double) totalWins / totalMatches * 100;
     }
 }

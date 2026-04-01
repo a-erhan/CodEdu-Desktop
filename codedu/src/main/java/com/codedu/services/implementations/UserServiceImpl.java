@@ -165,10 +165,17 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isPresent()) {
             User u = userOpt.get();
-            if (u.getGameState() != null)
+            if (u.getGameState() != null) {
                 u.getGameState().getId();
-            if (u.getInventory() != null)
+                // Force initialization of lazy achievements collection
+                u.getGameState().getAchievements().size();
+            }
+            if (u.getInventory() != null) {
                 u.getInventory().getId();
+                if (u.getInventory().getItems() != null) {
+                    u.getInventory().getItems().size(); // Force load items
+                }
+            }
             if (u.getCompetitor() != null)
                 u.getCompetitor().getId();
         }

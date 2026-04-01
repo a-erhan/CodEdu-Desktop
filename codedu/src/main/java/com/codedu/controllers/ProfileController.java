@@ -37,27 +37,48 @@ public class ProfileController {
     private FriendshipUIManager friendshipUIManager;
 
     // ========== FXML bindings ==========
-    @FXML private Label avatarDisplay;
-    @FXML private Label usernameDisplay;
-    @FXML private Label badgeDisplay;
-    @FXML private ProgressBar profileXpBar;
-    @FXML private Label profileXpLabel;
-    @FXML private Label profileItemsLabel;
-    @FXML private VBox avatarsSection;
-    @FXML private VBox avatarCard; 
-    @FXML private VBox xpCard;
-    @FXML private VBox itemsCard;
-    @FXML private Button addFriendButton;
-    @FXML private Label noAvatarsLabel;
-    @FXML private FlowPane avatarGrid;
-    @FXML private VBox friendsSection;
-    @FXML private Label friendsSectionTitle;
-    @FXML private Label noFriendsLabel;
-    @FXML private VBox friendsList;
-    @FXML private VBox badgesSection;
-    @FXML private Label badgesSectionTitle;
-    @FXML private Label noBadgesLabel;
-    @FXML private FlowPane badgesContainer;
+    @FXML
+    private Label avatarDisplay;
+    @FXML
+    private Label usernameDisplay;
+    @FXML
+    private Label badgeDisplay;
+    @FXML
+    private ProgressBar profileXpBar;
+    @FXML
+    private Label profileXpLabel;
+    @FXML
+    private Label profileItemsLabel;
+    @FXML
+    private VBox avatarsSection;
+    @FXML
+    private VBox avatarCard;
+    @FXML
+    private VBox xpCard;
+    @FXML
+    private VBox itemsCard;
+    @FXML
+    private Button addFriendButton;
+    @FXML
+    private Label noAvatarsLabel;
+    @FXML
+    private FlowPane avatarGrid;
+    @FXML
+    private VBox friendsSection;
+    @FXML
+    private Label friendsSectionTitle;
+    @FXML
+    private Label noFriendsLabel;
+    @FXML
+    private VBox friendsList;
+    @FXML
+    private VBox badgesSection;
+    @FXML
+    private Label badgesSectionTitle;
+    @FXML
+    private Label noBadgesLabel;
+    @FXML
+    private FlowPane badgesContainer;
 
     // ========== State ==========
     private User currentUser;
@@ -84,6 +105,7 @@ public class ProfileController {
         this.gameState = gameState;
         if (profileUser != null) {
             bindStats();
+            bindBadgesSection(); // Refresh badges when state is set
         }
     }
 
@@ -105,7 +127,8 @@ public class ProfileController {
             if (profileUser != null) {
                 this.gameState = profileUser.getGameState();
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         if (this.gameState == null && profileUser != null) {
             // Keep defaults consistent with new accounts (e.g. starting tokens).
@@ -118,7 +141,8 @@ public class ProfileController {
     // ========== UI Binding ==========
 
     private void bindUI() {
-        if (profileUser == null) return;
+        if (profileUser == null)
+            return;
 
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
@@ -128,8 +152,9 @@ public class ProfileController {
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(100, 100);
         avatarDisplay.setShape(new Circle(50));
-        avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
-        
+        avatarDisplay.setStyle(
+                "-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+
         if (!avatarDisplay.getStyleClass().contains(Styles.TITLE_2)) {
             avatarDisplay.getStyleClass().add(Styles.TITLE_2);
         }
@@ -138,12 +163,11 @@ public class ProfileController {
         usernameDisplay.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-font-size: 26px;");
 
         profileXpBar.setStyle(
-            "-fx-accent: #D35400; " + 
-            "-fx-control-inner-background: #1E272E; " + 
-            "-fx-background-radius: 15; " + 
-            "-fx-border-radius: 15; " +
-            "-fx-min-height: 24;"
-        );
+                "-fx-accent: #D35400; " +
+                        "-fx-control-inner-background: #1E272E; " +
+                        "-fx-background-radius: 15; " +
+                        "-fx-border-radius: 15; " +
+                        "-fx-min-height: 24;");
 
         bindStats();
         bindBadgesSection();
@@ -163,19 +187,26 @@ public class ProfileController {
         }
 
         if (profileUser != null && profileUser.getInventory() != null) {
-            items = profileUser.getInventory().getItems() != null ? profileUser.getInventory().getItems().size() : 0;
+            try {
+                items = profileUser.getInventory().getItems() != null ? profileUser.getInventory().getItems().size()
+                        : 0;
+            } catch (Exception e) {
+                // Defensive fallback if initialization failed
+                items = 0;
+            }
         }
 
         badgeDisplay.setText("Level " + level);
         double progress = targetXp == 0 ? 0 : Math.min(1.0, (double) xp / targetXp);
         profileXpBar.setProgress(progress);
         profileXpLabel.setText(xp + " / " + targetXp + " XP");
-        
+
         profileItemsLabel.setText(String.valueOf(items));
     }
 
     private void bindBadgesSection() {
-        if (badgesSection == null || badgesContainer == null) return;
+        if (badgesSection == null || badgesContainer == null)
+            return;
 
         if (badgesSectionTitle != null && !badgesSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
             badgesSectionTitle.getStyleClass().add(Styles.TITLE_3);
@@ -196,17 +227,17 @@ public class ProfileController {
                 badgePod.setAlignment(Pos.CENTER);
                 badgePod.setPadding(new javafx.geometry.Insets(15));
                 badgePod.setPrefSize(110, 130);
-                
-                badgePod.setStyle(
-                    "-fx-background-color: rgba(255, 255, 255, 0.03); " +
-                    "-fx-background-radius: 20; " +
-                    "-fx-border-color: rgba(211, 84, 0, 0.3); " +
-                    "-fx-border-radius: 20; " +
-                    "-fx-border-width: 1;"
-                );
 
-                Label trophyIcon = new Label("🏆"); 
-                trophyIcon.setStyle("-fx-font-size: 32px; -fx-effect: dropshadow(two-pass-box, rgba(211, 84, 0, 0.4), 10, 0.5, 0, 0);");
+                badgePod.setStyle(
+                        "-fx-background-color: rgba(255, 255, 255, 0.03); " +
+                                "-fx-background-radius: 20; " +
+                                "-fx-border-color: rgba(211, 84, 0, 0.3); " +
+                                "-fx-border-radius: 20; " +
+                                "-fx-border-width: 1;");
+
+                Label trophyIcon = new Label("🏆");
+                trophyIcon.setStyle(
+                        "-fx-font-size: 32px; -fx-effect: dropshadow(two-pass-box, rgba(211, 84, 0, 0.4), 10, 0.5, 0, 0);");
 
                 Label badgeName = new Label(a.getName());
                 badgeName.setStyle("-fx-text-fill: -color-fg-default; -fx-font-size: 11px; -fx-font-weight: bold;");
@@ -228,7 +259,8 @@ public class ProfileController {
             friendsSection.setVisible(viewingSelf);
             friendsSection.setManaged(viewingSelf);
         }
-        if (viewingSelf && friendsSectionTitle != null && !friendsSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
+        if (viewingSelf && friendsSectionTitle != null
+                && !friendsSectionTitle.getStyleClass().contains(Styles.TITLE_3)) {
             friendsSectionTitle.getStyleClass().add(Styles.TITLE_3);
         }
 
@@ -244,51 +276,48 @@ public class ProfileController {
     }
 
     private void applyCardStyles() {
-        String smoothRadius = "22"; 
+        String smoothRadius = "22";
         String softerOrange = "#D35400";
-        
+
         // Avatar Card Main Style
         if (avatarCard != null) {
             avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
             avatarCard.setStyle(
-                "-fx-background-color: #1A1E23; " + 
-                "-fx-background-radius: " + smoothRadius + "; " +
-                "-fx-border-color: " + softerOrange + "; " +
-                "-fx-border-width: 1.5; " +
-                "-fx-border-radius: " + smoothRadius + "; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);" 
-            ); 
+                    "-fx-background-color: #1A1E23; " +
+                            "-fx-background-radius: " + smoothRadius + "; " +
+                            "-fx-border-color: " + softerOrange + "; " +
+                            "-fx-border-width: 1.5; " +
+                            "-fx-border-radius: " + smoothRadius + "; " +
+                            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);");
         }
-        
+
         // Dashboard Cards (XP, Tokens, Items) with Hover Effects
-        VBox[] dashboardCards = {xpCard, itemsCard};
+        VBox[] dashboardCards = { xpCard, itemsCard };
         for (VBox card : dashboardCards) {
-            if (card == null) continue;
-            
+            if (card == null)
+                continue;
+
             card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
             card.setStyle(
-                "-fx-background-color: #1E2329; " +
-                "-fx-border-color: #34495E; " + 
-                "-fx-border-width: 1.2; " +
-                "-fx-background-radius: " + smoothRadius + "; " +
-                "-fx-border-radius: " + smoothRadius + ";"
-            );
-            
+                    "-fx-background-color: #1E2329; " +
+                            "-fx-border-color: #34495E; " +
+                            "-fx-border-width: 1.2; " +
+                            "-fx-background-radius: " + smoothRadius + "; " +
+                            "-fx-border-radius: " + smoothRadius + ";");
+
             card.setOnMouseEntered(event -> card.setStyle(
-                "-fx-background-color: #242B33; " +
-                "-fx-border-color: " + softerOrange + "; " + 
-                "-fx-border-width: 1.2; " +
-                "-fx-background-radius: " + smoothRadius + "; " +
-                "-fx-border-radius: " + smoothRadius + ";"
-            ));
+                    "-fx-background-color: #242B33; " +
+                            "-fx-border-color: " + softerOrange + "; " +
+                            "-fx-border-width: 1.2; " +
+                            "-fx-background-radius: " + smoothRadius + "; " +
+                            "-fx-border-radius: " + smoothRadius + ";"));
 
             card.setOnMouseExited(event -> card.setStyle(
-                "-fx-background-color: #1E2329; " +
-                "-fx-border-color: #34495E; " + 
-                "-fx-border-width: 1.2; " +
-                "-fx-background-radius: " + smoothRadius + "; " +
-                "-fx-border-radius: " + smoothRadius + ";"
-            ));
+                    "-fx-background-color: #1E2329; " +
+                            "-fx-border-color: #34495E; " +
+                            "-fx-border-width: 1.2; " +
+                            "-fx-background-radius: " + smoothRadius + "; " +
+                            "-fx-border-radius: " + smoothRadius + ";"));
         }
     }
 }

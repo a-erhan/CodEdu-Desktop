@@ -11,4 +11,6 @@ public interface UserChapterProgressService {
     double calculateCompletionRate(UserChapterProgress progress);
 
     UserChapterProgress getProgress(User user, Chapter chapter);
+
+    UserChapterProgress getOrCreateProgress(User user, Chapter chapter);
 }

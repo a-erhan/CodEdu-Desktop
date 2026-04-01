@@ -14,9 +14,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// Prevent Jackson from traversing Hibernate lazy-proxy fields during STOMP serialisation.
+// Prevent Jackson from traversing Hibernate lazy-proxy fields during STOMP
+// serialisation.
 // 'hibernateLazyInitializer' and 'handler' are Hibernate proxy internals.
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory" })
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)
@@ -44,15 +45,12 @@ public class User extends BaseEntity {
     private Competitor competitor;
 
     /**
-     * Inverse side: FK {@code user_id} is stored on {@link UserGameState} ({@code user_game_states.user_id}).
+     * Inverse side: FK {@code user_id} is stored on {@link UserGameState}
+     * ({@code user_game_states.user_id}).
      * Use {@link #setGameState(UserGameState)} so the owning side stays in sync.
      */
-    @OneToOne(
-            mappedBy = "user",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            fetch = FetchType.LAZY
-    )
+    @Setter(AccessLevel.NONE)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private UserGameState gameState;
 
     public void setGameState(UserGameState gameState) {
