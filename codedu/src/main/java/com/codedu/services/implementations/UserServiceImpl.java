@@ -163,22 +163,15 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> getUserWithProfileData(String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            User u = userOpt.get();
-
-            // 🚀 THE FIX: Touch a real data field (not just the ID) to force Hibernate to load the data!
+        return userRepository.findByUsername(username).map(u -> {
+            // 🚀 FORCE Hibernate to load the GameState and its fields
             if (u.getGameState() != null) {
-                u.getGameState().getXp(); // Forces the LAZY load to happen right now!
+                org.hibernate.Hibernate.initialize(u.getGameState());
+                u.getGameState().getTokenBalance(); // Access a field to be sure
+                u.getGameState().getXp();
             }
-            if (u.getInventory() != null && u.getInventory().getItems() != null) {
-                u.getInventory().getItems().size(); // Forces the LAZY items list to load!
-            }
-            if (u.getCompetitor() != null) {
-                u.getCompetitor().getUserRank(); // Forces the LAZY load!
-            }
-        }
-        return userOpt;
+            return u;
+        });
     }
 
     // 🚀 THE FIX: A dedicated, writable transaction just for game economy!

@@ -79,15 +79,30 @@ public class MainShellController {
     private boolean darkTheme = true;
 
     public void setUser(User user) {
-        this.user = user;
-        this.gameState = null;
-        if (initDemoModelsIfNeeded()) {
-            userService.saveUser(user);
-        }
-        updateHeader();
-        chatWindowManager.connectUser(user);
+        if (user == null) return;
 
-        loadLearningPath();
+        // 🚀 Refreshing immediately using our hydrated service method
+        userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
+                freshUser -> {
+                    this.user = freshUser;
+                    this.gameState = freshUser.getGameState();
+                },
+                () -> {
+                    this.user = user;
+                    initDemoModelsIfNeeded(); // Fallback
+                    this.gameState = this.user.getGameState();
+                }
+        );
+
+        // This is where it was crashing; now this.gameState is guaranteed to be loaded
+        updateHeader();
+
+        chatWindowManager.connectUser(this.user);
+
+        Platform.runLater(() -> {
+            setActiveButton(btnLearningPath);
+            loadLearningPath();
+        });
     }
 
     @FXML
