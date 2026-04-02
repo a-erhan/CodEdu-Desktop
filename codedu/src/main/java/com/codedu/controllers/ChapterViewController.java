@@ -125,7 +125,7 @@ public class ChapterViewController {
                 "-fx-font-size: 16px; " +
                         "-fx-padding: 20px; " +
                         "-fx-line-spacing: 0.5em; " +
-                        "-fx-text-fill: #333333;"
+                        "-fx-text-fill: #FFFFFF;"
         );
 
         // 5. Ensure the label resizes properly inside the VBox/ScrollPane
@@ -258,42 +258,47 @@ public class ChapterViewController {
      * Corrected Reward and Progress Logic
      */
     private void handleCorrectAnswer(Question q) {
-        int earnedXp = 0;
-        int earnedTokens = 0;
+        try {
+            int earnedXp = 0;
+            int earnedTokens = 0;
 
-        if (q != null && q.getReward() != null) {
-            earnedXp = q.getReward().getXp();
-            earnedTokens = q.getReward().getToken();
-        }
-
-        // 1. Update User Gamification Data
-        if (userProgress != null && userProgress.getUser() != null) {
-            User currentUser = userProgress.getUser();
-            UserGameState gameState = currentUser.getGameState();
-
-            if (gameState != null) {
-                gameState.setXp(gameState.getXp() + earnedXp);
-                gameState.setTokenBalance(gameState.getTokenBalance() + earnedTokens);
-
-                // ✅ CORRECT: Use userService to save the User/GameState
-                userService.saveUser(currentUser);
-            }
-        }
-
-        // 2. Update Chapter Progress
-        if (userProgress != null) {
-            userProgress.setCompletedLessons(userProgress.getCompletedLessons() + 1);
-
-            if (chapter != null && userProgress.getCompletedLessons() >= chapter.getTotalLessons()) {
-                userProgress.setCompleted(true);
-                isChapterFinished = true;
+            if (q != null && q.getReward() != null) {
+                earnedXp = q.getReward().getXp();
+                earnedTokens = q.getReward().getToken();
             }
 
-            // ✅ CORRECT: Use progressService for the progress object
-            progressService.saveProgress(userProgress);
-        }
+            // 1. Update User Gamification Data
+            if (userProgress != null && userProgress.getUser() != null) {
+                User currentUser = userProgress.getUser();
+                UserGameState gameState = currentUser.getGameState();
 
-        updateHeaderProgress();
+                if (gameState != null) {
+                    gameState.setXp(gameState.getXp() + earnedXp);
+                    gameState.setTokenBalance(gameState.getTokenBalance() + earnedTokens);
+                    userService.saveUser(currentUser);
+                }
+            }
+
+            // 2. Update Chapter Progress
+            if (userProgress != null) {
+                userProgress.setCompletedLessons(userProgress.getCompletedLessons() + 1);
+
+                if (chapter != null && userProgress.getCompletedLessons() >= chapter.getTotalLessons()) {
+                    userProgress.setCompleted(true);
+                    isChapterFinished = true;
+                }
+
+                progressService.saveProgress(userProgress);
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Could not save progress to database, but updating UI anyway.");
+            e.printStackTrace();
+        } finally {
+            // 🚀 CRITICAL FIX: Force the UI to update on the JavaFX thread instantly
+            javafx.application.Platform.runLater(() -> {
+                updateHeaderProgress();
+            });
+        }
     }
 
     public void setOnBack(Runnable onBack) {

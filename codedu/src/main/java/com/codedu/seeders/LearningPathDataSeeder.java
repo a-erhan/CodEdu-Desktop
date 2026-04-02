@@ -52,7 +52,6 @@ public class LearningPathDataSeeder implements CommandLineRunner {
                 .title("Hello, World & Variables")
                 .description("Your very first program and storing data.")
                 .difficulty(Chapter.Difficulty.BEGINNER)
-                .totalLessons(7)
                 .xpReward(100)
                 .orderIndex(1)
                 .path(javaPath)
@@ -83,7 +82,9 @@ public class LearningPathDataSeeder implements CommandLineRunner {
         ch1Content.getQuestions().add(createFill("Declare an int named 'age' equal to 20.", "int age = 20;", ch1Content));
         ch1Content.getQuestions().add(createCode("First Program", "Print: I am learning Java!", "System.out.println(\"I am learning Java!\");", ch1Content));
 
+        ch1.setTotalLessons(calculateTotalLessons(ch1Content)); // Calculates automatically based on the list size!
         ch1.setContent(ch1Content);
+
         chapterRepository.save(ch1);
 
         // ==========================================
@@ -167,5 +168,12 @@ public class LearningPathDataSeeder implements CommandLineRunner {
         q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
         q.setReward(new Reward(30, 20));
         return q;
+    }
+
+    private int calculateTotalLessons(ChapterContent content) {
+        if (content != null && content.getQuestions() != null) {
+            return content.getQuestions().size();
+        }
+        return 0;
     }
 }
