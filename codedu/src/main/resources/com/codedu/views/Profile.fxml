@@ -10,67 +10,67 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane xmlns="http://javafx.com/javafx/25"
+<ScrollPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.codedu.controllers.ProfileController"
-            fitToWidth="true">
+            fitToWidth="true"
+            hbarPolicy="NEVER"
+            style="-fx-background-color: transparent; -fx-background: transparent;">
 
-    <VBox spacing="28" alignment="TOP_CENTER">
-        <padding><Insets top="32" right="40" bottom="32" left="40"/></padding>
+    <VBox spacing="40" alignment="TOP_CENTER" maxWidth="1000">
+        <padding><Insets top="40" right="50" bottom="40" left="50"/></padding>
 
-        <!-- Top-right actions -->
         <HBox alignment="CENTER_RIGHT">
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="addFriendButton" text="Add friend"/>
+            <Button fx:id="addFriendButton" text="Add Friend"/>
         </HBox>
 
-        <!-- Avatar + User info -->
-        <VBox fx:id="avatarCard" spacing="12" alignment="CENTER">
-            <padding><Insets top="28" right="28" bottom="28" left="28"/></padding>
+        <VBox fx:id="avatarCard" spacing="15" alignment="CENTER">
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
             <Label fx:id="avatarDisplay"/>
             <Label fx:id="usernameDisplay"/>
             <Label fx:id="badgeDisplay"/>
         </VBox>
 
-        <!-- Stats Row -->
-        <HBox spacing="16" alignment="CENTER">
-            <VBox fx:id="xpCard" spacing="6" alignment="CENTER">
-                <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="XP progress"/>
-                <ProgressBar fx:id="profileXpBar" prefWidth="180" progress="0.0"/>
-                <Label fx:id="profileXpLabel"/>
-            </VBox>
-            <VBox fx:id="tokensCard" spacing="6" alignment="CENTER">
-                <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Tokens"/>
-                <Label fx:id="profileTokenLabel"/>
-            </VBox>
-            <VBox fx:id="itemsCard" spacing="6" alignment="CENTER">
-                <padding><Insets top="16" right="24" bottom="16" left="24"/></padding>
-                <Label text="Items owned"/>
-                <Label fx:id="profileItemsLabel"/>
-            </VBox>
-        </HBox>
+        <VBox spacing="25">
+            
+            <Label text="Progress &amp; Inventory" styleClass="dashboard-label, title-3, text-bold"/>
 
-        <!-- Badges section (showcase earned badges – visible to owner and visitors) -->
-        <VBox fx:id="badgesSection" spacing="12" alignment="TOP_LEFT">
-            <Label text="Badges" fx:id="badgesSectionTitle"/>
-            <Label fx:id="noBadgesLabel" wrapText="true" text="No badges yet. Complete challenges and achievements to earn badges!"/>
-            <FlowPane fx:id="badgesContainer" hgap="12" vgap="12"/>
-        </VBox>
+            <HBox spacing="20" alignment="CENTER">
+                <VBox fx:id="xpCard" spacing="12" alignment="CENTER" HBox.hgrow="ALWAYS">
+                    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                    <Label text="Experience" styleClass="text-bold"/>
+                    <ProgressBar fx:id="profileXpBar" maxWidth="400" prefHeight="22" progress="0.0"/>
+                    <Label fx:id="profileXpLabel" styleClass="text-small, text-muted"/>
+                </VBox>
+                
+                <VBox fx:id="itemsCard" spacing="8" alignment="CENTER" minWidth="150">
+                    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+                    <Label text="Items" styleClass="text-caption"/>
+                    <Label fx:id="profileItemsLabel" styleClass="title-2, text-bold"/>
+                </VBox>
+            </HBox>
 
-        <!-- Friends section (only visible for own profile) -->
-        <VBox fx:id="friendsSection" spacing="12" alignment="TOP_LEFT">
-            <Label text="Friends" fx:id="friendsSectionTitle"/>
-            <Label fx:id="noFriendsLabel" text="No friends yet. Add friends from the Leaderboard or Forum!"/>
-            <VBox fx:id="friendsList" spacing="8"/>
-        </VBox>
+            <Region minHeight="20"/>
 
-        <!-- My avatars section (only visible for own profile) -->
-        <VBox fx:id="avatarsSection" spacing="12" alignment="CENTER_LEFT">
-            <Label text="My avatars"/>
-            <Label fx:id="noAvatarsLabel" text="No avatars owned yet. Visit the Store to buy some!"/>
-            <FlowPane fx:id="avatarGrid" hgap="14" vgap="14"/>
+            <VBox fx:id="badgesSection" spacing="15">
+                <Label text="Trophy Showcase" fx:id="badgesSectionTitle" styleClass="dashboard-label, title-3, text-bold"/>
+                <Label fx:id="noBadgesLabel" wrapText="true" text="No badges earned yet." styleClass="text-italic, text-muted"/>
+                <FlowPane fx:id="badgesContainer" hgap="20" vgap="20"/>
+            </VBox>
+
+            <VBox fx:id="friendsSection" spacing="15">
+                <Label text="My Friends" fx:id="friendsSectionTitle" styleClass="dashboard-label, title-3, text-bold"/>
+                <Label fx:id="noFriendsLabel" text="Connect with others to see them here!" styleClass="text-italic, text-muted"/>
+                <VBox fx:id="friendsList" spacing="12"/>
+            </VBox>
+
+            <VBox fx:id="avatarsSection" spacing="15">
+                <Label text="My Avatar Collection" styleClass="dashboard-label, title-3, text-bold"/>
+                <Label fx:id="noAvatarsLabel" text="No custom avatars owned." styleClass="text-italic, text-muted"/>
+                <FlowPane fx:id="avatarGrid" hgap="18" vgap="18"/>
+            </VBox>
+
         </VBox>
 
         <Region VBox.vgrow="ALWAYS"/>

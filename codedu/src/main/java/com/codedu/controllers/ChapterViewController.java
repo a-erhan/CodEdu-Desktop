@@ -27,12 +27,18 @@ public class ChapterViewController {
     @Autowired
     private UserService userService;
 
-    @FXML private Button btnBack;
-    @FXML private Label headerTitle;
-    @FXML private Label headerXP;
-    @FXML private Button tabLearn, tabQuiz, tabPractice;
-    @FXML private VBox learnContainer, quizContainer, practiceContainer;
-    @FXML private ScrollPane learnScroll, quizScroll, practiceScroll;
+    @FXML
+    private Button btnBack;
+    @FXML
+    private Label headerTitle;
+    @FXML
+    private Label headerXP;
+    @FXML
+    private Button tabLearn, tabQuiz, tabPractice;
+    @FXML
+    private VBox learnContainer, quizContainer, practiceContainer;
+    @FXML
+    private ScrollPane learnScroll, quizScroll, practiceScroll;
 
     private Chapter chapter;
     private UserChapterProgress userProgress;
@@ -71,9 +77,12 @@ public class ChapterViewController {
             try {
                 Image img = new Image(getClass().getResourceAsStream(chapter.getIconImage()));
                 ImageView iv = new ImageView(img);
-                iv.setFitWidth(28); iv.setFitHeight(28); iv.setPreserveRatio(true);
+                iv.setFitWidth(28);
+                iv.setFitHeight(28);
+                iv.setPreserveRatio(true);
                 headerTitle.setGraphic(iv);
-            } catch (Exception e) { /* Fallback */ }
+            } catch (Exception e) {
+                /* Fallback */ }
         }
 
         ChapterContent content = chapter.getContent();
@@ -113,9 +122,12 @@ public class ChapterViewController {
         tabQuiz.getStyleClass().remove("cv-tab-active");
         tabPractice.getStyleClass().remove("cv-tab-active");
 
-        if ("learn".equals(tab)) tabLearn.getStyleClass().add("cv-tab-active");
-        else if ("quiz".equals(tab)) tabQuiz.getStyleClass().add("cv-tab-active");
-        else if ("practice".equals(tab)) tabPractice.getStyleClass().add("cv-tab-active");
+        if ("learn".equals(tab))
+            tabLearn.getStyleClass().add("cv-tab-active");
+        else if ("quiz".equals(tab))
+            tabQuiz.getStyleClass().add("cv-tab-active");
+        else if ("practice".equals(tab))
+            tabPractice.getStyleClass().add("cv-tab-active");
     }
 
     private void buildLearnSection(String text) {
@@ -134,13 +146,15 @@ public class ChapterViewController {
         Label mcqHeader = new Label("Multiple Choice");
         mcqHeader.getStyleClass().add("cv-section-title");
         quizContainer.getChildren().add(mcqHeader);
-        for (int i = 0; i < mcqs.size(); i++) quizContainer.getChildren().add(buildMCQCard(mcqs.get(i), i + 1));
+        for (int i = 0; i < mcqs.size(); i++)
+            quizContainer.getChildren().add(buildMCQCard(mcqs.get(i), i + 1));
 
         Label fillHeader = new Label("Fill in the Blank");
         fillHeader.getStyleClass().add("cv-section-title");
         VBox.setMargin(fillHeader, new Insets(20, 0, 0, 0));
         quizContainer.getChildren().add(fillHeader);
-        for (int i = 0; i < fills.size(); i++) quizContainer.getChildren().add(buildFillBlankCard(fills.get(i), i + 1));
+        for (int i = 0; i < fills.size(); i++)
+            quizContainer.getChildren().add(buildFillBlankCard(fills.get(i), i + 1));
     }
 
     private VBox buildMCQCard(Question q, int number) {
@@ -150,7 +164,8 @@ public class ChapterViewController {
 
         String[] contentLines = q.getContent().split("\n");
         List<String> options = new ArrayList<>();
-        for (int i = 1; i < contentLines.length; i++) options.add(contentLines[i].replaceFirst("^[A-D]\\)\\s*", ""));
+        for (int i = 1; i < contentLines.length; i++)
+            options.add(contentLines[i].replaceFirst("^[A-D]\\)\\s*", ""));
 
         int correctIndex = (q.getSolution() != null && !q.getSolution().isEmpty()) ? q.getSolution().toUpperCase().charAt(0) - 'A' : 0;
 
@@ -159,7 +174,7 @@ public class ChapterViewController {
         card.getChildren().add(qLabel);
 
         VBox optionsBox = new VBox(8);
-        String[] letters = {"A", "B", "C", "D"};
+        String[] letters = { "A", "B", "C", "D" };
 
         boolean isLocked = isQuestionCompleted(q);
         String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
@@ -173,7 +188,8 @@ public class ChapterViewController {
 
             if (isLocked) {
                 optBtn.setMouseTransparent(true);
-                if (idx == correctIndex) optBtn.setStyle(styleCorrect);
+                if (idx == correctIndex)
+                    optBtn.setStyle(styleCorrect);
             }
 
             optBtn.setOnAction(e -> {

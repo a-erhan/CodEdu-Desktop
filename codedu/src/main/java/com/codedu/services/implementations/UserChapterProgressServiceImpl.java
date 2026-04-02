@@ -24,6 +24,7 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
     public void saveProgress(UserChapterProgress progress) {
         progressRepository.update(progress);
     }
+
     // STEP 5: Calculate the completion percentage of a chapter
     public double calculateCompletionRate(UserChapterProgress progress) {
         if (progress == null || progress.getChapter() == null || progress.getChapter().getTotalLessons() == 0) {

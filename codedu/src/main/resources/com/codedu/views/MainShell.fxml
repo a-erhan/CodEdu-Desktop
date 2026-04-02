@@ -62,6 +62,7 @@
                     <Button fx:id="btnForum"           text="Forum"           maxWidth="Infinity"/>
                     <Button fx:id="btnMatchmaking"    text="Matchmaking"     maxWidth="Infinity"/>
                     <Button fx:id="btnStore"          text="Store"           maxWidth="Infinity"/>
+                    <Button fx:id="btnInventory"    text="Inventory"       maxWidth="Infinity"/>
                     <Button fx:id="btnAskAI"          text="Ask AI"          maxWidth="Infinity"/>
 
                     <Region prefHeight="12"/>

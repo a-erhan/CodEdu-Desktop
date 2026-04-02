@@ -71,7 +71,7 @@ public class MainShellController {
     private StackPane contentArea;
     @FXML
     private Button btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum, btnStore,
-            btnMatchmaking, btnAskAI, btnSettings;
+            btnInventory, btnMatchmaking, btnAskAI, btnSettings;
 
     private User user = new User();
     private UserGameState gameState;
@@ -80,7 +80,10 @@ public class MainShellController {
 
     public void setUser(User user) {
         this.user = user;
-        initDemoModelsIfNeeded();
+        this.gameState = null;
+        if (initDemoModelsIfNeeded()) {
+            userService.saveUser(user);
+        }
         updateHeader();
         chatWindowManager.connectUser(user);
 
@@ -89,8 +92,6 @@ public class MainShellController {
 
     @FXML
     public void initialize() {
-        initDemoModelsIfNeeded();
-        updateHeader();
         initSidebarAndHeaderStyles();
         styleAndWireNavigation();
         ensureShellFillsScene();
@@ -142,7 +143,7 @@ public class MainShellController {
 
     private void styleAndWireNavigation() {
         Button[] navButtons = { btnLearningPath, btnDailyChallenge, btnAchievements, btnLeaderboard, btnForum,
-                btnMatchmaking, btnStore, btnAskAI, btnSettings };
+                btnMatchmaking, btnStore, btnInventory, btnAskAI, btnSettings };
         for (Button btn : navButtons) {
             styleNavButton(btn);
             setupNavButtonWithHover(btn);
@@ -175,6 +176,11 @@ public class MainShellController {
         btnStore.setOnAction(e -> {
             setActiveButton(btnStore);
             loadStore();
+        });
+
+        btnInventory.setOnAction(e -> {
+            setActiveButton(btnInventory);
+            loadInventory();
         });
         btnAskAI.setOnAction(e -> {
             setActiveButton(btnAskAI);
@@ -337,15 +343,16 @@ public class MainShellController {
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
             boolean isSelf = (user != null && user.getId() > 0 && profileUser.getId() == user.getId());
+            UserGameState state = profileUser.getGameState();
+            if (state == null) {
+                state = UserGameState.newDefault();
+                profileUser.setGameState(state);
+                userService.saveUser(profileUser);
+            }
             controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
             controller.setOnProfileClick(this::openUserProfile);
             controller.setUserModel(profileUser);
-
-            UserGameState state = profileUser.getGameState();
-            if (state == null) {
-                state = UserGameState.builder().user(profileUser).level(1).xp(0).heartCount(3).build();
-            }
             controller.setGameState(state);
             setContentAndFill(profileView);
         } catch (IOException ex) {
@@ -375,10 +382,32 @@ public class MainShellController {
             Parent view = loader.load();
             StoreController controller = loader.getController();
             controller.setUserModel(user);
+            controller.setOnUserUpdated(updated -> {
+                if (updated == null) {
+                    return;
+                }
+                this.user = updated;
+                this.gameState = updated.getGameState();
+                updateHeader();
+            });
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Store", "Error loading store module.");
+        }
+    }
+
+    private void loadInventory() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/InventoryItem.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent view = loader.load();
+            InventoryItemController controller = loader.getController();
+            controller.setUserModel(user);
+            setContentAndFill(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Inventory", "Error loading inventory.");
         }
     }
 
@@ -460,8 +489,7 @@ public class MainShellController {
         userService.getUserWithProfileData(user.getUsername())
                 .ifPresentOrElse(
                         this::openUserProfile,
-                        () -> openUserProfile(this.user)
-                );
+                        () -> openUserProfile(this.user));
     }
 
     private void updateHeader() {
@@ -545,11 +573,20 @@ public class MainShellController {
         }
     }
 
-    private void initDemoModelsIfNeeded() {
-        if (gameState == null) {
-            gameState = UserGameState.builder().user(user).level(1).xp(0).heartCount(3).build();
-            if (user != null)
-                user.setGameState(gameState);
+    /**
+     * @return true if a new {@link UserGameState} was attached and must be
+     *         persisted (e.g. legacy users with no row).
+     */
+    private boolean initDemoModelsIfNeeded() {
+        if (user == null) {
+            return false;
         }
+        if (user.getGameState() != null) {
+            this.gameState = user.getGameState();
+            return false;
+        }
+        this.gameState = UserGameState.newDefault();
+        user.setGameState(gameState);
+        return true;
     }
 }

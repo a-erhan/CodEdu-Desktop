@@ -14,14 +14,13 @@ import lombok.*;
 public class InventoryItem extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id")
+    @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
     private int quantity;
     private boolean isEquipped;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_inventory_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_inventory_id", nullable = false)
     private UserInventory inventory;
-
 }

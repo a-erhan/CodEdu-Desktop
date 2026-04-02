@@ -24,10 +24,11 @@ public class LeaderBoardRepositoryImpl extends GenericRepositoryImpl<LeaderBoard
     @Override
     public Optional<LeaderBoard> findByName(String name) {
         try {
-            // Using LEFT JOIN FETCH to prevent LazyInitializationException when accessing competitors in UI
+            // Using LEFT JOIN FETCH to prevent LazyInitializationException when accessing
+            // competitors in UI
             LeaderBoard lb = entityManager.createQuery(
-                            "SELECT l FROM LeaderBoard l LEFT JOIN FETCH l.competitors WHERE l.name = :name AND l.isDeleted = false",
-                            LeaderBoard.class)
+                    "SELECT l FROM LeaderBoard l LEFT JOIN FETCH l.competitors WHERE l.name = :name AND l.isDeleted = false",
+                    LeaderBoard.class)
                     .setParameter("name", name)
                     .getSingleResult();
             return Optional.of(lb);

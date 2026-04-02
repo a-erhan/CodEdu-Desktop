@@ -13,4 +13,9 @@ public interface UserRepository extends GenericRepository<User> {
 
     Optional<User> findByUsernameWithAchievements(String username);
     boolean existsByUsername(String username);
+
+    /**
+     * Load user with gameState and inventory (including inventory items + item) for store/inventory operations.
+     */
+    Optional<User> findByIdWithInventoryAndGameState(int id);
 }

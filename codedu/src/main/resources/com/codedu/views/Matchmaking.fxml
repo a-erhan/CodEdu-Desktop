@@ -6,81 +6,86 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/25"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.codedu.controllers.MatchmakingController"
-      alignment="TOP_CENTER" spacing="16" maxWidth="1100">
+<StackPane xmlns="http://javafx.com/javafx/21.0.2"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.codedu.controllers.MatchmakingController">
 
-    <padding>
-        <Insets top="10" right="0" bottom="10" left="0"/>
-    </padding>
+    <!-- ======== LOBBY STATE (visible initially) ======== -->
+    <VBox fx:id="lobbyPane" alignment="CENTER" spacing="20">
+        <padding>
+            <Insets top="60" right="40" bottom="60" left="40"/>
+        </padding>
+        <Label fx:id="lobbyTitle" text="⚔ Matchmaking Arena" style="-fx-font-size: 28px; -fx-font-weight: bold;"/>
+        <Label fx:id="lobbySubtitle"
+               text="Compete against another player in a live coding challenge!"
+               wrapText="true" style="-fx-font-size: 14px;"/>
+        <Button fx:id="findMatchButton" text="Find Match"
+                prefWidth="220" prefHeight="48"
+                style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        <Label fx:id="lobbyStatus" text="" style="-fx-font-size: 13px;"/>
+    </VBox>
 
-    <!-- Header row -->
-    <HBox fx:id="headerRow" alignment="CENTER_LEFT" spacing="8">
-        <Label fx:id="titleLabel" text="Matchmaking"/>
-        <Region HBox.hgrow="ALWAYS"/>
-        <Label fx:id="timeLabel" text="Time: 00:00"/>
-    </HBox>
+    <!-- ======== MATCH STATE (hidden until match found) ======== -->
+    <VBox fx:id="matchPane" alignment="TOP_CENTER" spacing="14" maxWidth="1100" visible="false">
+        <padding>
+            <Insets top="10" right="0" bottom="10" left="0"/>
+        </padding>
 
-    <Label fx:id="subtitleLabel"
-           text="Solve the coding challenge faster and more accurately than your opponent to win!"
-           wrapText="true"/>
+        <!-- Header -->
+        <HBox alignment="CENTER_LEFT" spacing="8">
+            <Label fx:id="titleLabel" text="Matchmaking" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="timerLabel" text="⏱ 00:00" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+        </HBox>
 
-    <!-- Main content row -->
-    <HBox fx:id="mainRow" alignment="TOP_LEFT" spacing="16">
+        <Label fx:id="subtitleLabel" text="" wrapText="true"/>
 
-        <!-- Left column -->
-        <VBox fx:id="leftColumn" spacing="12" prefWidth="750">
+        <!-- Main content row -->
+        <HBox spacing="16">
 
-            <!-- Status card -->
-            <VBox fx:id="statusCard" spacing="6">
-                <HBox spacing="6">
-                    <Label fx:id="statusLabel" text="Status:"/>
-                    <Label fx:id="statusValue" text="Waiting for opponent..."/>
-                </HBox>
+            <!-- Left column -->
+            <VBox spacing="12" prefWidth="750">
+
+                <!-- Status card -->
+                <VBox fx:id="statusCard" spacing="6">
+                    <HBox spacing="6">
+                        <Label text="Status:" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="statusValue" text="Match Active"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Challenge card -->
+                <VBox fx:id="challengeCard" spacing="6">
+                    <Label text="Challenge" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="problemTitle" text="" style="-fx-font-size: 15px;"/>
+                    <Label fx:id="problemDescription" text="" wrapText="true"/>
+                </VBox>
+
+                <!-- Editor card -->
+                <VBox fx:id="editorCard" spacing="8">
+                    <Label text="Code Editor" style="-fx-font-weight: bold;"/>
+                    <TextArea fx:id="codeArea" promptText="Write your solution here..." prefRowCount="12"/>
+                    <HBox spacing="8">
+                        <Button fx:id="runButton" text="▶ Run Code"/>
+                        <Button fx:id="submitButton" text="✓ Submit"/>
+                    </HBox>
+                    <Label text="Output" style="-fx-font-weight: bold;"/>
+                    <TextArea fx:id="outputArea" editable="false" prefRowCount="4"/>
+                </VBox>
             </VBox>
 
-            <!-- Navigation buttons -->
-            <HBox fx:id="navigationRow" spacing="8" alignment="CENTER_LEFT">
-                <Button fx:id="easyNavBtn" text="1. Easy" prefWidth="110"/>
-                <Button fx:id="mediumNavBtn" text="2. Medium" prefWidth="110"/>
-                <Button fx:id="hardNavBtn" text="3. Hard" prefWidth="110"/>
-            </HBox>
-
-            <!-- Challenge card -->
-            <VBox fx:id="challengeCard" spacing="6">
-                <Label fx:id="challengeHeader" text="Challenge"/>
-                <Label fx:id="problemTitle" text="Problem title"/>
-                <Label fx:id="problemDescription"
-                       text="Problem description will appear here when a match starts."
-                       wrapText="true"/>
+            <!-- Score panel -->
+            <VBox fx:id="scoreCard" spacing="10" alignment="TOP_LEFT" prefWidth="220">
+                <Label text="Score" style="-fx-font-weight: bold;"/>
+                <Label fx:id="youScore" text="You: 0"/>
+                <Label fx:id="opponentScore" text="Opponent: 0"/>
+                <Label text="Attempts" style="-fx-font-weight: bold;"/>
+                <Label fx:id="youAttempts" text="You: 0"/>
+                <Label fx:id="opponentAttempts" text="Opponent: 0"/>
             </VBox>
-
-            <!-- Editor card -->
-            <VBox fx:id="editorCard" spacing="8">
-                <Label fx:id="editorLabel" text="Code editor"/>
-                <TextArea fx:id="codeArea" promptText="Write your solution here..." prefRowCount="10"/>
-                <HBox fx:id="actionRow" spacing="8">
-                    <Button fx:id="runButton" text="Run code" disable="true"/>
-                    <Button fx:id="submitButton" text="Submit" disable="true"/>
-                </HBox>
-                <Label fx:id="outputLabel" text="Output"/>
-                <TextArea fx:id="outputArea" editable="false" prefRowCount="4"/>
-            </VBox>
-        </VBox>
-
-        <!-- Score panel -->
-        <VBox fx:id="scoreCard" spacing="10" alignment="TOP_LEFT" prefWidth="220">
-            <Label fx:id="scoreTitle" text="Score"/>
-            <Label fx:id="youScore" text="You: 0"/>
-            <Label fx:id="opponentScore" text="Opponent: 0"/>
-            <Label fx:id="attemptsTitle" text="Attempts"/>
-            <Label fx:id="youAttempts" text="You: 0"/>
-            <Label fx:id="opponentAttempts" text="Opponent: 0"/>
-        </VBox>
-    </HBox>
-
-</VBox>
-
+        </HBox>
+    </VBox>
+</StackPane>

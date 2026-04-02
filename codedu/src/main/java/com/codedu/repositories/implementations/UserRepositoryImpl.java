@@ -43,12 +43,14 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     public Optional<User> findByEmail(String email) {
         try {
             User user = entityManager
-                    .createQuery("SELECT u FROM User u WHERE u.email = :email AND u.isDeleted = false", User.class)
+                    .createQuery(
+                            "SELECT u FROM User u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email)) AND u.isDeleted = false",
+                            User.class)
                     .setParameter("email", email)
                     .getSingleResult();
             return Optional.of(user);
         } catch (NoResultException e) {
-            return Optional.empty(); // Returns empty if no user is found with this email
+            return Optional.empty();
         }
     }
 
@@ -68,7 +70,10 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByEmail(String email) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
+        Long count = entityManager
+                .createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE LOWER(TRIM(u.email)) = LOWER(TRIM(:email)) AND u.isDeleted = false",
+                        Long.class)
                 .setParameter("email", email)
                 .getSingleResult();
         return count > 0;
@@ -76,9 +81,29 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
 
     @Override
     public boolean existsByUsername(String username) {
-        Long count = entityManager.createQuery("SELECT COUNT(u) FROM User u WHERE u.username = :username", Long.class)
+        Long count = entityManager
+                .createQuery(
+                        "SELECT COUNT(u) FROM User u WHERE u.username = :username AND u.isDeleted = false",
+                        Long.class)
                 .setParameter("username", username)
                 .getSingleResult();
         return count > 0;
+    }
+
+    @Override
+    public Optional<User> findByIdWithInventoryAndGameState(int id) {
+        return entityManager
+                .createQuery(
+                        "SELECT DISTINCT u FROM User u " +
+                                "LEFT JOIN FETCH u.gameState gs " +
+                                "LEFT JOIN FETCH u.inventory inv " +
+                                "LEFT JOIN FETCH inv.items ii " +
+                                "LEFT JOIN FETCH ii.item it " +
+                                "WHERE u.id = :id AND u.isDeleted = false",
+                        User.class
+                )
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst();
     }
 }
