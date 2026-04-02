@@ -34,10 +34,6 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
-    @Column(name = "token_balance")
-    @Builder.Default
-    private int tokenBalance = 0;
-
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")
     private Competitor competitor;

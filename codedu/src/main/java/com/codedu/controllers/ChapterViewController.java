@@ -40,8 +40,15 @@ public class ChapterViewController {
     private boolean isChapterFinished = false;
     private List<Question> uiQuestionOrder = new ArrayList<>();
 
-    // 🚀 THE FIX: A local counter to guarantee the screen updates instantly
     private int currentLessonCount = 0;
+    private java.util.function.Consumer<User> onProgressUpdated;
+
+    // 🚀 THE MISSING VARIABLE: This holds our active, safe user!
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
 
     @FXML
     public void initialize() {
@@ -55,7 +62,6 @@ public class ChapterViewController {
         this.userProgress = progress;
         this.isChapterFinished = (progress != null && progress.isCompleted());
 
-        // 🚀 Initialize our local counter
         this.currentLessonCount = (progress != null) ? progress.getCompletedLessons() : 0;
 
         headerTitle.setText(chapter.getTitle());
@@ -239,14 +245,8 @@ public class ChapterViewController {
         }
     }
 
-    /**
-     * Completely Overhauled "UI-First" Progress Logic
-     */
-    /**
-     * Completely Overhauled "UI-First" Progress Logic
-     */
     private void handleCorrectAnswer(Question q) {
-        // 🚀 1. UPDATE THE UI STATE FIRST (Guarantees the user sees progress)
+        // 1. UPDATE THE UI STATE FIRST
         currentLessonCount++;
 
         if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
@@ -254,52 +254,46 @@ public class ChapterViewController {
             if (userProgress != null) userProgress.setCompleted(true);
         }
 
-        // 🚀 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
+        // 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
         try {
-            if (userProgress != null && userProgress.getUser() != null) {
+            if (currentUser != null) {
 
-                // 🚀 THE FIX: Pull the REAL record from Neon so we update it instead of making duplicates!
-                UserChapterProgress realProgress = progressService.getProgress(userProgress.getUser(), chapter);
-
-                // Safety fallback just in case
+                // Save chapter progress
+                UserChapterProgress realProgress = progressService.getProgress(currentUser, chapter);
                 if (realProgress == null) realProgress = userProgress;
 
-                realProgress.setCompletedLessons(currentLessonCount);
-                if (isChapterFinished) realProgress.setCompleted(true);
+                if (realProgress != null) {
+                    realProgress.setCompletedLessons(currentLessonCount);
+                    if (isChapterFinished) realProgress.setCompleted(true);
+                    progressService.saveProgress(realProgress);
+                }
 
-                // Now it will cleanly UPDATE the existing row!
-                progressService.saveProgress(realProgress);
+                // 🚀 THE FIX: Use our new dedicated transaction to safely update Neon!
+                int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
+                int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
 
-                // Fetch a FRESH user to avoid the "Detached" database crash for XP!
-                userService.getUserWithProfileData(userProgress.getUser().getUsername())
-                        .ifPresent(freshUser -> {
-                            UserGameState state = freshUser.getGameState();
-                            if (state != null && q != null && q.getReward() != null) {
-                                state.setXp(state.getXp() + q.getReward().getXp());
-                                state.setTokenBalance(state.getTokenBalance() + q.getReward().getToken());
-                                userService.saveUser(freshUser); // Save the updated fresh user!
-                            }
-                        });
+                if (xpReward > 0 || tokenReward > 0) {
+                    User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
+
+                    // Radio the Main Shell to redraw the top bar instantly
+                    if (updatedUser != null && onProgressUpdated != null) {
+                        javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
+                    }
+                }
             }
         } catch (Exception e) {
             System.err.println("⚠️ Database save issue, but UI will still update.");
             e.printStackTrace();
         } finally {
-            // 🚀 3. PUSH UPDATED COUNTER TO THE SCREEN INSTANTLY
+            // 3. PUSH UPDATED COUNTER TO THE SCREEN INSTANTLY
             javafx.application.Platform.runLater(this::updateHeaderProgress);
         }
-    }
-
-    public void setOnBack(Runnable onBack) {
-        this.onBack = onBack;
-        btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
     }
 
     private void updateHeaderProgress() {
         int total = (chapter != null) ? chapter.getTotalLessons() : 0;
         int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
 
-        // 🚀 Uses our safe local counter instead of the database object
         headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
     }
 
@@ -316,7 +310,15 @@ public class ChapterViewController {
             }
         }
 
-        // 🚀 Checks against the safe local counter
         return (globalIndex != -1 && globalIndex < currentLessonCount);
+    }
+
+    public void setOnProgressUpdated(java.util.function.Consumer<User> onProgressUpdated) {
+        this.onProgressUpdated = onProgressUpdated;
+    }
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+        btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
     }
 }

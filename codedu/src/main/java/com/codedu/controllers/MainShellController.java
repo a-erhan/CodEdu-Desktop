@@ -223,22 +223,29 @@ public class MainShellController {
 
             ChapterViewController controller = loader.getController();
 
-            // 1. Fetch the progress record for this specific user and chapter
             com.codedu.models.learning.UserChapterProgress progress =
                     progressService.getProgress(this.user, chapter);
 
-            // 🚀 THE FIX: If the progress is null (first time playing), create and save a new one!
             if (progress == null) {
                 progress = new com.codedu.models.learning.UserChapterProgress();
                 progress.setUser(this.user);
                 progress.setChapter(chapter);
                 progress.setCompletedLessons(0);
                 progress.setCompleted(false);
-                progressService.saveProgress(progress); // Save it to the database so it exists!
+                progressService.saveProgress(progress);
             }
 
-            // 2. Pass BOTH to the controller
+            // 🚀 THE MISSING LINE: Hand the active user to the Chapter Controller!
+            controller.setCurrentUser(this.user);
+
             controller.setChapter(chapter, progress);
+
+            // 🚀 Receive the updated user directly from the Chapter
+            controller.setOnProgressUpdated((updatedUser) -> {
+                this.user = updatedUser;
+                this.gameState = updatedUser.getGameState();
+                Platform.runLater(this::updateHeader);
+            });
 
             controller.setOnBack(() -> loadLearningPath());
             setContentAndFill(chapterView);

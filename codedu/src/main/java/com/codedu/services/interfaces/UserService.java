@@ -27,4 +27,6 @@ public interface UserService {
     UserProfileDTO getUserProfile(String targetUsername, String currentUsername);
 
     Optional<User> getUserWithProfileData(String username);
+
+    User awardXpAndTokens(String username, int xpReward, int tokenReward);
 }
