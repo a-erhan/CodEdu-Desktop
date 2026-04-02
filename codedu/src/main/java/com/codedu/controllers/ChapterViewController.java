@@ -25,7 +25,7 @@ public class ChapterViewController {
     private UserChapterProgressService progressService;
 
     @Autowired
-    private UserService userService; // ✅ Added Service Injection
+    private UserService userService;
 
     @FXML private Button btnBack;
     @FXML private Label headerTitle;
@@ -40,6 +40,9 @@ public class ChapterViewController {
     private boolean isChapterFinished = false;
     private List<Question> uiQuestionOrder = new ArrayList<>();
 
+    // 🚀 THE FIX: A local counter to guarantee the screen updates instantly
+    private int currentLessonCount = 0;
+
     @FXML
     public void initialize() {
         tabLearn.setOnAction(e -> switchTab("learn"));
@@ -51,6 +54,9 @@ public class ChapterViewController {
         this.chapter = chapter;
         this.userProgress = progress;
         this.isChapterFinished = (progress != null && progress.isCompleted());
+
+        // 🚀 Initialize our local counter
+        this.currentLessonCount = (progress != null) ? progress.getCompletedLessons() : 0;
 
         headerTitle.setText(chapter.getTitle());
         updateHeaderProgress();
@@ -108,31 +114,12 @@ public class ChapterViewController {
 
     private void buildLearnSection(String text) {
         learnContainer.getChildren().clear();
-
-        // 1. Handle empty states just in case
-        if (text == null || text.isEmpty()) {
-            text = "No learning material available for this chapter yet.";
-        }
-
-        // 2. Create a Label to hold the text
+        if (text == null || text.isEmpty()) text = "No learning material available for this chapter yet.";
         Label learnLabel = new Label(text);
-
-        // 3. CRITICAL: This makes the text wrap to the next line instead of going off-screen
         learnLabel.setWrapText(true);
-
-        // 4. Make it look nice and readable (You can move this to your CSS file later)
-        learnLabel.setStyle(
-                "-fx-font-size: 16px; " +
-                        "-fx-padding: 20px; " +
-                        "-fx-line-spacing: 0.5em; " +
-                        "-fx-text-fill: #FFFFFF;"
-        );
-
-        // 5. Ensure the label resizes properly inside the VBox/ScrollPane
+        learnLabel.setStyle("-fx-font-size: 16px; -fx-padding: 20px; -fx-line-spacing: 0.5em; -fx-text-fill: #FFFFFF;");
         learnLabel.setMaxWidth(Double.MAX_VALUE);
         VBox.setVgrow(learnLabel, Priority.ALWAYS);
-
-        // 6. Add it to the screen!
         learnContainer.getChildren().add(learnLabel);
     }
 
@@ -159,8 +146,7 @@ public class ChapterViewController {
         List<String> options = new ArrayList<>();
         for (int i = 1; i < contentLines.length; i++) options.add(contentLines[i].replaceFirst("^[A-D]\\)\\s*", ""));
 
-        int correctIndex = (q.getSolution() != null && !q.getSolution().isEmpty())
-                ? q.getSolution().toUpperCase().charAt(0) - 'A' : 0;
+        int correctIndex = (q.getSolution() != null && !q.getSolution().isEmpty()) ? q.getSolution().toUpperCase().charAt(0) - 'A' : 0;
 
         Label qLabel = new Label("Q" + number + ". " + contentLines[0]);
         qLabel.getStyleClass().add("cv-mcq-question");
@@ -170,7 +156,6 @@ public class ChapterViewController {
         String[] letters = {"A", "B", "C", "D"};
 
         boolean isLocked = isQuestionCompleted(q);
-
         String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
         String styleWrong = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #c0392b; -fx-border-radius: 4; -fx-background-radius: 4;";
 
@@ -255,49 +240,53 @@ public class ChapterViewController {
     }
 
     /**
-     * Corrected Reward and Progress Logic
+     * Completely Overhauled "UI-First" Progress Logic
+     */
+    /**
+     * Completely Overhauled "UI-First" Progress Logic
      */
     private void handleCorrectAnswer(Question q) {
+        // 🚀 1. UPDATE THE UI STATE FIRST (Guarantees the user sees progress)
+        currentLessonCount++;
+
+        if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
+            isChapterFinished = true;
+            if (userProgress != null) userProgress.setCompleted(true);
+        }
+
+        // 🚀 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
         try {
-            int earnedXp = 0;
-            int earnedTokens = 0;
-
-            if (q != null && q.getReward() != null) {
-                earnedXp = q.getReward().getXp();
-                earnedTokens = q.getReward().getToken();
-            }
-
-            // 1. Update User Gamification Data
             if (userProgress != null && userProgress.getUser() != null) {
-                User currentUser = userProgress.getUser();
-                UserGameState gameState = currentUser.getGameState();
 
-                if (gameState != null) {
-                    gameState.setXp(gameState.getXp() + earnedXp);
-                    gameState.setTokenBalance(gameState.getTokenBalance() + earnedTokens);
-                    userService.saveUser(currentUser);
-                }
-            }
+                // 🚀 THE FIX: Pull the REAL record from Neon so we update it instead of making duplicates!
+                UserChapterProgress realProgress = progressService.getProgress(userProgress.getUser(), chapter);
 
-            // 2. Update Chapter Progress
-            if (userProgress != null) {
-                userProgress.setCompletedLessons(userProgress.getCompletedLessons() + 1);
+                // Safety fallback just in case
+                if (realProgress == null) realProgress = userProgress;
 
-                if (chapter != null && userProgress.getCompletedLessons() >= chapter.getTotalLessons()) {
-                    userProgress.setCompleted(true);
-                    isChapterFinished = true;
-                }
+                realProgress.setCompletedLessons(currentLessonCount);
+                if (isChapterFinished) realProgress.setCompleted(true);
 
-                progressService.saveProgress(userProgress);
+                // Now it will cleanly UPDATE the existing row!
+                progressService.saveProgress(realProgress);
+
+                // Fetch a FRESH user to avoid the "Detached" database crash for XP!
+                userService.getUserWithProfileData(userProgress.getUser().getUsername())
+                        .ifPresent(freshUser -> {
+                            UserGameState state = freshUser.getGameState();
+                            if (state != null && q != null && q.getReward() != null) {
+                                state.setXp(state.getXp() + q.getReward().getXp());
+                                state.setTokenBalance(state.getTokenBalance() + q.getReward().getToken());
+                                userService.saveUser(freshUser); // Save the updated fresh user!
+                            }
+                        });
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Could not save progress to database, but updating UI anyway.");
+            System.err.println("⚠️ Database save issue, but UI will still update.");
             e.printStackTrace();
         } finally {
-            // 🚀 CRITICAL FIX: Force the UI to update on the JavaFX thread instantly
-            javafx.application.Platform.runLater(() -> {
-                updateHeaderProgress();
-            });
+            // 🚀 3. PUSH UPDATED COUNTER TO THE SCREEN INSTANTLY
+            javafx.application.Platform.runLater(this::updateHeaderProgress);
         }
     }
 
@@ -307,24 +296,27 @@ public class ChapterViewController {
     }
 
     private void updateHeaderProgress() {
-        int current = (userProgress != null) ? userProgress.getCompletedLessons() : 0;
-        int total = chapter.getTotalLessons();
-        headerXP.setText(String.format("XP: %d | %d/%d Lessons", chapter.getXpReward(), current, total));
+        int total = (chapter != null) ? chapter.getTotalLessons() : 0;
+        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
+
+        // 🚀 Uses our safe local counter instead of the database object
+        headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
     }
 
     private boolean isQuestionCompleted(Question q) {
-        if (userProgress == null) return false;
-        if (isChapterFinished || userProgress.isCompleted()) return true;
+        if (isChapterFinished) return true;
 
         int globalIndex = uiQuestionOrder.indexOf(q);
         if (globalIndex == -1) {
             for (int i = 0; i < uiQuestionOrder.size(); i++) {
-                if (uiQuestionOrder.get(i).getId()==q.getId()) {
+                if (uiQuestionOrder.get(i).getId() == q.getId()) {
                     globalIndex = i;
                     break;
                 }
             }
         }
-        return (globalIndex != -1 && globalIndex < userProgress.getCompletedLessons());
+
+        // 🚀 Checks against the safe local counter
+        return (globalIndex != -1 && globalIndex < currentLessonCount);
     }
 }

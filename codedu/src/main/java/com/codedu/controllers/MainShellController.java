@@ -189,6 +189,15 @@ public class MainShellController {
     private void loadLearningPath() {
         if (this.user == null) return; // Safety check
 
+        // 🚀 1. THE FIX: Fetch the FRESH user from the database before loading the view
+        userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
+            this.user = freshUser; // Update the shell's memory
+            this.gameState = freshUser.getGameState();
+
+            // 🚀 Update the top-left XP bar and token counts instantly
+            Platform.runLater(this::updateHeader);
+        });
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/LearningPath.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -197,7 +206,7 @@ public class MainShellController {
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
 
-            // 🚀 Pass the user here
+            // 🚀 2. Pass the newly refreshed user to the Learning Path
             lpController.loadUserData(this.user);
 
             setContentAndFill(view);
@@ -214,12 +223,21 @@ public class MainShellController {
 
             ChapterViewController controller = loader.getController();
 
-            // 2. Fetch the progress record for this specific user and chapter
-            // We use the 'user' object already present in this Shell controller
+            // 1. Fetch the progress record for this specific user and chapter
             com.codedu.models.learning.UserChapterProgress progress =
                     progressService.getProgress(this.user, chapter);
 
-            // 3. Pass BOTH to the controller
+            // 🚀 THE FIX: If the progress is null (first time playing), create and save a new one!
+            if (progress == null) {
+                progress = new com.codedu.models.learning.UserChapterProgress();
+                progress.setUser(this.user);
+                progress.setChapter(chapter);
+                progress.setCompletedLessons(0);
+                progress.setCompleted(false);
+                progressService.saveProgress(progress); // Save it to the database so it exists!
+            }
+
+            // 2. Pass BOTH to the controller
             controller.setChapter(chapter, progress);
 
             controller.setOnBack(() -> loadLearningPath());
