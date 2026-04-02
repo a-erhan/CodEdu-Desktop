@@ -517,7 +517,7 @@ public class MainShellController {
         badgeLabel.setText("Lvl " + level);
         welcomeNavLabel.setText("@" + username);
 
-        int levelCap = Math.max(1, level * 1000);
+        int levelCap = Math.max(1, level * 100);
         xpProgressBar.setProgress((double) xp / levelCap);
         xpLabel.setText("XP: " + xp + " / " + levelCap);
 

@@ -7,6 +7,7 @@ import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
 import com.codedu.repositories.interfaces.UserRepository;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -192,11 +193,19 @@ public class UserServiceImpl implements UserService {
             state.setXp(state.getXp() + xpReward);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
+            int xpRequired = state.getLevel() * 100;
+
+            while (state.getXp() >= xpRequired) {
+                state.setXp(state.getXp() - xpRequired); // Carry over leftover XP
+                state.setLevel(state.getLevel() + 1);    // Increment Level
+                xpRequired = state.getLevel() * 100;    // Update requirement for next level
+            }
+
             // Save it to the database
             userRepository.update(user);
 
             // Touch the XP to force Hibernate to load it before closing the connection
-            user.getGameState().getXp();
+            Hibernate.initialize(user.getGameState());
         }
         return user;
     }
