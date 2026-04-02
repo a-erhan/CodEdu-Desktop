@@ -36,21 +36,12 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
-    @Column(name = "token_balance")
-    @Builder.Default
-    private int tokenBalance = 0;
-
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "competitor_id")
     private Competitor competitor;
 
-    /**
-     * Inverse side: FK {@code user_id} is stored on {@link UserGameState}
-     * ({@code user_game_states.user_id}).
-     * Use {@link #setGameState(UserGameState)} so the owning side stays in sync.
-     */
-    @Setter(AccessLevel.NONE)
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_state_id")
     private UserGameState gameState;
 
     public void setGameState(UserGameState gameState) {

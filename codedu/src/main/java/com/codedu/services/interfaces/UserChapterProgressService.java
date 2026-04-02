@@ -12,5 +12,5 @@ public interface UserChapterProgressService {
 
     UserChapterProgress getProgress(User user, Chapter chapter);
 
-    UserChapterProgress getOrCreateProgress(User user, Chapter chapter);
+    UserChapterProgress getDetailedProgress(Long userId, Long chapterId);
 }

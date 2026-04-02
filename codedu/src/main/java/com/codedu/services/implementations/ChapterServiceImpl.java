@@ -3,6 +3,7 @@ package com.codedu.services.implementations;
 import com.codedu.models.learning.Chapter;
 import com.codedu.services.interfaces.ChapterService;
 import com.codedu.repositories.interfaces.ChapterRepository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,5 +26,12 @@ public class ChapterServiceImpl implements ChapterService {
 
     public List<Chapter> getAllChapters() {
         return chapterRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Chapter> getChapterWithQuestions(Long id) {
+        // This calls the FETCH JOIN query we created in Step 1
+        return chapterRepository.findByIdWithQuestions(id);
     }
 }

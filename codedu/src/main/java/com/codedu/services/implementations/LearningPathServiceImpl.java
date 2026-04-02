@@ -27,6 +27,35 @@ public class LearningPathServiceImpl implements LearningPathService {
         this.progressRepository = progressRepository;
     }
 
+    @Override
+    @Transactional // 🚀 This ensures the progress is saved to Neon correctly
+    public List<ChapterProgressDTO> getOrCreateLearningPath(User user) {
+        List<ChapterProgressDTO> currentPath = getLearningPathForUser(user);
+
+        if (currentPath.isEmpty()) {
+            System.out.println("Generating progress for new user in Service...");
+            List<Chapter> allChapters = chapterRepository.getAll();
+
+            for (Chapter ch : allChapters) {
+                UserChapterProgress p = new UserChapterProgress();
+                p.setUser(user);
+                p.setChapter(ch);
+
+                if (ch.getOrderIndex() == 1) {
+                    p.setCompletedLessons(ch.getTotalLessons());
+                    p.setCompleted(true);
+                    p.setUnlocked(true);
+                } else if (ch.getOrderIndex() == 2) {
+                    p.setUnlocked(true);
+                }
+                progressRepository.save(p);
+            }
+            progressRepository.flush();
+            return getLearningPathForUser(user);
+        }
+        return currentPath;
+    }
+
     @Transactional(readOnly = true)
     public List<ChapterProgressDTO> getLearningPathForUser(User user) {
         // 1. Get all chapters sorted by their order index

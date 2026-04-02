@@ -8,4 +8,7 @@ import java.util.List;
 public interface LearningPathService {
 
     List<ChapterProgressDTO> getLearningPathForUser(User user);
+
+    List<ChapterProgressDTO> getOrCreateLearningPath(User user);
+
 }

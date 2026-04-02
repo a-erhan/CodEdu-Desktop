@@ -25,7 +25,7 @@ public class ChapterViewController {
     private UserChapterProgressService progressService;
 
     @Autowired
-    private UserService userService; // ✅ Added Service Injection
+    private UserService userService;
 
     @FXML
     private Button btnBack;
@@ -46,6 +46,16 @@ public class ChapterViewController {
     private boolean isChapterFinished = false;
     private List<Question> uiQuestionOrder = new ArrayList<>();
 
+    private int currentLessonCount = 0;
+    private java.util.function.Consumer<User> onProgressUpdated;
+
+    // 🚀 THE MISSING VARIABLE: This holds our active, safe user!
+    private User currentUser;
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+
     @FXML
     public void initialize() {
         tabLearn.setOnAction(e -> switchTab("learn"));
@@ -57,6 +67,8 @@ public class ChapterViewController {
         this.chapter = chapter;
         this.userProgress = progress;
         this.isChapterFinished = (progress != null && progress.isCompleted());
+
+        this.currentLessonCount = (progress != null) ? progress.getCompletedLessons() : 0;
 
         headerTitle.setText(chapter.getTitle());
         updateHeaderProgress();
@@ -120,7 +132,13 @@ public class ChapterViewController {
 
     private void buildLearnSection(String text) {
         learnContainer.getChildren().clear();
-        // [Existing Parsing Logic]
+        if (text == null || text.isEmpty()) text = "No learning material available for this chapter yet.";
+        Label learnLabel = new Label(text);
+        learnLabel.setWrapText(true);
+        learnLabel.setStyle("-fx-font-size: 16px; -fx-padding: 20px; -fx-line-spacing: 0.5em; -fx-text-fill: #FFFFFF;");
+        learnLabel.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(learnLabel, Priority.ALWAYS);
+        learnContainer.getChildren().add(learnLabel);
     }
 
     private void buildQuizSection(List<Question> mcqs, List<Question> fills) {
@@ -149,9 +167,7 @@ public class ChapterViewController {
         for (int i = 1; i < contentLines.length; i++)
             options.add(contentLines[i].replaceFirst("^[A-D]\\)\\s*", ""));
 
-        int correctIndex = (q.getSolution() != null && !q.getSolution().isEmpty())
-                ? q.getSolution().toUpperCase().charAt(0) - 'A'
-                : 0;
+        int correctIndex = (q.getSolution() != null && !q.getSolution().isEmpty()) ? q.getSolution().toUpperCase().charAt(0) - 'A' : 0;
 
         Label qLabel = new Label("Q" + number + ". " + contentLines[0]);
         qLabel.getStyleClass().add("cv-mcq-question");
@@ -161,7 +177,6 @@ public class ChapterViewController {
         String[] letters = { "A", "B", "C", "D" };
 
         boolean isLocked = isQuestionCompleted(q);
-
         String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
         String styleWrong = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #c0392b; -fx-border-radius: 4; -fx-background-radius: 4;";
 
@@ -246,68 +261,60 @@ public class ChapterViewController {
         }
     }
 
-    /**
-     * Corrected Reward and Progress Logic
-     */
     private void handleCorrectAnswer(Question q) {
-        int earnedXp = 0;
-        int earnedTokens = 0;
+        // 1. UPDATE THE UI STATE FIRST
+        currentLessonCount++;
 
-        if (q != null && q.getReward() != null) {
-            earnedXp = q.getReward().getXp();
-            earnedTokens = q.getReward().getToken();
+        if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
+            isChapterFinished = true;
+            if (userProgress != null) userProgress.setCompleted(true);
         }
 
-        // 1. Update User Gamification Data
-        if (userProgress != null && userProgress.getUser() != null) {
-            User currentUser = userProgress.getUser();
-            UserGameState gameState = currentUser.getGameState();
+        // 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
+        try {
+            if (currentUser != null) {
 
-            if (gameState != null) {
-                // ✅ Use standardized leveling logic
-                gameState.addXpAndResolveLevelUps(earnedXp);
-                gameState.setTokenBalance(gameState.getTokenBalance() + earnedTokens);
+                // Save chapter progress
+                UserChapterProgress realProgress = progressService.getProgress(currentUser, chapter);
+                if (realProgress == null) realProgress = userProgress;
 
-                // ✅ Save User (which cascaded-saves GameState)
-                userService.saveUser(currentUser);
+                if (realProgress != null) {
+                    realProgress.setCompletedLessons(currentLessonCount);
+                    if (isChapterFinished) realProgress.setCompleted(true);
+                    progressService.saveProgress(realProgress);
+                }
+
+                // 🚀 THE FIX: Use our new dedicated transaction to safely update Neon!
+                int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
+                int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
+
+                if (xpReward > 0 || tokenReward > 0) {
+                    User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
+
+                    // Radio the Main Shell to redraw the top bar instantly
+                    if (updatedUser != null && onProgressUpdated != null) {
+                        javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
+                    }
+                }
             }
+        } catch (Exception e) {
+            System.err.println("⚠️ Database save issue, but UI will still update.");
+            e.printStackTrace();
+        } finally {
+            // 3. PUSH UPDATED COUNTER TO THE SCREEN INSTANTLY
+            javafx.application.Platform.runLater(this::updateHeaderProgress);
         }
-
-        // 2. Update Chapter Progress
-        if (userProgress != null) {
-            userProgress.setCompletedLessons(userProgress.getCompletedLessons() + 1);
-
-            if (chapter != null && userProgress.getCompletedLessons() >= chapter.getTotalLessons()) {
-                userProgress.setCompleted(true);
-                isChapterFinished = true;
-            }
-
-            // ✅ CORRECT: Use progressService for the progress object
-            progressService.saveProgress(userProgress);
-        }
-
-        updateHeaderProgress();
-    }
-
-    public void setOnBack(Runnable onBack) {
-        this.onBack = onBack;
-        btnBack.setOnAction(e -> {
-            if (onBack != null)
-                onBack.run();
-        });
     }
 
     private void updateHeaderProgress() {
-        int current = (userProgress != null) ? userProgress.getCompletedLessons() : 0;
-        int total = chapter.getTotalLessons();
-        headerXP.setText(String.format("XP: %d | %d/%d Lessons", chapter.getXpReward(), current, total));
+        int total = (chapter != null) ? chapter.getTotalLessons() : 0;
+        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
+
+        headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
     }
 
     private boolean isQuestionCompleted(Question q) {
-        if (userProgress == null)
-            return false;
-        if (isChapterFinished || userProgress.isCompleted())
-            return true;
+        if (isChapterFinished) return true;
 
         int globalIndex = uiQuestionOrder.indexOf(q);
         if (globalIndex == -1) {
@@ -318,6 +325,16 @@ public class ChapterViewController {
                 }
             }
         }
-        return (globalIndex != -1 && globalIndex < userProgress.getCompletedLessons());
+
+        return (globalIndex != -1 && globalIndex < currentLessonCount);
+    }
+
+    public void setOnProgressUpdated(java.util.function.Consumer<User> onProgressUpdated) {
+        this.onProgressUpdated = onProgressUpdated;
+    }
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+        btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
     }
 }

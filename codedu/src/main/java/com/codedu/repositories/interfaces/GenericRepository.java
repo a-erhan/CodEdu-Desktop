@@ -1,10 +1,12 @@
 package com.codedu.repositories.interfaces;
 
+import com.codedu.models.user.User;
+
 import java.util.List;
 import java.util.Optional;
 
 public interface GenericRepository<T> {
-    void save(T entity);
+    User save(T entity);
     void update(T entity);
     Optional<T> findById(int id);
     void hardDelete(int id);

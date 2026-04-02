@@ -1,13 +1,8 @@
 package com.codedu.seeders;
 
 import com.codedu.models.learning.*;
-import com.codedu.models.user.Role;
-import com.codedu.models.user.User;
-import com.codedu.models.user.UserGameState;
 import com.codedu.repositories.interfaces.ChapterRepository;
 import com.codedu.repositories.interfaces.LearningPathRepository;
-import com.codedu.repositories.interfaces.UserChapterProgressRepository;
-import com.codedu.repositories.interfaces.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -20,130 +15,165 @@ import java.util.List;
 @Component
 public class LearningPathDataSeeder implements CommandLineRunner {
 
-        private final UserRepository userRepository;
-        private final LearningPathRepository learningPathRepository;
-        private final UserChapterProgressRepository progressRepository;
-        private final ChapterRepository chapterRepository;
+    private final LearningPathRepository learningPathRepository;
+    private final ChapterRepository chapterRepository;
 
-        @Autowired
-        public LearningPathDataSeeder(UserRepository userRepository,
-                        LearningPathRepository learningPathRepository,
-                        UserChapterProgressRepository progressRepository,
-                        ChapterRepository chapterRepository) {
-                this.userRepository = userRepository;
-                this.learningPathRepository = learningPathRepository;
-                this.progressRepository = progressRepository;
-                this.chapterRepository = chapterRepository;
+    @Autowired
+    public LearningPathDataSeeder(LearningPathRepository learningPathRepository,
+                                  ChapterRepository chapterRepository) {
+        this.learningPathRepository = learningPathRepository;
+        this.chapterRepository = chapterRepository;
+    }
+
+    @Override
+    @Transactional
+    public void run(String... args) throws Exception {
+
+        // 1. Check if curriculum already exists
+        if (!learningPathRepository.getAll().isEmpty()) {
+            System.out.println(">>> [Seeder] Global Curriculum already seeded. Skipping...");
+            return;
         }
 
-        // Add this just in case
-        public LearningPathDataSeeder() {
-                this.userRepository = null;
-                this.learningPathRepository = null;
-                this.progressRepository = null;
-                this.chapterRepository = null;
+        System.out.println(">>> [Seeder] Building Global Curriculum...");
+
+        // 2. Create the Global Learning Path
+        LearningPath javaPath = LearningPath.builder()
+                .title("Java Fundamentals")
+                .description("Master programming step-by-step. Complete chapters to unlock new challenges and earn XP.")
+                .chapters(new ArrayList<>())
+                .build();
+        learningPathRepository.save(javaPath);
+
+        // ==========================================
+        // CHAPTER 1: Basics
+        // ==========================================
+        Chapter ch1 = Chapter.builder()
+                .title("Hello, World & Variables")
+                .description("Your very first program and storing data.")
+                .difficulty(Chapter.Difficulty.BEGINNER)
+                .xpReward(100)
+                .orderIndex(1)
+                .path(javaPath)
+                .iconEmoji("👋")
+                .build();
+
+        String ch1Learn = """
+            # Chapter 1: Hello, World & Variables
+            Welcome to your first step in Java! Every Java program starts with a class and a `main` method. 
+            
+            ## Variables & Data Types
+            Variables are containers for storing data values. In Java, you must declare the type:
+            * **int**: integers like `20`
+            * **double**: decimals like `19.99`
+            * **String**: text like `"Alice"`
+            """;
+
+        // Initialize Content and Link back to Chapter
+        ChapterContent ch1Content = ChapterContent.builder()
+                .learnText(ch1Learn)
+                .chapter(ch1)
+                .questions(new ArrayList<>())
+                .build();
+
+        // Add Questions with parent reference
+        ch1Content.getQuestions().add(createMCQ("Variables", "What is a variable?", "A container for data", ch1Content));
+        ch1Content.getQuestions().add(createMCQ("Data Types", "Which type stores whole numbers?", "int", ch1Content));
+        ch1Content.getQuestions().add(createFill("Declare an int named 'age' equal to 20.", "int age = 20;", ch1Content));
+        ch1Content.getQuestions().add(createCode("First Program", "Print: I am learning Java!", "System.out.println(\"I am learning Java!\");", ch1Content));
+
+        ch1.setTotalLessons(calculateTotalLessons(ch1Content)); // Calculates automatically based on the list size!
+        ch1.setContent(ch1Content);
+
+        chapterRepository.save(ch1);
+
+        // ==========================================
+        // CHAPTER 2: Control Flow
+        // ==========================================
+        Chapter ch2 = Chapter.builder()
+                .title("Control Flow: If/Else")
+                .description("Make decisions in your code.")
+                .difficulty(Chapter.Difficulty.BEGINNER)
+                .totalLessons(3)
+                .xpReward(150)
+                .orderIndex(2)
+                .path(javaPath)
+                .iconEmoji("🔀")
+                .build();
+
+        ChapterContent ch2Content = ChapterContent.builder()
+                .learnText("# Chapter 2: Control Flow\nUse if/else to branch your logic.")
+                .chapter(ch2)
+                .questions(new ArrayList<>())
+                .build();
+
+        ch2Content.getQuestions().add(createMCQ("Logic", "What type must an 'if' evaluate to?", "boolean", ch2Content));
+        ch2Content.getQuestions().add(createFill("Check if 'score' is > 90.", "if (score > 90)", ch2Content));
+
+        ch2.setContent(ch2Content);
+        chapterRepository.save(ch2);
+
+        // ==========================================
+        // LOCKED PLACEHOLDERS (3-10)
+        // ==========================================
+        List<String> chapterTitles = Arrays.asList("Loops", "Methods", "Arrays", "OOP", "Inheritance", "Exceptions", "Lists", "Trees");
+
+        for (int i = 0; i < chapterTitles.size(); i++) {
+            Chapter lockedCh = Chapter.builder()
+                    .title(chapterTitles.get(i))
+                    .description("Complete previous chapters to unlock.")
+                    .difficulty(Chapter.Difficulty.INTERMEDIATE)
+                    .totalLessons(5)
+                    .xpReward(200)
+                    .orderIndex(i + 3)
+                    .path(javaPath)
+                    .iconEmoji("🔒")
+                    .build();
+            chapterRepository.save(lockedCh);
         }
 
-        @Override
-        @Transactional
-        public void run(String... args) throws Exception {
-                // 1. Check if ANY chapters exist to avoid duplicate seeding
-                // This is a more robust check than a specific username.
-                if (chapterRepository.getAll().size() > 0) {
-                        System.out.println(">>> [Seeder] Learning Path chapters already exist. Skipping seeding.");
-                        return;
-                }
+        System.out.println(">>> [Seeder] Global Curriculum Ready!");
+    }
 
-                System.out.println(">>> [Seeder] FORCING SEED: Generating Full Learning Path Content...");
+    // --- Corrected Helper Methods (Setting the parent back-reference) ---
 
-                // 2. Create the Learning Path (Global)
-                LearningPath javaPath = LearningPath.builder()
-                                .title("Java Fundamentals")
-                                .description("Master programming step-by-step. Complete chapters to unlock new challenges and earn XP.")
-                                .chapters(new ArrayList<>())
-                                .build();
-                learningPathRepository.save(javaPath);
+    private MultipleChoiceQuestion createMCQ(String title, String content, String solution, ChapterContent parent) {
+        MultipleChoiceQuestion q = new MultipleChoiceQuestion();
+        q.setTitle(title);
+        q.setContent(content);
+        q.setSolution(solution);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.MULTIPLE_CHOICES);
+        q.setReward(new Reward(10, 5));
+        return q;
+    }
 
-                // --- CHAPTER 1: Basics ---
-                Chapter ch1 = Chapter.builder()
-                                .title("Hello, World & Variables")
-                                .description("Your very first program and storing data.")
-                                .difficulty(Chapter.Difficulty.BEGINNER)
-                                .totalLessons(1)
-                                .xpReward(50)
-                                .orderIndex(1)
-                                .path(javaPath)
-                                .iconEmoji("👋")
-                                .build();
+    private FillInBlankQuestion createFill(String textPrompt, String answer, ChapterContent parent) {
+        FillInBlankQuestion q = new FillInBlankQuestion();
+        q.setTitle("Fill in the Blank");
+        q.setContent(textPrompt);
+        q.setSolution(answer);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.FILL_IN_THE_BLANKS);
+        q.setReward(new Reward(15, 10));
+        return q;
+    }
 
-                ChapterContent ch1Content = ChapterContent.builder()
-                                .learnText("# Hello, World!\n\nWelcome to Java.")
-                                .build();
+    private CodeImplementationQuestion createCode(String title, String prompt, String boilerplate, ChapterContent parent) {
+        CodeImplementationQuestion q = new CodeImplementationQuestion();
+        q.setTitle(title);
+        q.setContent(prompt);
+        q.setBoilerplateCode(boilerplate);
+        q.setChapterContent(parent); // 🚀 LINK TO PARENT
+        q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
+        q.setReward(new Reward(30, 20));
+        return q;
+    }
 
-                MultipleChoiceQuestion ch1Q = new MultipleChoiceQuestion();
-                ch1Q.setTitle("Variables");
-                ch1Q.setContent("What is a variable?\nA) A container for data\nB) A type of error\nC) A shortcut\nD) A screen");
-                ch1Q.setSolution("A");
-                ch1Q.setQuestionType(QuestionType.MULTIPLE_CHOICES);
-                ch1Q.setReward(new Reward(5, 10));
-
-                ch1Content.setQuestions(Arrays.asList(ch1Q));
-                ch1.setContent(ch1Content);
-                chapterRepository.save(ch1);
-
-                // --- CHAPTER 2: Control Flow ---
-                Chapter ch2 = Chapter.builder()
-                                .title("Control Flow: If/Else")
-                                .description("Make decisions in your code.")
-                                .difficulty(Chapter.Difficulty.BEGINNER)
-                                .totalLessons(2)
-                                .xpReward(70)
-                                .orderIndex(2)
-                                .path(javaPath)
-                                .iconEmoji("🔀")
-                                .build();
-
-                String richLearnText = "# Control Flow\n\nUse `if` statements to branch logic.";
-                ChapterContent controlFlowContent = ChapterContent.builder().learnText(richLearnText).build();
-
-                MultipleChoiceQuestion q1 = new MultipleChoiceQuestion();
-                q1.setTitle("Boolean Logic");
-                q1.setContent("What type must an if condition evaluate to?\nA) int\nB) String\nC) boolean\nD) double");
-                q1.setSolution("C");
-                q1.setQuestionType(QuestionType.MULTIPLE_CHOICES);
-                q1.setReward(new Reward(25, 50));
-
-                CodeImplementationQuestion q2 = new CodeImplementationQuestion();
-                q2.setTitle("Positive/Negative");
-                q2.setContent("Write if/else logic.\n\nint num = -5;\n");
-                q2.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
-                q2.setReward(new Reward(50, 100));
-
-                controlFlowContent.setQuestions(Arrays.asList(q1, q2));
-                ch2.setContent(controlFlowContent);
-                chapterRepository.save(ch2);
-
-                // --- CHAPTERS 3 to 10: Locked Placeholders ---
-                List<String> chapterTitles = Arrays.asList("Loops", "Methods", "Arrays", "OOP", "Inheritance",
-                                "Exceptions", "Lists", "Trees");
-
-                for (int i = 0; i < chapterTitles.size(); i++) {
-                        Chapter lockedCh = Chapter.builder()
-                                        .title(chapterTitles.get(i))
-                                        .description("Complete previous chapters to unlock.")
-                                        .difficulty(i < 3 ? Chapter.Difficulty.INTERMEDIATE
-                                                        : Chapter.Difficulty.ADVANCED)
-                                        .totalLessons(5)
-                                        .xpReward(100)
-                                        .orderIndex(i + 3)
-                                        .path(javaPath)
-                                        .iconEmoji("🔒")
-                                        .build();
-
-                        chapterRepository.save(lockedCh);
-                }
-
-                System.out.println(
-                                ">>> [Seeder] Global Learning Path content seeded successfully. (No mock users created)");
+    private int calculateTotalLessons(ChapterContent content) {
+        if (content != null && content.getQuestions() != null) {
+            return content.getQuestions().size();
         }
+        return 0;
+    }
 }

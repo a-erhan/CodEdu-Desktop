@@ -45,4 +45,33 @@ public class UserChapterProgressRepositoryImpl extends GenericRepositoryImpl<Use
                 .setParameter("user", user)
                 .getResultList();
     }
+
+    @Override
+    public Optional<UserChapterProgress> findByUserIdAndChapterIdDetailed(Long userId, Long chapterId) {
+        try {
+            // We use JOIN FETCH here to solve the "N+1" slowness problem
+            UserChapterProgress progress = entityManager
+                    .createQuery(
+                            "SELECT p FROM UserChapterProgress p " +
+                                    "JOIN FETCH p.user u " +
+                                    "JOIN FETCH u.gameState " +
+                                    "JOIN FETCH p.chapter c " +
+                                    "LEFT JOIN FETCH c.content cnt " +
+                                    "LEFT JOIN FETCH cnt.questions q " +
+                                    "WHERE u.id = :userId AND c.id = :chapterId " +
+                                    "AND p.isDeleted = false", UserChapterProgress.class)
+                    .setParameter("userId", userId)
+                    .setParameter("chapterId", chapterId)
+                    .getSingleResult();
+            return Optional.of(progress);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public void flush() {
+        // This forces the persistence context to sync with the database
+        entityManager.flush();
+    }
 }

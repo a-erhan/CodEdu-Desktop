@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.UserProfileDTO;
+import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.UserService;
 import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
@@ -165,20 +166,45 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isPresent()) {
             User u = userOpt.get();
+
+            // 🚀 THE FIX: Touch a real data field (not just the ID) to force Hibernate to load the data!
             if (u.getGameState() != null) {
-                u.getGameState().getId();
-                // Force initialization of lazy achievements collection
-                u.getGameState().getAchievements().size();
+                u.getGameState().getXp(); // Forces the LAZY load to happen right now!
             }
-            if (u.getInventory() != null) {
-                u.getInventory().getId();
-                if (u.getInventory().getItems() != null) {
-                    u.getInventory().getItems().size(); // Force load items
-                }
+            if (u.getInventory() != null && u.getInventory().getItems() != null) {
+                u.getInventory().getItems().size(); // Forces the LAZY items list to load!
             }
-            if (u.getCompetitor() != null)
-                u.getCompetitor().getId();
+            if (u.getCompetitor() != null) {
+                u.getCompetitor().getUserRank(); // Forces the LAZY load!
+            }
         }
         return userOpt;
+    }
+
+    // 🚀 THE FIX: A dedicated, writable transaction just for game economy!
+    @Transactional
+    public User awardXpAndTokens(String username, int xpReward, int tokenReward) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user != null) {
+            UserGameState state = user.getGameState();
+
+            // If they don't have a GameState yet, create one
+            if (state == null) {
+                state = UserGameState.builder()
+                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                user.setGameState(state);
+            }
+
+            // Add the new rewards
+            state.setXp(state.getXp() + xpReward);
+            state.setTokenBalance(state.getTokenBalance() + tokenReward);
+
+            // Save it to the database
+            userRepository.update(user);
+
+            // Touch the XP to force Hibernate to load it before closing the connection
+            user.getGameState().getXp();
+        }
+        return user;
     }
 }
