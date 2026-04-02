@@ -262,7 +262,9 @@ public class ChapterViewController {
     }
 
     private void handleCorrectAnswer(Question q) {
-        // 1. UPDATE THE UI STATE FIRST
+        // Check if the chapter was already finished before this answer
+        boolean alreadyFinishedBefore = isChapterFinished;
+
         currentLessonCount++;
 
         if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
@@ -270,10 +272,8 @@ public class ChapterViewController {
             if (userProgress != null) userProgress.setCompleted(true);
         }
 
-        // 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
         try {
             if (currentUser != null) {
-
                 // Save chapter progress
                 UserChapterProgress realProgress = progressService.getProgress(currentUser, chapter);
                 if (realProgress == null) realProgress = userProgress;
@@ -284,9 +284,16 @@ public class ChapterViewController {
                     progressService.saveProgress(realProgress);
                 }
 
-                // 🚀 THE FIX: Use our new dedicated transaction to safely update Neon!
+                // Calculate standard rewards from the question
                 int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
                 int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
+
+                // 🚀 EXTRA BONUS LOGIC:
+                // If the chapter just hit 'finished' status for the first time right now:
+                if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
+                    xpReward += chapter.getXpReward(); // Add the large chapter completion bonus
+                    tokenReward += 50; // Optional: Add a flat token bonus for finishing chapters
+                }
 
                 if (xpReward > 0 || tokenReward > 0) {
                     User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
