@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,9 @@ public class ChapterViewController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @FXML
     private Button btnBack;
@@ -49,7 +53,7 @@ public class ChapterViewController {
     private int currentLessonCount = 0;
     private java.util.function.Consumer<User> onProgressUpdated;
 
-    // 🚀 THE MISSING VARIABLE: This holds our active, safe user!
+
     private User currentUser;
 
     public void setCurrentUser(User user) {
@@ -71,7 +75,6 @@ public class ChapterViewController {
         this.currentLessonCount = (progress != null) ? progress.getCompletedLessons() : 0;
 
         headerTitle.setText(chapter.getTitle());
-        updateHeaderProgress();
 
         if (chapter.getIconImage() != null) {
             try {
@@ -82,7 +85,8 @@ public class ChapterViewController {
                 iv.setPreserveRatio(true);
                 headerTitle.setGraphic(iv);
             } catch (Exception e) {
-                /* Fallback */ }
+                /* Fallback */
+            }
         }
 
         ChapterContent content = chapter.getContent();
@@ -111,6 +115,9 @@ public class ChapterViewController {
             buildQuizSection(mcQuestions, fillBlanks);
             buildPracticeSection(codeQuestions);
         }
+
+        // 🚀 CRITICAL: Update header at the VERY END after uiQuestionOrder is populated!
+        updateHeaderProgress();
     }
 
     private void switchTab(String tab) {
@@ -246,18 +253,59 @@ public class ChapterViewController {
 
     private void buildPracticeSection(List<Question> codeQuestions) {
         practiceContainer.getChildren().clear();
+
+        if (codeQuestions.isEmpty()) {
+            Label emptyLabel = new Label("No coding exercises for this chapter yet.");
+            emptyLabel.setStyle("-fx-text-fill: white; -fx-padding: 20px;");
+            practiceContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
         for (int i = 0; i < codeQuestions.size(); i++) {
             Question task = codeQuestions.get(i);
-            TextArea codeArea = new TextArea(task.getContent());
-            Button runBtn = new Button("Run Code");
 
-            if (isQuestionCompleted(task)) {
-                codeArea.setEditable(false);
-                runBtn.setVisible(false);
+            try {
+                // 1. Load your specialized QuestionSolver FXML
+                // ⚠️ Ensure this path matches exactly where your FXML is saved!
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                        getClass().getResource("/com/codedu/views/QuestionSolver.fxml")
+                );
+
+                // 2. Let Spring wire up the JDoodle Service inside the controller
+                loader.setControllerFactory(applicationContext::getBean);
+
+                // 3. Load the UI node (assuming the root of QuestionSolver.fxml is a VBox)
+                javafx.scene.Node solverUI = loader.load();
+
+                // 4. Get the controller and pass the question data
+                QuestionSolverController solverController = loader.getController();
+                solverController.setQuestion(task);
+
+                if (isQuestionCompleted(task)) {
+                    solverController.setLocked(true); // Lock it immediately!
+                }
+
+                // 5. 🚀 THE HOOK: Listen for the JDoodle success signal
+                solverController.setOnSuccessCallback(isCorrect -> {
+                    if (isCorrect) {
+                        // Only award XP if they haven't beaten this exact question before
+                        if (!isQuestionCompleted(task)) {
+                            handleCorrectAnswer(task);
+                            System.out.println("✅ Practice question completed, XP awarded!");
+                        }
+                    }
+                });
+
+                // Optional: Add some spacing between multiple code questions
+                VBox.setMargin(solverUI, new Insets(0, 0, 30, 0));
+                practiceContainer.getChildren().add(solverUI);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Label errorLabel = new Label("⚠️ Failed to load code editor for: " + task.getTitle());
+                errorLabel.setStyle("-fx-text-fill: #e74c3c;");
+                practiceContainer.getChildren().add(errorLabel);
             }
-
-            runBtn.setOnAction(e -> handleCorrectAnswer(task));
-            practiceContainer.getChildren().addAll(new Label(task.getTitle()), codeArea, runBtn);
         }
     }
 
@@ -266,8 +314,9 @@ public class ChapterViewController {
         boolean alreadyFinishedBefore = isChapterFinished;
 
         currentLessonCount++;
+        int dynamicTotalLessons = (uiQuestionOrder != null) ? uiQuestionOrder.size() : 0;
 
-        if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
+        if (chapter != null && currentLessonCount >= dynamicTotalLessons) {
             isChapterFinished = true;
             if (userProgress != null) userProgress.setCompleted(true);
         }
@@ -314,9 +363,15 @@ public class ChapterViewController {
     }
 
     private void updateHeaderProgress() {
-        int total = (chapter != null) ? chapter.getTotalLessons() : 0;
-        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
 
+        int total = uiQuestionOrder.size();
+
+
+        if (total == 0 && chapter != null) {
+            total = chapter.getTotalLessons();
+        }
+
+        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
         headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
     }
 

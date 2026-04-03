@@ -16,6 +16,7 @@ public class ChapterProgressDTO {
     private boolean isLocked;
     private boolean isCompleted;
 
+
     public double getProgress() {
         if (chapter == null || chapter.getTotalLessons() == 0) return 0.0;
         return (double) completedLessons / chapter.getTotalLessons();

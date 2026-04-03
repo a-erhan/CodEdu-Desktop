@@ -518,7 +518,8 @@ public class MainShellController {
         welcomeNavLabel.setText("@" + username);
 
         int levelCap = Math.max(1, level * 100);
-        xpProgressBar.setProgress((double) xp / levelCap);
+        double progress = (double) xp / levelCap;
+        xpProgressBar.setProgress(Math.min(1.0, progress));
         xpLabel.setText("XP: " + xp + " / " + levelCap);
 
         if (profileIconLabel != null) {
