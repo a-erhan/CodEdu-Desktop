@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.user.InventoryItemDTO;
 import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.ItemType;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class InventoryItemServiceImpl implements InventoryItemService {
@@ -25,11 +27,13 @@ public class InventoryItemServiceImpl implements InventoryItemService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<InventoryItem> getItemsForUser(User user) {
+    public List<InventoryItemDTO> getItemsForUser(User user) {
         if (user == null || user.getInventory() == null) {
             return List.of();
         }
-        return inventoryItemRepository.findByInventory(user.getInventory());
+        return inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -73,7 +77,6 @@ public class InventoryItemServiceImpl implements InventoryItemService {
 
         ItemType type = managed.getItem().getType();
 
-        // Only AVATAR items are equipable (boosters/AI usage are consumables/features).
         if (type != ItemType.AVATAR) {
             if (managed.isEquipped()) {
                 managed.setEquipped(false);
@@ -92,9 +95,28 @@ public class InventoryItemServiceImpl implements InventoryItemService {
             return;
         }
 
-        // Enforce: only one equipped avatar per inventory.
         inventoryItemRepository.unequipAllByInventoryAndType(managed.getInventory().getId(), ItemType.AVATAR);
         managed.setEquipped(true);
         inventoryItemRepository.update(managed);
+    }
+
+    private InventoryItemDTO toDTO(InventoryItem ii) {
+        Item item = ii.getItem();
+        return InventoryItemDTO.builder()
+                .id(ii.getId())
+                .itemName(item != null ? item.getName() : "Unknown")
+                .itemDescription(item != null ? item.getDescription() : "")
+                .itemIconURL(item != null ? item.getIconURL() : "")
+                .quantity(ii.getQuantity())
+                .isEquipped(ii.isEquipped())
+                .build();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<InventoryItem> getItemEntitiesForUser(User user) {
+        if (user == null || user.getInventory() == null) {
+            return List.of();
+        }
+        return inventoryItemRepository.findByInventory(user.getInventory());
     }
 }

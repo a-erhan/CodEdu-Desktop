@@ -1,6 +1,8 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.dtos.user.UserDTO;
+import com.codedu.dtos.user.UserLoginDTO;
 import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -11,6 +13,7 @@ import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import com.codedu.services.interfaces.AuthService;
+import com.codedu.services.interfaces.UserService;
 import com.codedu.ui.StageNavigator;
 /**
  * Controller for the Login screen.
@@ -31,6 +34,8 @@ public class LoginController {
     private Button loginButton;
     @Autowired
     private AuthService authService;
+    @Autowired
+    private UserService userService;
     @Autowired
     private StageNavigator navigator;
 
@@ -58,16 +63,22 @@ public class LoginController {
             return;
         }
 
-        User loggedInUser = authService.login(email, password);
+        UserDTO loggedInUser = authService.login(new UserLoginDTO(email, password));
         if (loggedInUser == null) {
             errorLabel.setText("Invalid email or password. Please try again or create an account.");
             return;
         }
 
         try {
+            // Fetch the full User entity for MainShellController
+            User fullUser = userService.getUserWithProfileData(loggedInUser.username()).orElse(null);
+            if (fullUser == null) {
+                errorLabel.setText("Failed to load user profile.");
+                return;
+            }
             Stage stage = (Stage) emailField.getScene().getWindow();
             navigator.replaceScene(stage, "/com/codedu/views/MainShell.fxml", MainShellController.class,
-                    c -> c.setUser(loggedInUser));
+                    c -> c.setUser(fullUser));
             stage.setMaximized(true);
         } catch (Exception e) {
             errorLabel.setText("Failed to load application.");

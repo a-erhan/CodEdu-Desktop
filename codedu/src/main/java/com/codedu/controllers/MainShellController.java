@@ -85,12 +85,15 @@ public class MainShellController {
         userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
                 freshUser -> {
                     this.user = freshUser;
-                    this.gameState = freshUser.getGameState();
+                    if (initDemoModelsIfNeeded()) {
+                        userService.saveUser(this.user);
+                    }
                 },
                 () -> {
                     this.user = user;
-                    initDemoModelsIfNeeded(); // Fallback
-                    this.gameState = this.user.getGameState();
+                    if (initDemoModelsIfNeeded()) {
+                        userService.saveUser(this.user);
+                    }
                 }
         );
 
@@ -213,7 +216,9 @@ public class MainShellController {
         // 🚀 1. THE FIX: Fetch the FRESH user from the database before loading the view
         userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
             this.user = freshUser; // Update the shell's memory
-            this.gameState = freshUser.getGameState();
+            if (initDemoModelsIfNeeded()) {
+                userService.saveUser(this.user);
+            }
 
             // 🚀 Update the top-left XP bar and token counts instantly
             Platform.runLater(this::updateHeader);

@@ -1,6 +1,7 @@
 package com.codedu.services.interfaces;
 
 import com.codedu.dtos.UserProfileDTO;
+import com.codedu.dtos.user.UserDTO;
 import com.codedu.models.user.User;
 
 import java.util.List;
@@ -8,25 +9,33 @@ import java.util.Optional;
 
 public interface UserService {
 
-    boolean changePassword(User user, String oldPassword, String newPassword);
+    boolean changePassword(int userId, String oldPassword, String newPassword);
 
-    void deleteUser(User user);
+    void deleteUser(int userId);
 
     void saveUser(User user);
 
-    void sendFriendRequest(User requester, User receiver);
+    void sendFriendRequest(int requesterId, int receiverId);
 
-    List<User> getAcceptedFriends(User user);
+    List<UserDTO> getAcceptedFriends(int userId);
 
-    List<User> getPendingRequests(User receiver);
+    List<UserDTO> getPendingRequests(int userId);
 
-    void answerFriendRequest(User receiver, User requester, boolean accept);
+    /** Entity versions for controllers still using entity classes */
+    List<User> getAcceptedFriendEntities(int userId);
 
-    String getRelationStatus(User currentUser, User targetUser);
+    List<User> getPendingRequestEntities(int userId);
+
+    void answerFriendRequest(int receiverId, int requesterId, boolean accept);
+
+    String getRelationStatus(int currentUserId, int targetUserId);
 
     UserProfileDTO getUserProfile(String targetUsername, String currentUsername);
 
     Optional<User> getUserWithProfileData(String username);
 
-    User awardXpAndTokens(String username, int xpReward, int tokenReward);
+    UserDTO awardXpAndTokens(String username, int xpReward, int tokenReward);
+
+    /** Entity version for controllers still using entity classes */
+    User awardXpAndTokensEntity(String username, int xpReward, int tokenReward);
 }

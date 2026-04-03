@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.user.UserGameStateDTO;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.repositories.interfaces.UserGameStateRepository;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserGameStateServiceImpl implements UserGameStateService {
@@ -51,8 +53,8 @@ public class UserGameStateServiceImpl implements UserGameStateService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UserGameState> findByUserId(int userId) {
-        return userGameStateRepository.findByUserId(userId);
+    public Optional<UserGameStateDTO> findByUserId(int userId) {
+        return userGameStateRepository.findByUserId(userId).map(this::toDTO);
     }
 
     @Override
@@ -84,5 +86,26 @@ public class UserGameStateServiceImpl implements UserGameStateService {
         gs.setLastActivityDate(LocalDateTime.now());
         userGameStateRepository.update(gs);
         return true;
+    }
+
+    private UserGameStateDTO toDTO(UserGameState gs) {
+        return UserGameStateDTO.builder()
+                .id(gs.getId())
+                .userId(gs.getUser() != null ? gs.getUser().getId() : 0)
+                .heartCount(gs.getHeartCount())
+                .level(gs.getLevel())
+                .xp(gs.getXp())
+                .xpToNextLevel(gs.getXpToNextLevel())
+                .tokenBalance(gs.getTokenBalance())
+                .currentStreak(gs.getCurrentStreak())
+                .lastActivityDate(gs.getLastActivityDate())
+                .achievementNames(
+                        gs.getAchievements() != null
+                                ? gs.getAchievements().stream()
+                                        .map(a -> a.getName())
+                                        .collect(Collectors.toList())
+                                : java.util.List.of()
+                )
+                .build();
     }
 }

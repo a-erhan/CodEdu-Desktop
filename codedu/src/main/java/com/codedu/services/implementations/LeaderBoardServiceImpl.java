@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.matchmaking.LeaderBoardDTO;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.services.interfaces.LeaderBoardService;
 import com.codedu.models.matchmaking.LeaderBoard;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LeaderBoardServiceImpl implements LeaderBoardService {
@@ -30,25 +32,20 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         this.competitorRepository = competitorRepository;
     }
 
-    /**
-     * Retrieves the leaderboard by its exact name.
-     * Returns an empty/dummy leaderboard if not found in the database yet.
-     */
     @Transactional
-    public LeaderBoard getLeaderboardByName(String name) {
+    public LeaderBoardDTO getLeaderboardByName(String name) {
         Optional<LeaderBoard> leaderboardOpt = leaderBoardRepository.findByName(name);
 
+        LeaderBoard lb;
         if (leaderboardOpt.isPresent()) {
-            LeaderBoard lb = leaderboardOpt.get();
+            lb = leaderboardOpt.get();
             if (lb.getCompetitors() != null) {
                 lb.getCompetitors().size(); // Force initialization
             }
-            return lb;
         } else {
-            // Automatically create and populate the leaderboard if it doesn't exist
             System.out.println("Leaderboard '" + name + "' not found in DB. Creating and populating...");
 
-            LeaderBoard newLeaderBoard = LeaderBoard.builder()
+            lb = LeaderBoard.builder()
                     .name(name)
                     .requiredLevel(1)
                     .lastUpdatedAt(LocalDateTime.now())
@@ -71,25 +68,61 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
                     u.setCompetitor(c);
                     userRepository.update(u);
                 } else if (u.getGameState() != null) {
-                    // Sync XP to ranking points for now
                     c.setRankingPoint(u.getGameState().getXp());
                     competitorRepository.update(c);
                 }
                 allCompetitors.add(c);
             }
 
-            // Sort competitors by ranking points descending
             allCompetitors.sort((c1, c2) -> Integer.compare(c2.getRankingPoint(), c1.getRankingPoint()));
 
-            // Assign ranks
             for (int i = 0; i < allCompetitors.size(); i++) {
                 allCompetitors.get(i).setUserRank(i + 1);
                 competitorRepository.update(allCompetitors.get(i));
-                newLeaderBoard.addCompetitor(allCompetitors.get(i));
+                lb.addCompetitor(allCompetitors.get(i));
             }
 
-            leaderBoardRepository.save(newLeaderBoard);
-            return newLeaderBoard;
+            leaderBoardRepository.save(lb);
         }
+
+        return toDTO(lb);
+    }
+
+    private LeaderBoardDTO toDTO(LeaderBoard lb) {
+        List<LeaderBoardDTO.LeaderBoardEntryDTO> entries = lb.getCompetitors() != null
+                ? lb.getCompetitors().stream()
+                        .map(c -> LeaderBoardDTO.LeaderBoardEntryDTO.builder()
+                                .rank(c.getUserRank())
+                                .username(c.getUser() != null ? c.getUser().getUsername() : "Unknown")
+                                .rankingPoint(c.getRankingPoint())
+                                .totalWins(c.getTotalWins())
+                                .totalMatches(c.getTotalMatches())
+                                .winRate(c.getWinRate())
+                                .build())
+                        .collect(Collectors.toList())
+                : List.of();
+
+        return LeaderBoardDTO.builder()
+                .id(lb.getId())
+                .name(lb.getName())
+                .requiredLevel(lb.getRequiredLevel())
+                .lastUpdatedAt(lb.getLastUpdatedAt())
+                .entries(entries)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public LeaderBoard getLeaderboardEntityByName(String name) {
+        Optional<LeaderBoard> leaderboardOpt = leaderBoardRepository.findByName(name);
+        if (leaderboardOpt.isPresent()) {
+            LeaderBoard lb = leaderboardOpt.get();
+            if (lb.getCompetitors() != null) {
+                lb.getCompetitors().size();
+            }
+            return lb;
+        }
+        getLeaderboardByName(name);
+        return leaderBoardRepository.findByName(name).orElse(null);
     }
 }

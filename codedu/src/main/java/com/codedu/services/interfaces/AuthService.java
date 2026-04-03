@@ -1,10 +1,12 @@
 package com.codedu.services.interfaces;
 
-import com.codedu.models.user.User;
+import com.codedu.dtos.user.UserDTO;
+import com.codedu.dtos.user.UserLoginDTO;
+import com.codedu.dtos.user.UserRegisterDTO;
 
 public interface AuthService {
 
-    String register(String email, String password);
+    String register(UserRegisterDTO dto);
 
-    User login(String email, String password);
+    UserDTO login(UserLoginDTO dto);
 }

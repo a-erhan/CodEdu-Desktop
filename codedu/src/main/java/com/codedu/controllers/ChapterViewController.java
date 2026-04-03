@@ -289,7 +289,7 @@ public class ChapterViewController {
                 int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
 
                 if (xpReward > 0 || tokenReward > 0) {
-                    User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
+                    User updatedUser = userService.awardXpAndTokensEntity(currentUser.getUsername(), xpReward, tokenReward);
 
                     // Radio the Main Shell to redraw the top bar instantly
                     if (updatedUser != null && onProgressUpdated != null) {
