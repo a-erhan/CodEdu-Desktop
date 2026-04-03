@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -105,5 +106,34 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
                 .setParameter("id", id)
                 .getResultStream()
                 .findFirst();
+    }
+
+    @Override
+    public List<User> findAllActiveWithCompetitorAndGameState() {
+        return entityManager.createQuery(
+                "SELECT DISTINCT u FROM User u " +
+                        "LEFT JOIN FETCH u.gameState gs " +
+                        "LEFT JOIN FETCH u.competitor c " +
+                        "WHERE u.isDeleted = false",
+                User.class)
+                .getResultList();
+    }
+
+    @Override
+    public Optional<User> findByIdWithGameStateAndAchievements(int id) {
+        try {
+            User user = entityManager
+                    .createQuery(
+                            "SELECT DISTINCT u FROM User u " +
+                                    "LEFT JOIN FETCH u.gameState gs " +
+                                    "LEFT JOIN FETCH gs.achievements " +
+                                    "WHERE u.id = :id AND u.isDeleted = false",
+                            User.class)
+                    .setParameter("id", id)
+                    .getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
     }
 }

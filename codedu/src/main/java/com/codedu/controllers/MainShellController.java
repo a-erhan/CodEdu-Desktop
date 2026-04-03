@@ -41,7 +41,6 @@ public class MainShellController {
     @org.springframework.beans.factory.annotation.Autowired
     private UserChapterProgressService progressService;
 
-    // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
     @FXML
@@ -81,7 +80,6 @@ public class MainShellController {
     public void setUser(User user) {
         if (user == null) return;
 
-        // 🚀 Refreshing immediately using our hydrated service method
         userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
                 freshUser -> {
                     this.user = freshUser;
@@ -89,12 +87,11 @@ public class MainShellController {
                 },
                 () -> {
                     this.user = user;
-                    initDemoModelsIfNeeded(); // Fallback
+                    initDemoModelsIfNeeded();
                     this.gameState = this.user.getGameState();
                 }
         );
 
-        // This is where it was crashing; now this.gameState is guaranteed to be loaded
         updateHeader();
 
         chatWindowManager.connectUser(this.user);
@@ -208,14 +205,12 @@ public class MainShellController {
     }
 
     private void loadLearningPath() {
-        if (this.user == null) return; // Safety check
+        if (this.user == null) return;
 
-        // 🚀 1. THE FIX: Fetch the FRESH user from the database before loading the view
         userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
-            this.user = freshUser; // Update the shell's memory
+            this.user = freshUser;
             this.gameState = freshUser.getGameState();
 
-            // 🚀 Update the top-left XP bar and token counts instantly
             Platform.runLater(this::updateHeader);
         });
 
@@ -227,7 +222,6 @@ public class MainShellController {
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
 
-            // 🚀 2. Pass the newly refreshed user to the Learning Path
             lpController.loadUserData(this.user);
 
             setContentAndFill(view);
@@ -293,7 +287,6 @@ public class MainShellController {
 
     private void loadAchievements() {
         try {
-            // FETCH FRESH DATA HERE
             User freshUser = userService.getUserWithProfileData(user.getUsername())
                     .orElse(this.user);
 
@@ -302,7 +295,6 @@ public class MainShellController {
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
 
-            // Pass the fresh user with initialized achievements
             controller.setCurrentUser(freshUser);
             setContentAndFill(view);
         } catch (IOException ex) {
@@ -456,12 +448,20 @@ public class MainShellController {
     }
 
     private void openCompetitorProfile(Competitor competitor, java.util.List<Competitor> competitorOrder) {
+        if (competitor == null || competitor.getUser() == null) {
+            return;
+        }
         try {
+            User hydrated = userService.loadUserForPublicProfile(competitor.getUser().getId())
+                    .orElse(competitor.getUser());
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
-            controller.setCompetitor(competitor, competitorOrder);
+            controller.setCurrentUser(user);
+            controller.setViewingSelf(false);
+            controller.setOnProfileClick(this::openUserProfile);
+            controller.setCompetitor(competitor, competitorOrder, hydrated);
             setContentAndFill(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -500,7 +500,6 @@ public class MainShellController {
     }
 
     private void loadProfile() {
-        // Instead of openUserProfile(this.user), fetch first:
         userService.getUserWithProfileData(user.getUsername())
                 .ifPresentOrElse(
                         this::openUserProfile,
@@ -589,10 +588,6 @@ public class MainShellController {
         }
     }
 
-    /**
-     * @return true if a new {@link UserGameState} was attached and must be
-     *         persisted (e.g. legacy users with no row).
-     */
     private boolean initDemoModelsIfNeeded() {
         if (user == null) {
             return false;

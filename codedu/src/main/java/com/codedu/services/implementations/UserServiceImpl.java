@@ -60,10 +60,9 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void sendFriendRequest(User requester, User receiver) {
-        // Check if a friendship already exists
         Optional<Friendship> existing = friendshipRepository.findFriendshipBetween(requester, receiver);
         if (existing.isPresent()) {
-            return; // Already exists (pending, accepted, or blocked)
+            return;
         }
 
         Friendship friendship = Friendship.builder()
@@ -102,7 +101,6 @@ public class UserServiceImpl implements UserService {
                     friendship.setStatus(Friendship.FriendshipStatus.ACCEPTED);
                     friendshipRepository.update(friendship);
                 } else {
-                    // Rejecting simply deletes the pending request
                     friendship.setDeleted(true);
                     friendshipRepository.update(friendship);
                 }
@@ -119,7 +117,7 @@ public class UserServiceImpl implements UserService {
         if (friendship.isEmpty()) {
             return "NONE";
         }
-        return friendship.get().getStatus().name(); // "PENDING", "ACCEPTED", "BLOCKED"
+        return friendship.get().getStatus().name();
     }
 
     @Transactional(readOnly = true)
@@ -165,46 +163,57 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public Optional<User> getUserWithProfileData(String username) {
         return userRepository.findByUsername(username).map(u -> {
-            // 🚀 FORCE Hibernate to load the GameState and its fields
             if (u.getGameState() != null) {
                 org.hibernate.Hibernate.initialize(u.getGameState());
-                u.getGameState().getTokenBalance(); // Access a field to be sure
+                u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
             }
             return u;
         });
     }
 
-    // 🚀 THE FIX: A dedicated, writable transaction just for game economy!
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<User> loadUserForPublicProfile(int userId) {
+        if (userId <= 0) {
+            return Optional.empty();
+        }
+        return userRepository.findByIdWithGameStateAndAchievements(userId).map(u -> {
+            if (u.getGameState() != null) {
+                Hibernate.initialize(u.getGameState());
+                if (u.getGameState().getAchievements() != null) {
+                    Hibernate.initialize(u.getGameState().getAchievements());
+                }
+            }
+            return u;
+        });
+    }
+
     @Transactional
     public User awardXpAndTokens(String username, int xpReward, int tokenReward) {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user != null) {
             UserGameState state = user.getGameState();
 
-            // If they don't have a GameState yet, create one
             if (state == null) {
                 state = UserGameState.builder()
                         .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
 
-            // Add the new rewards
             state.setXp(state.getXp() + xpReward);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
             int xpRequired = state.getLevel() * 100;
 
             while (state.getXp() >= xpRequired) {
-                state.setXp(state.getXp() - xpRequired); // Carry over leftover XP
-                state.setLevel(state.getLevel() + 1);    // Increment Level
-                xpRequired = state.getLevel() * 100;    // Update requirement for next level
+                state.setXp(state.getXp() - xpRequired); 
+                state.setLevel(state.getLevel() + 1);   
+                xpRequired = state.getLevel() * 100;   
             }
 
-            // Save it to the database
             userRepository.update(user);
 
-            // Touch the XP to force Hibernate to load it before closing the connection
             Hibernate.initialize(user.getGameState());
         }
         return user;

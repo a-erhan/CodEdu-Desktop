@@ -23,10 +23,6 @@ import org.springframework.stereotype.Controller;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * Controller for the Profile view.
- * Displays user stats, badges, and friend list.
- */
 @Controller
 public class ProfileController {
 
@@ -36,7 +32,6 @@ public class ProfileController {
     @Autowired
     private FriendshipUIManager friendshipUIManager;
 
-    // ========== FXML bindings ==========
     @FXML
     private Label avatarDisplay;
     @FXML
@@ -80,14 +75,11 @@ public class ProfileController {
     @FXML
     private FlowPane badgesContainer;
 
-    // ========== State ==========
     private User currentUser;
     private User profileUser;
     private UserGameState gameState;
     private boolean viewingSelf;
     private Consumer<User> onProfileClick;
-
-    // ========== Setters ==========
 
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
@@ -105,7 +97,7 @@ public class ProfileController {
         this.gameState = gameState;
         if (profileUser != null) {
             bindStats();
-            bindBadgesSection(); // Refresh badges when state is set
+            bindBadgesSection();
         }
     }
 
@@ -119,8 +111,14 @@ public class ProfileController {
     }
 
     public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder) {
+        setCompetitor(competitor, competitorOrder, null);
+    }
+
+    public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder, User hydratedProfileUser) {
         this.viewingSelf = false;
-        if (competitor != null && competitor.getUser() != null) {
+        if (hydratedProfileUser != null) {
+            this.profileUser = hydratedProfileUser;
+        } else if (competitor != null && competitor.getUser() != null) {
             this.profileUser = competitor.getUser();
         }
         try {
@@ -131,14 +129,10 @@ public class ProfileController {
         }
 
         if (this.gameState == null && profileUser != null) {
-            // Keep defaults consistent with new accounts (e.g. starting tokens).
             this.gameState = UserGameState.newDefault();
-            profileUser.setGameState(this.gameState);
         }
         bindUI();
     }
-
-    // ========== UI Binding ==========
 
     private void bindUI() {
         if (profileUser == null)
@@ -147,7 +141,6 @@ public class ProfileController {
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
-        // Avatar styling
         avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(100, 100);
@@ -191,7 +184,6 @@ public class ProfileController {
                 items = profileUser.getInventory().getItems() != null ? profileUser.getInventory().getItems().size()
                         : 0;
             } catch (Exception e) {
-                // Defensive fallback if initialization failed
                 items = 0;
             }
         }
@@ -279,7 +271,6 @@ public class ProfileController {
         String smoothRadius = "22";
         String softerOrange = "#D35400";
 
-        // Avatar Card Main Style
         if (avatarCard != null) {
             avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
             avatarCard.setStyle(
@@ -291,7 +282,6 @@ public class ProfileController {
                             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);");
         }
 
-        // Dashboard Cards (XP, Tokens, Items) with Hover Effects
         VBox[] dashboardCards = { xpCard, itemsCard };
         for (VBox card : dashboardCards) {
             if (card == null)
