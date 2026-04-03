@@ -29,4 +29,6 @@ public interface UserService {
     Optional<User> getUserWithProfileData(String username);
 
     User awardXpAndTokens(String username, int xpReward, int tokenReward);
+
+    User decrementHeart(String username);
 }
