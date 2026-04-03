@@ -10,8 +10,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.context.annotation.Scope;
+import java.util.function.Consumer;
 
 @Controller
+@Scope("prototype")
 public class QuestionSolverController {
 
     @FXML
@@ -29,6 +32,8 @@ public class QuestionSolverController {
     private QuestionEvaluationService questionEvaluationService;
 
     private Question currentQuestion;
+
+    private Consumer<Boolean> onSuccessCallback;
 
     @FXML
     public void initialize() {
@@ -60,6 +65,22 @@ public class QuestionSolverController {
         }
     }
 
+    public void setOnSuccessCallback(Consumer<Boolean> callback) {
+        this.onSuccessCallback = callback;
+    }
+
+    public void setLocked(boolean isLocked) {
+        if (codeEditorArea != null) {
+            codeEditorArea.setEditable(!isLocked); // Disable typing
+        }
+        if (submitButton != null) {
+            submitButton.setVisible(!isLocked); // Hide the run button completely
+        }
+        if (isLocked) {
+            showResult("✅ Completed", true);
+        }
+    }
+
     @FXML
     public void onSubmitCode() {
         if (currentQuestion == null)
@@ -87,7 +108,10 @@ public class QuestionSolverController {
                 submitButton.setDisable(false);
                 if (isCorrect) {
                     showResult("Correct! Well done! All test cases passed.", true);
-                    // Optionally notify parent callback
+                    setLocked(true);
+                    if (onSuccessCallback != null) {
+                        onSuccessCallback.accept(true);
+                    }
                 } else {
                     showResult("Incorrect solution or compilation failed. Please try again.", false);
                 }

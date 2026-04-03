@@ -66,5 +66,6 @@ public class Chapter extends BaseEntity {
     private int tokenReward;
 
     @Column(name = "order_index")
-    private int orderIndex; // e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
+    private int orderIndex;// e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
+
 }

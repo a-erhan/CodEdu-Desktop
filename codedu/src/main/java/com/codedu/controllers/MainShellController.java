@@ -256,12 +256,12 @@ public class MainShellController {
                 progressService.saveProgress(progress);
             }
 
-            // 🚀 THE MISSING LINE: Hand the active user to the Chapter Controller!
+
             controller.setCurrentUser(this.user);
 
             controller.setChapter(chapter, progress);
 
-            // 🚀 Receive the updated user directly from the Chapter
+
             controller.setOnProgressUpdated((updatedUser) -> {
                 this.user = updatedUser;
                 this.gameState = updatedUser.getGameState();
@@ -517,8 +517,9 @@ public class MainShellController {
         badgeLabel.setText("Lvl " + level);
         welcomeNavLabel.setText("@" + username);
 
-        int levelCap = Math.max(1, level * 1000);
-        xpProgressBar.setProgress((double) xp / levelCap);
+        int levelCap = Math.max(1, level * 100);
+        double progress = (double) xp / levelCap;
+        xpProgressBar.setProgress(Math.min(1.0, progress));
         xpLabel.setText("XP: " + xp + " / " + levelCap);
 
         if (profileIconLabel != null) {
