@@ -337,8 +337,7 @@ public class ChapterViewController {
                 int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
                 int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
 
-                // 🚀 EXTRA BONUS LOGIC:
-                // If the chapter just hit 'finished' status for the first time right now:
+
                 if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
                     xpReward += chapter.getXpReward(); // Add the large chapter completion bonus
                     tokenReward += 50; // Optional: Add a flat token bonus for finishing chapters
@@ -347,7 +346,7 @@ public class ChapterViewController {
                 if (xpReward > 0 || tokenReward > 0) {
                     User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
 
-                    // Radio the Main Shell to redraw the top bar instantly
+
                     if (updatedUser != null && onProgressUpdated != null) {
                         javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
                     }

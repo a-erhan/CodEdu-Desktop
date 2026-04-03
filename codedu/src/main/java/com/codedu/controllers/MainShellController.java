@@ -256,12 +256,12 @@ public class MainShellController {
                 progressService.saveProgress(progress);
             }
 
-            // 🚀 THE MISSING LINE: Hand the active user to the Chapter Controller!
+
             controller.setCurrentUser(this.user);
 
             controller.setChapter(chapter, progress);
 
-            // 🚀 Receive the updated user directly from the Chapter
+
             controller.setOnProgressUpdated((updatedUser) -> {
                 this.user = updatedUser;
                 this.gameState = updatedUser.getGameState();
