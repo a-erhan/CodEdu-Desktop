@@ -178,6 +178,9 @@ public class ChapterViewController {
 
         Label qLabel = new Label("Q" + number + ". " + contentLines[0]);
         qLabel.getStyleClass().add("cv-mcq-question");
+
+        card.getChildren().add(buildMetadataHeader(q));
+
         card.getChildren().add(qLabel);
 
         VBox optionsBox = new VBox(8);
@@ -186,6 +189,9 @@ public class ChapterViewController {
         boolean isLocked = isQuestionCompleted(q);
         String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
         String styleWrong = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #c0392b; -fx-border-radius: 4; -fx-background-radius: 4;";
+
+// 1. Create a counter to track wrong guesses for THIS specific card
+        int[] wrongCount = {0};
 
         for (int i = 0; i < options.size(); i++) {
             int idx = i;
@@ -201,17 +207,34 @@ public class ChapterViewController {
 
             optBtn.setOnAction(e -> {
                 if (!hasEnoughHearts()) return;
+
                 if (idx == correctIndex) {
+                    // ✅ They guessed right!
                     optBtn.setStyle(styleCorrect);
+                    optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true)); // Lock all
                     handleCorrectAnswer(q);
                 } else {
+                    // ❌ They guessed wrong!
                     optBtn.setStyle(styleWrong);
-                    if (optionsBox.getChildren().get(correctIndex) instanceof Button correctBtn) {
-                        correctBtn.setStyle(styleCorrect);
+                    optBtn.setMouseTransparent(true); // Lock ONLY this wrong button
+
+                    wrongCount[0]++; // Increment the wrong guess counter
+                    handleWrongAnswer(); // Deduct the heart
+
+                    // Check if they have eliminated all wrong options
+                    if (wrongCount[0] >= options.size() - 1) {
+                        // Reveal the final correct button
+                        if (optionsBox.getChildren().get(correctIndex) instanceof Button correctBtn) {
+                            correctBtn.setStyle(styleCorrect);
+                        }
+                        // Lock the entire card now that it's over
+                        optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
+
+                        // Treat it as completed so they can move forward
+                        handleCorrectAnswer(q);
                     }
-                    handleWrongAnswer();
                 }
-                optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
+
             });
             optionsBox.getChildren().add(optBtn);
         }
@@ -240,7 +263,10 @@ public class ChapterViewController {
 
         checkBtn.setOnAction(e -> {
             if (!hasEnoughHearts()) return;
-            if (inputField.getText().trim().equalsIgnoreCase(q.getSolution())) {
+            String userInput = normalizeJavaCode(inputField.getText());
+            String correctAnswer = normalizeJavaCode(q.getSolution());
+
+            if (userInput.equalsIgnoreCase(correctAnswer)) {
                 inputField.setStyle(styleCorrectField);
                 inputField.setMouseTransparent(true);
                 checkBtn.setMouseTransparent(true);
@@ -251,7 +277,7 @@ public class ChapterViewController {
             }
         });
 
-        card.getChildren().addAll(title, codeLabel, new HBox(10, inputField, checkBtn));
+        card.getChildren().addAll(buildMetadataHeader(q), title, codeLabel, new HBox(10, inputField, checkBtn));
         return card;
     }
 
@@ -303,9 +329,18 @@ public class ChapterViewController {
                 solverController.setHeartCheckCallback(this::hasEnoughHearts);
                 solverController.setOnWrongAnswerCallback(this::handleWrongAnswer);
 
-                // Optional: Add some spacing between multiple code questions
-                VBox.setMargin(solverUI, new Insets(0, 0, 30, 0));
-                practiceContainer.getChildren().add(solverUI);
+// 🚀 1. Create a mini container to hold both the header and the code editor
+                VBox codeCardWrapper = new VBox(8);
+
+                // 🚀 2. Add the metadata header first, then the loaded FXML editor below it
+                codeCardWrapper.getChildren().addAll(
+                        buildMetadataHeader(task),
+                        solverUI
+                );
+
+                // 3. Apply the spacing to the new wrapper and add it to the screen
+                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 30, 0));
+                practiceContainer.getChildren().add(codeCardWrapper);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -436,5 +471,31 @@ public class ChapterViewController {
                 }
             });
         }
+    }
+
+    private String normalizeJavaCode(String input) {
+        if (input == null) return "";
+        return input
+                // 1. Remove spaces around common symbols and operators: = ; + - * / ( ) { } [ ] < > ,
+                .replaceAll("\\s*([=;+\\-*/(){}\\[\\]<>,])\\s*", "$1")
+                // 2. Squash any remaining multiple spaces (like double spaces between words) into one space
+                .replaceAll("\\s+", " ")
+                // 3. Trim the very beginning and end
+                .trim();
+    }
+
+    private Label buildMetadataHeader(Question q) {
+        int xp = (q.getReward() != null) ? q.getReward().getXp() : 0;
+        int tokens = (q.getReward() != null) ? q.getReward().getToken() : 0;
+        String difficulty = (q.getQuestionDifficulty() != null) ? q.getQuestionDifficulty().toString() : "NORMAL";
+
+        String metaText = String.format("ID: %d  |  Difficulty: %s  |  XP: %d  |  Tokens: %d",
+                q.getId(), difficulty, xp, tokens);
+
+        Label metaLabel = new Label(metaText);
+        // Styled to be slightly smaller and gray so it doesn't distract from the main question
+        metaLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #95a5a6; -fx-font-weight: bold; -fx-padding: 0 0 5 0;");
+
+        return metaLabel;
     }
 }

@@ -37,9 +37,7 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
         return (completed / total) * 100.0;
     }
 
-    /**
-     * Fetches the progress record for a specific user and chapter.
-     */
+
     public UserChapterProgress getProgress(User user, Chapter chapter) {
         // We call the repository method we created earlier
         return progressRepository.findByUserAndChapter(user, chapter).orElse(null);
