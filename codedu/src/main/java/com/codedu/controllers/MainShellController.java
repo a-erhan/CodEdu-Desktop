@@ -61,6 +61,9 @@ public class MainShellController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.codedu.services.interfaces.UserGameStateService userGameStateService;
+
     @FXML
     private Label taglineLabel;
     @FXML
@@ -593,20 +596,14 @@ public class MainShellController {
         }
     }
 
-    /**
-     * @return true if a new {@link UserGameState} was attached and must be
-     *         persisted (e.g. legacy users with no row).
-     */
     private boolean initDemoModelsIfNeeded() {
         if (user == null) {
             return false;
         }
-        if (user.getGameState() != null) {
+        if (userGameStateService != null) {
+            userGameStateService.ensureGameStateForUser(user);
             this.gameState = user.getGameState();
-            return false;
         }
-        this.gameState = UserGameState.newDefault();
-        user.setGameState(gameState);
-        return true;
+        return false;
     }
 }

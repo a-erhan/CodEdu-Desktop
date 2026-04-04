@@ -34,7 +34,10 @@ public class UserGameStateServiceImpl implements UserGameStateService {
         }
         Optional<UserGameState> existing = userGameStateRepository.findByUserId(user.getId());
         if (existing.isPresent()) {
-            user.setGameState(existing.get());
+            if (user.getGameState() == null) {
+                user.setGameState(existing.get());
+                userRepository.update(user);
+            }
             return;
         }
         UserGameState gs = UserGameState.newDefault();
