@@ -1,12 +1,8 @@
 package com.codedu.models.learning;
 
 import com.codedu.models.BaseEntity;
-import com.codedu.models.user.User;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Model representing a single chapter/lesson in a learning path.
