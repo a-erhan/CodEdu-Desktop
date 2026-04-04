@@ -2,10 +2,17 @@ package com.codedu.models.user;
 
 import com.codedu.models.BaseEntity;
 import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.social.ForumPost;
+import com.codedu.models.social.Friendship;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -57,9 +64,32 @@ public class User extends BaseEntity {
         }
     }
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id")
+    @Builder.Default
+    @OneToMany(mappedBy = "requester", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Friendship> sentFriendRequests = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Friendship> receivedFriendRequests = new HashSet<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ForumPost> posts = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserInventory inventory;
+
+    public void setInventory(UserInventory inventory) {
+        if (this.inventory != null) {
+            this.inventory.setUser(null);
+        }
+        if (inventory != null) {
+            inventory.setUser(this);
+        }
+        this.inventory = inventory;
+    }
+
+
 
     public boolean login(String email, String password) {
         if (email == null || password == null) {

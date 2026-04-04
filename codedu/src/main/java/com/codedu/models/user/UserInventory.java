@@ -15,18 +15,22 @@ import java.util.List;
 @Builder
 public class UserInventory extends BaseEntity {
 
-    @OneToOne(mappedBy = "inventory")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private User user;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "inventory_id")
+    @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<InventoryItem> items = new ArrayList<>();
 
     public void addItem(InventoryItem item) {
         this.items.add(item);
+        item.setInventory(this);
     }
+
     public void removeItem(InventoryItem item) {
         this.items.remove(item);
+        item.setInventory(null);
     }
 }

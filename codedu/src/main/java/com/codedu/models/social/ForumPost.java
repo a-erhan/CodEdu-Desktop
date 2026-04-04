@@ -23,7 +23,8 @@ public class ForumPost extends BaseEntity {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author_id", nullable = false)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private User author;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

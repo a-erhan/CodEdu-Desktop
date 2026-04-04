@@ -21,6 +21,7 @@ public class InventoryItem extends BaseEntity {
     private boolean isEquipped;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_inventory_id", nullable = false)
+    @JoinColumn(name = "inventory_id", nullable = false)
+    @org.hibernate.annotations.OnDelete(action = org.hibernate.annotations.OnDeleteAction.CASCADE)
     private UserInventory inventory;
 }
