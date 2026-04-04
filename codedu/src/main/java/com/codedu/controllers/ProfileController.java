@@ -3,17 +3,19 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.gamification.Achievement;
 import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.ChatWindowManager;
 import com.codedu.services.interfaces.FriendshipUIManager;
-import javafx.event.EventHandler;
+import com.codedu.services.interfaces.InventoryItemService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
@@ -21,12 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-/**
- * Controller for the Profile view.
- * Displays user stats, badges, and friend list.
- */
 @Controller
 public class ProfileController {
 
@@ -36,7 +35,9 @@ public class ProfileController {
     @Autowired
     private FriendshipUIManager friendshipUIManager;
 
-    // ========== FXML bindings ==========
+    @Autowired
+    private InventoryItemService inventoryItemService;
+
     @FXML
     private Label avatarDisplay;
     @FXML
@@ -80,14 +81,16 @@ public class ProfileController {
     @FXML
     private FlowPane badgesContainer;
 
-    // ========== State ==========
     private User currentUser;
     private User profileUser;
     private UserGameState gameState;
     private boolean viewingSelf;
     private Consumer<User> onProfileClick;
+    private Runnable onNavigateToInventory;
 
-    // ========== Setters ==========
+    public void setOnNavigateToInventory(Runnable callback) {
+        this.onNavigateToInventory = callback;
+    }
 
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
@@ -105,7 +108,7 @@ public class ProfileController {
         this.gameState = gameState;
         if (profileUser != null) {
             bindStats();
-            bindBadgesSection(); // Refresh badges when state is set
+            bindBadgesSection();
         }
     }
 
@@ -119,8 +122,14 @@ public class ProfileController {
     }
 
     public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder) {
+        setCompetitor(competitor, competitorOrder, null);
+    }
+
+    public void setCompetitor(Competitor competitor, List<Competitor> competitorOrder, User hydratedProfileUser) {
         this.viewingSelf = false;
-        if (competitor != null && competitor.getUser() != null) {
+        if (hydratedProfileUser != null) {
+            this.profileUser = hydratedProfileUser;
+        } else if (competitor != null && competitor.getUser() != null) {
             this.profileUser = competitor.getUser();
         }
         try {
@@ -131,14 +140,10 @@ public class ProfileController {
         }
 
         if (this.gameState == null && profileUser != null) {
-            // Keep defaults consistent with new accounts (e.g. starting tokens).
             this.gameState = UserGameState.newDefault();
-            profileUser.setGameState(this.gameState);
         }
         bindUI();
     }
-
-    // ========== UI Binding ==========
 
     private void bindUI() {
         if (profileUser == null)
@@ -147,13 +152,40 @@ public class ProfileController {
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
-        // Avatar styling
-        avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(100, 100);
         avatarDisplay.setShape(new Circle(50));
-        avatarDisplay.setStyle(
-                "-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+
+        Optional<InventoryItem> equippedAvatar;
+        try {
+            equippedAvatar = inventoryItemService.getEquippedAvatar(profileUser);
+        } catch (Exception ex) {
+            equippedAvatar = Optional.empty();
+        }
+        if (equippedAvatar.isPresent()) {
+            String itemName = equippedAvatar.get().getItem().getName().toLowerCase();
+            String imageFile = itemName.contains("ninja") ? "avatar_ninja.png"
+                    : itemName.contains("wizard") ? "avatar_wizard.png"
+                    : "avatar_basic.png";
+            try {
+                var imgUrl = getClass().getResource("/com/codedu/images/avatars/" + imageFile);
+                if (imgUrl == null) throw new RuntimeException("Avatar image not found: " + imageFile);
+                Image img = new Image(imgUrl.toExternalForm());
+                ImageView iv = new ImageView(img);
+                iv.setFitWidth(100);
+                iv.setFitHeight(100);
+                iv.setPreserveRatio(true);
+                avatarDisplay.setGraphic(iv);
+                avatarDisplay.setText("");
+                avatarDisplay.setStyle("-fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+            } catch (Exception e) {
+                avatarDisplay.setText(initial);
+                avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+            }
+        } else {
+            avatarDisplay.setText(initial);
+            avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+        }
 
         if (!avatarDisplay.getStyleClass().contains(Styles.TITLE_2)) {
             avatarDisplay.getStyleClass().add(Styles.TITLE_2);
@@ -191,7 +223,6 @@ public class ProfileController {
                 items = profileUser.getInventory().getItems() != null ? profileUser.getInventory().getItems().size()
                         : 0;
             } catch (Exception e) {
-                // Defensive fallback if initialization failed
                 items = 0;
             }
         }
@@ -279,7 +310,6 @@ public class ProfileController {
         String smoothRadius = "22";
         String softerOrange = "#D35400";
 
-        // Avatar Card Main Style
         if (avatarCard != null) {
             avatarCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.ELEVATED_1);
             avatarCard.setStyle(
@@ -291,7 +321,6 @@ public class ProfileController {
                             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 5);");
         }
 
-        // Dashboard Cards (XP, Tokens, Items) with Hover Effects
         VBox[] dashboardCards = { xpCard, itemsCard };
         for (VBox card : dashboardCards) {
             if (card == null)
@@ -318,6 +347,11 @@ public class ProfileController {
                             "-fx-border-width: 1.2; " +
                             "-fx-background-radius: " + smoothRadius + "; " +
                             "-fx-border-radius: " + smoothRadius + ";"));
+        }
+
+        if (itemsCard != null && onNavigateToInventory != null) {
+            itemsCard.getStyleClass().add(Styles.INTERACTIVE);
+            itemsCard.setOnMouseClicked(e -> onNavigateToInventory.run());
         }
     }
 }

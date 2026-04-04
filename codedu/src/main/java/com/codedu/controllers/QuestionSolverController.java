@@ -10,10 +10,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.context.annotation.Scope;
+import java.util.function.Consumer;
 
 @Controller
+@Scope("prototype")
 public class QuestionSolverController {
 
+    @FXML
+    private Button btnBack;
     @FXML
     private Label questionTitleLabel;
     @FXML
@@ -25,10 +30,23 @@ public class QuestionSolverController {
     @FXML
     private Button submitButton;
 
+    private java.util.function.Supplier<Boolean> heartCheckCallback;
+    private Runnable onWrongAnswerCallback;
+
     @Autowired
     private QuestionEvaluationService questionEvaluationService;
 
     private Question currentQuestion;
+    private Runnable onBack;
+    private Consumer<Boolean> onSuccessCallback;
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+        if (btnBack != null) {
+            btnBack.setVisible(onBack != null);
+            btnBack.setManaged(onBack != null);
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -37,6 +55,11 @@ public class QuestionSolverController {
         }
         if (submitButton != null) {
             submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.DENSE);
+        }
+        if (btnBack != null) {
+            btnBack.setVisible(false);
+            btnBack.setManaged(false);
+            btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
         }
     }
 
@@ -60,8 +83,28 @@ public class QuestionSolverController {
         }
     }
 
+    public void setOnSuccessCallback(Consumer<Boolean> callback) {
+        this.onSuccessCallback = callback;
+    }
+
+    public void setLocked(boolean isLocked) {
+        if (codeEditorArea != null) {
+            codeEditorArea.setEditable(!isLocked); // Disable typing
+        }
+        if (submitButton != null) {
+            submitButton.setVisible(!isLocked); // Hide the run button completely
+        }
+        if (isLocked) {
+            showResult("✅ Completed", true);
+        }
+    }
+
     @FXML
     public void onSubmitCode() {
+        if (heartCheckCallback != null && !heartCheckCallback.get()) {
+            return;
+        }
+
         if (currentQuestion == null)
             return;
 
@@ -87,9 +130,13 @@ public class QuestionSolverController {
                 submitButton.setDisable(false);
                 if (isCorrect) {
                     showResult("Correct! Well done! All test cases passed.", true);
-                    // Optionally notify parent callback
+                    setLocked(true);
+                    if (onSuccessCallback != null) {
+                        onSuccessCallback.accept(true);
+                    }
                 } else {
                     showResult("Incorrect solution or compilation failed. Please try again.", false);
+                    if (onWrongAnswerCallback != null) onWrongAnswerCallback.run();
                 }
             });
         });
@@ -105,5 +152,12 @@ public class QuestionSolverController {
                 resultMessageLabel.getStyleClass().add(Styles.DANGER);
             }
         }
+    }
+
+    public void setHeartCheckCallback(java.util.function.Supplier<Boolean> callback) {
+        this.heartCheckCallback = callback;
+    }
+    public void setOnWrongAnswerCallback(Runnable callback) {
+        this.onWrongAnswerCallback = callback;
     }
 }

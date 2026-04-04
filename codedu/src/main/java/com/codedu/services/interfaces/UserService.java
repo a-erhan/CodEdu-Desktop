@@ -38,4 +38,8 @@ public interface UserService {
 
     /** Entity version for controllers still using entity classes */
     User awardXpAndTokensEntity(String username, int xpReward, int tokenReward);
+
+    Optional<User> loadUserForPublicProfile(int userId);
+
+    User decrementHeart(String username);
 }

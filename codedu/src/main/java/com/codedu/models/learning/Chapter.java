@@ -1,12 +1,8 @@
 package com.codedu.models.learning;
 
 import com.codedu.models.BaseEntity;
-import com.codedu.models.user.User;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Model representing a single chapter/lesson in a learning path.
@@ -66,5 +62,6 @@ public class Chapter extends BaseEntity {
     private int tokenReward;
 
     @Column(name = "order_index")
-    private int orderIndex; // e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
+    private int orderIndex;// e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
+
 }

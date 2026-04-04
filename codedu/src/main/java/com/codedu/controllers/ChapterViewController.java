@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.context.ApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,9 @@ public class ChapterViewController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @FXML
     private Button btnBack;
@@ -49,7 +53,7 @@ public class ChapterViewController {
     private int currentLessonCount = 0;
     private java.util.function.Consumer<User> onProgressUpdated;
 
-    // 🚀 THE MISSING VARIABLE: This holds our active, safe user!
+
     private User currentUser;
 
     public void setCurrentUser(User user) {
@@ -71,7 +75,6 @@ public class ChapterViewController {
         this.currentLessonCount = (progress != null) ? progress.getCompletedLessons() : 0;
 
         headerTitle.setText(chapter.getTitle());
-        updateHeaderProgress();
 
         if (chapter.getIconImage() != null) {
             try {
@@ -82,7 +85,8 @@ public class ChapterViewController {
                 iv.setPreserveRatio(true);
                 headerTitle.setGraphic(iv);
             } catch (Exception e) {
-                /* Fallback */ }
+                /* Fallback */
+            }
         }
 
         ChapterContent content = chapter.getContent();
@@ -111,6 +115,9 @@ public class ChapterViewController {
             buildQuizSection(mcQuestions, fillBlanks);
             buildPracticeSection(codeQuestions);
         }
+
+        // 🚀 CRITICAL: Update header at the VERY END after uiQuestionOrder is populated!
+        updateHeaderProgress();
     }
 
     private void switchTab(String tab) {
@@ -193,6 +200,7 @@ public class ChapterViewController {
             }
 
             optBtn.setOnAction(e -> {
+                if (!hasEnoughHearts()) return;
                 if (idx == correctIndex) {
                     optBtn.setStyle(styleCorrect);
                     handleCorrectAnswer(q);
@@ -201,6 +209,7 @@ public class ChapterViewController {
                     if (optionsBox.getChildren().get(correctIndex) instanceof Button correctBtn) {
                         correctBtn.setStyle(styleCorrect);
                     }
+                    handleWrongAnswer();
                 }
                 optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
             });
@@ -230,6 +239,7 @@ public class ChapterViewController {
         }
 
         checkBtn.setOnAction(e -> {
+            if (!hasEnoughHearts()) return;
             if (inputField.getText().trim().equalsIgnoreCase(q.getSolution())) {
                 inputField.setStyle(styleCorrectField);
                 inputField.setMouseTransparent(true);
@@ -237,6 +247,7 @@ public class ChapterViewController {
                 handleCorrectAnswer(q);
             } else {
                 inputField.setStyle("-fx-border-color: #dc3545;");
+                handleWrongAnswer();
             }
         });
 
@@ -246,34 +257,79 @@ public class ChapterViewController {
 
     private void buildPracticeSection(List<Question> codeQuestions) {
         practiceContainer.getChildren().clear();
+
+        if (codeQuestions.isEmpty()) {
+            Label emptyLabel = new Label("No coding exercises for this chapter yet.");
+            emptyLabel.setStyle("-fx-text-fill: white; -fx-padding: 20px;");
+            practiceContainer.getChildren().add(emptyLabel);
+            return;
+        }
+
         for (int i = 0; i < codeQuestions.size(); i++) {
             Question task = codeQuestions.get(i);
-            TextArea codeArea = new TextArea(task.getContent());
-            Button runBtn = new Button("Run Code");
 
-            if (isQuestionCompleted(task)) {
-                codeArea.setEditable(false);
-                runBtn.setVisible(false);
+            try {
+                // 1. Load your specialized QuestionSolver FXML
+                // ⚠️ Ensure this path matches exactly where your FXML is saved!
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                        getClass().getResource("/com/codedu/views/QuestionSolver.fxml")
+                );
+
+                // 2. Let Spring wire up the JDoodle Service inside the controller
+                loader.setControllerFactory(applicationContext::getBean);
+
+                // 3. Load the UI node (assuming the root of QuestionSolver.fxml is a VBox)
+                javafx.scene.Node solverUI = loader.load();
+
+                // 4. Get the controller and pass the question data
+                QuestionSolverController solverController = loader.getController();
+                solverController.setQuestion(task);
+
+                if (isQuestionCompleted(task)) {
+                    solverController.setLocked(true); // Lock it immediately!
+                }
+
+
+                solverController.setOnSuccessCallback(isCorrect -> {
+                    if (isCorrect) {
+                        // Only award XP if they haven't beaten this exact question before
+                        if (!isQuestionCompleted(task)) {
+                            handleCorrectAnswer(task);
+                            System.out.println("✅ Practice question completed, XP awarded!");
+                        }
+                    }
+                });
+
+                solverController.setHeartCheckCallback(this::hasEnoughHearts);
+                solverController.setOnWrongAnswerCallback(this::handleWrongAnswer);
+
+                // Optional: Add some spacing between multiple code questions
+                VBox.setMargin(solverUI, new Insets(0, 0, 30, 0));
+                practiceContainer.getChildren().add(solverUI);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Label errorLabel = new Label("⚠️ Failed to load code editor for: " + task.getTitle());
+                errorLabel.setStyle("-fx-text-fill: #e74c3c;");
+                practiceContainer.getChildren().add(errorLabel);
             }
-
-            runBtn.setOnAction(e -> handleCorrectAnswer(task));
-            practiceContainer.getChildren().addAll(new Label(task.getTitle()), codeArea, runBtn);
         }
     }
 
     private void handleCorrectAnswer(Question q) {
-        // 1. UPDATE THE UI STATE FIRST
-        currentLessonCount++;
+        // Check if the chapter was already finished before this answer
+        boolean alreadyFinishedBefore = isChapterFinished;
 
-        if (chapter != null && currentLessonCount >= chapter.getTotalLessons()) {
+        currentLessonCount++;
+        int dynamicTotalLessons = (uiQuestionOrder != null) ? uiQuestionOrder.size() : 0;
+
+        if (chapter != null && currentLessonCount >= dynamicTotalLessons) {
             isChapterFinished = true;
             if (userProgress != null) userProgress.setCompleted(true);
         }
 
-        // 2. ATTEMPT DATABASE SAVES IN THE BACKGROUND
         try {
             if (currentUser != null) {
-
                 // Save chapter progress
                 UserChapterProgress realProgress = progressService.getProgress(currentUser, chapter);
                 if (realProgress == null) realProgress = userProgress;
@@ -284,14 +340,20 @@ public class ChapterViewController {
                     progressService.saveProgress(realProgress);
                 }
 
-                // 🚀 THE FIX: Use our new dedicated transaction to safely update Neon!
+                // Calculate standard rewards from the question
                 int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
                 int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
+
+
+                if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
+                    xpReward += chapter.getXpReward(); // Add the large chapter completion bonus
+                    tokenReward += 50; // Optional: Add a flat token bonus for finishing chapters
+                }
 
                 if (xpReward > 0 || tokenReward > 0) {
                     User updatedUser = userService.awardXpAndTokensEntity(currentUser.getUsername(), xpReward, tokenReward);
 
-                    // Radio the Main Shell to redraw the top bar instantly
+
                     if (updatedUser != null && onProgressUpdated != null) {
                         javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
                     }
@@ -307,9 +369,15 @@ public class ChapterViewController {
     }
 
     private void updateHeaderProgress() {
-        int total = (chapter != null) ? chapter.getTotalLessons() : 0;
-        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
 
+        int total = uiQuestionOrder.size();
+
+
+        if (total == 0 && chapter != null) {
+            total = chapter.getTotalLessons();
+        }
+
+        int xpReward = (chapter != null) ? chapter.getXpReward() : 0;
         headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
     }
 
@@ -336,5 +404,37 @@ public class ChapterViewController {
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
         btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
+    }
+
+    private boolean hasEnoughHearts() {
+        if (currentUser != null && currentUser.getGameState() != null) {
+            if (currentUser.getGameState().getHeartCount() <= 0) {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                alert.setTitle("Out of Hearts!");
+                alert.setHeaderText(null);
+                alert.setContentText("You have 0 hearts remaining. Wait for them to refill or buy more in the store!");
+                alert.showAndWait();
+                return false; // Blocks the code from running
+            }
+        }
+        return true;
+    }
+
+    private void handleWrongAnswer() {
+        if (currentUser != null) {
+
+            userService.decrementHeart(currentUser.getUsername());
+
+            userService.getUserWithProfileData(currentUser.getUsername()).ifPresent(freshUser -> {
+
+
+                this.currentUser = freshUser;
+
+
+                if (onProgressUpdated != null) {
+                    javafx.application.Platform.runLater(() -> onProgressUpdated.accept(freshUser));
+                }
+            });
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
 import com.codedu.repositories.interfaces.UserRepository;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +61,6 @@ public class UserServiceImpl implements UserService {
     public void sendFriendRequest(int requesterId, int receiverId) {
         User requester = userRepository.findById(requesterId).orElseThrow();
         User receiver = userRepository.findById(receiverId).orElseThrow();
-
         Optional<Friendship> existing = friendshipRepository.findFriendshipBetween(requester, receiver);
         if (existing.isPresent()) {
             return;
@@ -180,9 +180,30 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserWithProfileData(String username) {
         return userRepository.findByUsername(username).map(u -> {
             if (u.getGameState() != null) {
-                org.hibernate.Hibernate.initialize(u.getGameState());
+                Hibernate.initialize(u.getGameState());
+                Hibernate.initialize(u.getGameState().getAchievements());
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
+            }
+            try {
+                Hibernate.initialize(u.getCompetitor());
+            } catch (Exception ignored) {}
+            return u;
+        });
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<User> loadUserForPublicProfile(int userId) {
+        if (userId <= 0) {
+            return Optional.empty();
+        }
+        return userRepository.findByIdWithGameStateAndAchievements(userId).map(u -> {
+            if (u.getGameState() != null) {
+                Hibernate.initialize(u.getGameState());
+                if (u.getGameState().getAchievements() != null) {
+                    Hibernate.initialize(u.getGameState().getAchievements());
+                }
             }
             return u;
         });
@@ -203,9 +224,17 @@ public class UserServiceImpl implements UserService {
             state.setXp(state.getXp() + xpReward);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
+            int xpRequired = state.getLevel() * 100;
+
+            while (state.getXp() >= xpRequired) {
+                state.setXp(state.getXp() - xpRequired); 
+                state.setLevel(state.getLevel() + 1);   
+                xpRequired = state.getLevel() * 100;   
+            }
+
             userRepository.update(user);
 
-            user.getGameState().getXp();
+            Hibernate.initialize(user.getGameState());
             return toDTO(user);
         }
         return null;
@@ -260,5 +289,17 @@ public class UserServiceImpl implements UserService {
             return user;
         }
         return null;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public User decrementHeart(String username) {
+        return userRepository.findByUsername(username).map(user -> {
+            if (user.getGameState() != null && user.getGameState().getHeartCount() > 0) {
+                user.getGameState().setHeartCount(user.getGameState().getHeartCount() - 1);
+                return userRepository.save(user);
+            }
+            return user;
+        }).orElse(null);
     }
 }

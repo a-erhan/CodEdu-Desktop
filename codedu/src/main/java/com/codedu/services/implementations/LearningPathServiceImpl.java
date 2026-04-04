@@ -51,8 +51,28 @@ public class LearningPathServiceImpl implements LearningPathService {
                 progressRepository.save(p);
             }
             progressRepository.flush();
-            return getLearningPathForUser(user);
+
+            // Re-fetch the newly generated path instead of returning immediately
+            currentPath = getLearningPathForUser(user);
         }
+
+        // 🚀 THE FIX: Safely inject the dynamic question count into the DTOs
+        // Because of @Transactional, calling .size() here will not crash!
+        for (ChapterProgressDTO dto : currentPath) {
+            if (dto.getChapter() != null &&
+                    dto.getChapter().getContent() != null &&
+                    dto.getChapter().getContent().getQuestions() != null) {
+
+                int realQuestionCount = dto.getChapter().getContent().getQuestions().size();
+
+                // Only set it if we successfully found questions
+                if (realQuestionCount > 0) {
+                    dto.setDynamicTotalLessons(realQuestionCount);
+                }
+            }
+        }
+
+        // Now both new users AND existing users return the dynamically updated DTOs
         return currentPath;
     }
 

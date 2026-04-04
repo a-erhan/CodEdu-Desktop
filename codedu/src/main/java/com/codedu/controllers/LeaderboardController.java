@@ -65,9 +65,8 @@ public class LeaderboardController {
         }
         if (scopeComboBox != null) {
             scopeComboBox.getItems().addAll("Weekly", "Monthly", "All-Time");
-            scopeComboBox.setValue("Weekly"); // Varsayılan olarak haftalık açılsın
+            scopeComboBox.setValue("Weekly");
 
-            // Kullanıcı seçimi değiştirdiğinde tetiklenecek olay
             scopeComboBox.setOnAction(e -> {
                 String selectedScope = scopeComboBox.getValue();
                 fetchLeaderboardData(selectedScope);
@@ -79,7 +78,37 @@ public class LeaderboardController {
     private void fetchLeaderboardData(String scope) {
         System.out.println("Fetching Leaderboard: " + scope);
         this.leaderboard = leaderboardService.getLeaderboardEntityByName(scope);
+        updateSubtitle(scope);
         buildLeaderboard();
+    }
+
+    private void updateSubtitle(String scope) {
+        if (subtitleLabel == null) {
+            return;
+        }
+        String s = scope == null || scope.isBlank() ? "All-Time" : scope.trim();
+        if ("Weekly".equalsIgnoreCase(s)) {
+            subtitleLabel.setText("Active in the last 7 days — ranked by level, then XP.");
+        } else if ("Monthly".equalsIgnoreCase(s)) {
+            subtitleLabel.setText("Active in the last 30 days — ranked by level, then XP.");
+        } else {
+            subtitleLabel.setText("All accounts — ranked by level, then XP.");
+        }
+    }
+
+    private static String formatProgression(Competitor c) {
+        if (c.getUser() != null && c.getUser().getGameState() != null) {
+            var gs = c.getUser().getGameState();
+            return "Lv " + gs.getLevel() + " · " + gs.getXp() + " XP";
+        }
+        return c.getRankingPoint() + " pts";
+    }
+
+    private static int displayLevel(Competitor c) {
+        if (c.getUser() != null && c.getUser().getGameState() != null) {
+            return c.getUser().getGameState().getLevel();
+        }
+        return Math.max(1, c.getRankingPoint() / 1_000_000);
     }
 
     private void buildLeaderboard() {
@@ -137,7 +166,7 @@ public class LeaderboardController {
             Competitor playerAbove = competitors.get(myIndex - 1);
             int gap = playerAbove.getRankingPoint() - me.getRankingPoint();
 
-            Label gapLabel = new Label(gap + " XP to reach #" + myIndex);
+            Label gapLabel = new Label(gap + " pts to reach #" + myIndex);
             gapLabel.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 11px; -fx-font-style: italic;");
 
             javafx.scene.control.ProgressBar gapBar = new javafx.scene.control.ProgressBar();
@@ -170,7 +199,7 @@ public class LeaderboardController {
         HBox myStatsBox = new HBox(10);
         myStatsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        Label myXp = new Label((me != null ? me.getRankingPoint() : 0) + " XP");
+        Label myXp = new Label(me != null ? formatProgression(me) : "Lv 1 · 0 XP");
         myXp.setStyle("-fx-font-weight: bold;");
 
         Label mySep = new Label("|");
@@ -187,7 +216,7 @@ public class LeaderboardController {
             Competitor c = competitors.get(i);
 
             HBox line = new HBox(15);
-            line.setAlignment(javafx.geometry.Pos.CENTER_LEFT); // Change to CENTER_LEFT
+            line.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             line.setPadding(new javafx.geometry.Insets(10, 20, 10, 20));
             line.setMaxWidth(Double.MAX_VALUE);
             javafx.scene.layout.HBox.setHgrow(line, javafx.scene.layout.Priority.ALWAYS);
@@ -206,7 +235,7 @@ public class LeaderboardController {
             line.setStyle(baseStyle);
             final String finalBaseStyle = baseStyle;
 
-            int levelVal = (c.getRankingPoint() / 1000) + 1;
+            int levelVal = displayLevel(c);
             Label levelBadge = new Label("Lvl " + levelVal);
             levelBadge.setStyle(
                     "-fx-background-color: #34495e; " +
@@ -263,7 +292,7 @@ public class LeaderboardController {
             javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
             javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-            Label xpLabel = new Label(c.getRankingPoint() + " XP");
+            Label xpLabel = new Label(formatProgression(c));
             xpLabel.setStyle("-fx-text-fill: #2775b1; -fx-font-weight: bold;");
 
             Label sep = new Label("|");

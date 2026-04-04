@@ -41,7 +41,6 @@ public class MainShellController {
     @org.springframework.beans.factory.annotation.Autowired
     private UserChapterProgressService progressService;
 
-    // ========== FXML: Header ==========
     @FXML
     private Label badgeLabel;
     @FXML
@@ -67,6 +66,8 @@ public class MainShellController {
     @FXML
     private Label taglineLabel;
     @FXML
+    private Label heartLabel;
+    @FXML
     private VBox sidebar, sidebarContainer;
     @FXML
     private ScrollPane sidebarScroll;
@@ -84,7 +85,6 @@ public class MainShellController {
     public void setUser(User user) {
         if (user == null) return;
 
-        // 🚀 Refreshing immediately using our hydrated service method
         userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
                 freshUser -> {
                     this.user = freshUser;
@@ -100,7 +100,6 @@ public class MainShellController {
                 }
         );
 
-        // This is where it was crashing; now this.gameState is guaranteed to be loaded
         updateHeader();
 
         chatWindowManager.connectUser(this.user);
@@ -117,6 +116,22 @@ public class MainShellController {
         styleAndWireNavigation();
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
+
+        if (heartLabel == null) {
+            heartLabel = new Label("❤️ 3");
+            heartLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+
+
+            if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
+
+                int tokenIndex = parentBox.getChildren().indexOf(tokenLabel);
+                parentBox.getChildren().add(tokenIndex, heartLabel);
+
+                if (parentBox instanceof javafx.scene.layout.HBox) {
+                    javafx.scene.layout.HBox.setMargin(heartLabel, new javafx.geometry.Insets(0, 15, 0, 0));
+                }
+            }
+        }
     }
 
     private void ensureShellFillsScene() {
@@ -156,6 +171,10 @@ public class MainShellController {
             profileIconLabel.setShape(new Circle(16));
             profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
             profileIconLabel.setOnMouseClicked(e -> loadProfile());
+        }
+        if (welcomeNavLabel != null) {
+            welcomeNavLabel.getStyleClass().add(Styles.INTERACTIVE);
+            welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
         }
         if (xpProgressBar != null) {
             xpProgressBar.getStyleClass().addAll(Styles.MEDIUM, Styles.ROUNDED);
@@ -214,16 +233,14 @@ public class MainShellController {
     }
 
     private void loadLearningPath() {
-        if (this.user == null) return; // Safety check
+        if (this.user == null) return;
 
-        // 🚀 1. THE FIX: Fetch the FRESH user from the database before loading the view
         userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
             this.user = freshUser; // Update the shell's memory
             if (initDemoModelsIfNeeded()) {
                 userService.saveUser(this.user);
             }
 
-            // 🚀 Update the top-left XP bar and token counts instantly
             Platform.runLater(this::updateHeader);
         });
 
@@ -235,7 +252,6 @@ public class MainShellController {
             LearningPathController lpController = loader.getController();
             lpController.setOnStartChapter(this::loadChapterView);
 
-            // 🚀 2. Pass the newly refreshed user to the Learning Path
             lpController.loadUserData(this.user);
 
             setContentAndFill(view);
@@ -264,12 +280,12 @@ public class MainShellController {
                 progressService.saveProgress(progress);
             }
 
-            // 🚀 THE MISSING LINE: Hand the active user to the Chapter Controller!
+
             controller.setCurrentUser(this.user);
 
             controller.setChapter(chapter, progress);
 
-            // 🚀 Receive the updated user directly from the Chapter
+
             controller.setOnProgressUpdated((updatedUser) -> {
                 this.user = updatedUser;
                 this.gameState = updatedUser.getGameState();
@@ -301,7 +317,6 @@ public class MainShellController {
 
     private void loadAchievements() {
         try {
-            // FETCH FRESH DATA HERE
             User freshUser = userService.getUserWithProfileData(user.getUsername())
                     .orElse(this.user);
 
@@ -310,7 +325,6 @@ public class MainShellController {
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
 
-            // Pass the fresh user with initialized achievements
             controller.setCurrentUser(freshUser);
             setContentAndFill(view);
         } catch (IOException ex) {
@@ -375,6 +389,12 @@ public class MainShellController {
             controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
             controller.setOnProfileClick(this::openUserProfile);
+            if (isSelf) {
+                controller.setOnNavigateToInventory(() -> {
+                    setActiveButton(btnInventory);
+                    loadInventory();
+                });
+            }
             controller.setUserModel(profileUser);
             controller.setGameState(state);
             setContentAndFill(profileView);
@@ -440,7 +460,7 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AIChatbotController controller = loader.getController();
-            controller.setRemainingRequests(3);
+            controller.setCurrentUser(this.user);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -464,12 +484,20 @@ public class MainShellController {
     }
 
     private void openCompetitorProfile(Competitor competitor, java.util.List<Competitor> competitorOrder) {
+        if (competitor == null || competitor.getUser() == null) {
+            return;
+        }
         try {
+            User hydrated = userService.loadUserForPublicProfile(competitor.getUser().getId())
+                    .orElse(competitor.getUser());
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent profileView = loader.load();
             ProfileController controller = loader.getController();
-            controller.setCompetitor(competitor, competitorOrder);
+            controller.setCurrentUser(user);
+            controller.setViewingSelf(false);
+            controller.setOnProfileClick(this::openUserProfile);
+            controller.setCompetitor(competitor, competitorOrder, hydrated);
             setContentAndFill(profileView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -484,6 +512,10 @@ public class MainShellController {
             Parent view = loader.load();
             QuestionSolverController controller = loader.getController();
             controller.setQuestion(question);
+            controller.setOnBack(() -> {
+                setActiveButton(btnDailyChallenge);
+                loadDailyChallenge();
+            });
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -508,7 +540,6 @@ public class MainShellController {
     }
 
     private void loadProfile() {
-        // Instead of openUserProfile(this.user), fetch first:
         userService.getUserWithProfileData(user.getUsername())
                 .ifPresentOrElse(
                         this::openUserProfile,
@@ -520,13 +551,19 @@ public class MainShellController {
         int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
         int level = (gameState != null) ? gameState.getLevel() : 1;
         int xp = (gameState != null) ? gameState.getXp() : 0;
+        int hearts = (gameState != null) ? gameState.getHeartCount() : 0;
 
         tokenLabel.setText("Tokens: " + tokens);
         badgeLabel.setText("Lvl " + level);
         welcomeNavLabel.setText("@" + username);
 
-        int levelCap = Math.max(1, level * 1000);
-        xpProgressBar.setProgress((double) xp / levelCap);
+        if (heartLabel != null) {
+            heartLabel.setText("\u2764 " + hearts);
+        }
+
+        int levelCap = Math.max(1, level * 100);
+        double progress = (double) xp / levelCap;
+        xpProgressBar.setProgress(Math.min(1.0, progress));
         xpLabel.setText("XP: " + xp + " / " + levelCap);
 
         if (profileIconLabel != null) {

@@ -43,3 +43,5 @@ tmp/
 
 # --- Project specific ---
 skills-lock.json
+
+.env

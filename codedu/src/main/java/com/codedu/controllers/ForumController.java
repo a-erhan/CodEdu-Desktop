@@ -157,6 +157,10 @@ public class ForumController {
     private void fetchAndShowPost(int id) {
         CompletableFuture.supplyAsync(() -> forumService.getPostWithReplies(id))
                 .thenAccept(detailDto -> Platform.runLater(() -> {
+                    if (selectedPostCard != null) {
+                        selectedPostCard.setVisible(true);
+                        selectedPostCard.setManaged(true);
+                    }
                     selectedTitle.setText(detailDto.title());
                     selectedMeta.setText("Posted by " + detailDto.authorUsername());
                     selectedContent.setText(detailDto.content());

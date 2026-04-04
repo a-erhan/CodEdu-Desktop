@@ -176,15 +176,20 @@ public class LearningPathController {
                         iconCircle.getChildren().add(new Label("🔒"));
                 } else if (chapterDto.getChapter().getIconImage() != null) {
                         try {
-                                Image img = new Image(getClass().getResourceAsStream(chapterDto.getChapter().getIconImage()));
-                                ImageView iv = new ImageView(img);
-                                iv.setFitWidth(40); iv.setFitHeight(40); iv.setPreserveRatio(true);
-                                iconCircle.getChildren().add(iv);
+                                var imgUrl = getClass().getResource(chapterDto.getChapter().getIconImage());
+                                if (imgUrl != null) {
+                                        Image img = new Image(imgUrl.toExternalForm());
+                                        ImageView iv = new ImageView(img);
+                                        iv.setFitWidth(40); iv.setFitHeight(40); iv.setPreserveRatio(true);
+                                        iconCircle.getChildren().add(iv);
+                                } else {
+                                        iconCircle.getChildren().add(new Label("•"));
+                                }
                         } catch (Exception e) {
-                                iconCircle.getChildren().add(new Label(chapterDto.getChapter().getIconEmoji()));
+                                iconCircle.getChildren().add(new Label("•"));
                         }
                 } else {
-                        iconCircle.getChildren().add(new Label(chapterDto.getChapter().getIconEmoji()));
+                        iconCircle.getChildren().add(new Label("•"));
                 }
 
                 // Info Box (Title, Difficulty, Progress)
@@ -239,6 +244,15 @@ public class LearningPathController {
                 detailTitle.setText(chapterDto.getChapter().getTitle());
                 detailDescription.setText(chapterDto.getChapter().getDescription());
                 detailXP.setText(chapterDto.getChapter().getXpReward() + " XP reward");
+
+                if (detailIconImage != null && chapterDto.getChapter().getIconImage() != null) {
+                        try {
+                                var imgUrl = getClass().getResource(chapterDto.getChapter().getIconImage());
+                                if (imgUrl != null) {
+                                        detailIconImage.setImage(new Image(imgUrl.toExternalForm()));
+                                }
+                        } catch (Exception ignored) {}
+                }
 
                 if (chapterDto.isCompleted()) {
                         detailAction.setText("Review Chapter");

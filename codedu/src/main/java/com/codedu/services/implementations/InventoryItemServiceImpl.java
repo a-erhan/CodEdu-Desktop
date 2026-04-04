@@ -64,6 +64,41 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Optional<InventoryItem> getEquippedAvatar(User user) {
+        if (user == null || user.getInventory() == null) return Optional.empty();
+        return inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AVATAR && i.isEquipped())
+                .findFirst();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public int getAiRequestBalance(User user) {
+        if (user == null || user.getInventory() == null) return 0;
+        return inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AI_USAGE)
+                .mapToInt(InventoryItem::getQuantity)
+                .sum();
+    }
+
+    @Override
+    @Transactional
+    public boolean consumeAiRequest(User user) {
+        if (user == null || user.getInventory() == null) return false;
+        List<InventoryItem> aiItems = inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AI_USAGE && i.getQuantity() > 0)
+                .collect(Collectors.toList());
+        if (aiItems.isEmpty()) return false;
+        InventoryItem target = aiItems.get(0);
+        InventoryItem managed = inventoryItemRepository.findById(target.getId()).orElse(null);
+        if (managed == null) return false;
+        managed.setQuantity(managed.getQuantity() - 1);
+        inventoryItemRepository.update(managed);
+        return true;
+    }
+
+    @Override
     @Transactional
     public void setEquipped(InventoryItem inventoryItem, boolean equipped) {
         if (inventoryItem == null || inventoryItem.getId() <= 0) {

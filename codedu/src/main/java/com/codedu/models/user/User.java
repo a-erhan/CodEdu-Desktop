@@ -40,7 +40,7 @@ public class User extends BaseEntity {
     @JoinColumn(name = "competitor_id")
     private Competitor competitor;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "game_state_id")
     private UserGameState gameState;
 
