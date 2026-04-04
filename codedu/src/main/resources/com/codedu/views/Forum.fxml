@@ -46,7 +46,7 @@
             </VBox>
         </ScrollPane>
 
-        <VBox fx:id="selectedPostCard" spacing="8" prefWidth="520">
+        <VBox fx:id="selectedPostCard" spacing="8" prefWidth="520" visible="false" managed="false">
             <Label fx:id="selectedTitle" text=""/>
             <Label fx:id="selectedMeta" text="" wrapText="true"/>
             <TextArea fx:id="selectedContent" editable="false" wrapText="true" prefRowCount="10"/>

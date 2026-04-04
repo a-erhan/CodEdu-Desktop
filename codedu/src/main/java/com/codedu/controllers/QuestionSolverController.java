@@ -1,8 +1,7 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.learning.CodeImplementationQuestion;
-import com.codedu.models.learning.Question;
+import com.codedu.dtos.learning.QuestionDTO;
 import com.codedu.services.interfaces.QuestionEvaluationService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -17,6 +16,8 @@ import java.util.function.Consumer;
 @Scope("prototype")
 public class QuestionSolverController {
 
+    @FXML
+    private Button btnBack;
     @FXML
     private Label questionTitleLabel;
     @FXML
@@ -36,9 +37,18 @@ public class QuestionSolverController {
     @Autowired
     private QuestionEvaluationService questionEvaluationService;
 
-    private Question currentQuestion;
-
+    // 🚀 Changed from Question to QuestionDTO
+    private QuestionDTO currentQuestion;
+    private Runnable onBack;
     private Consumer<Boolean> onSuccessCallback;
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+        if (btnBack != null) {
+            btnBack.setVisible(onBack != null);
+            btnBack.setManaged(onBack != null);
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -50,32 +60,37 @@ public class QuestionSolverController {
             submitButton.setFocusTraversable(false);
         }
 
-        // 🚀 Create the button programmatically if FXML didn't provide one
+        // Create the button programmatically if FXML didn't provide one
         if (giveUpButton != null) {
             giveUpButton.setText("Give Up");
-            // Use Styles.DANGER or Styles.WARNING to make it stand out
             giveUpButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.WARNING, Styles.DENSE);
             giveUpButton.setFocusTraversable(false);
-            // Hide it until a mistake is made
             giveUpButton.setVisible(false);
             giveUpButton.setManaged(false);
         }
+        if (btnBack != null) {
+            btnBack.setVisible(false);
+            btnBack.setManaged(false);
+            btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
+        }
     }
 
-    public void setQuestion(Question question) {
+    // 🚀 Accepts QuestionDTO now
+    public void setQuestion(QuestionDTO question) {
         this.currentQuestion = question;
         if (questionTitleLabel != null) {
-            questionTitleLabel.setText(question.getTitle());
+            questionTitleLabel.setText(question.title()); // Record syntax
         }
         if (questionDescriptionLabel != null) {
-            questionDescriptionLabel.setText(question.getContent());
+            questionDescriptionLabel.setText(question.content()); // Record syntax
         }
         if (resultMessageLabel != null) {
             resultMessageLabel.setText("");
         }
         if (codeEditorArea != null) {
-            if (question instanceof CodeImplementationQuestion codeQuestion) {
-                codeEditorArea.setText(codeQuestion.getBoilerplateCode());
+            // 🚀 Simplified: No more 'instanceof' check since DTO holds the boilerplate!
+            if (question.boilerplateCode() != null && !question.boilerplateCode().isEmpty()) {
+                codeEditorArea.setText(question.boilerplateCode());
             } else {
                 codeEditorArea.clear();
             }
@@ -127,6 +142,8 @@ public class QuestionSolverController {
 
         java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             try {
+                // ⚠️ NOTE: Ensure your QuestionEvaluationService.evaluate()
+                // is updated to accept a QuestionDTO instead of a Question entity!
                 return questionEvaluationService.evaluate(currentQuestion, userCode);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -172,7 +189,6 @@ public class QuestionSolverController {
         if (codeEditorArea != null) {
             codeEditorArea.setText(solution);
             codeEditorArea.setEditable(false);
-            // 🚀 STYLE FIX: Monospace font and green text for solution
             codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; " +
                     "-fx-text-fill: #2ecc71; " +
                     "-fx-font-family: 'Consolas', 'Monospaced'; " +
@@ -188,24 +204,20 @@ public class QuestionSolverController {
             giveUpButton.setManaged(false);
         }
 
-        // This matches the "💡 Solution Revealed" in your image
         showResult("💡 Solution Revealed", true);
     }
 
     public void setupGiveUpLogic(String solution, Runnable onGiveUpAction) {
         if (giveUpButton == null) return;
 
-        // Reset state just in case this controller is reused
         giveUpButton.setVisible(false);
         giveUpButton.setManaged(false);
 
         giveUpButton.setOnAction(e -> {
-            // Swap text and lock editor
             codeEditorArea.setText(solution);
             codeEditorArea.setEditable(false);
             codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; -fx-text-fill: #2ecc71; -fx-font-family: 'Consolas';");
 
-            // Hide buttons after use
             submitButton.setVisible(false);
             submitButton.setManaged(false);
             giveUpButton.setVisible(false);
@@ -218,13 +230,9 @@ public class QuestionSolverController {
 
     public void showGiveUpButton() {
         if (giveUpButton != null) {
-            // 🚀 1. Make it physically visible
             giveUpButton.setVisible(true);
-
-            // 🚀 2. Tell the layout to give it space again
             giveUpButton.setManaged(true);
 
-            // 🚀 3. Force the parent container to recalculate its size
             if (giveUpButton.getParent() != null) {
                 giveUpButton.getParent().requestLayout();
             }

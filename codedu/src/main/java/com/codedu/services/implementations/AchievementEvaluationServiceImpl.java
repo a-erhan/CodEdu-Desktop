@@ -64,7 +64,7 @@ public class AchievementEvaluationServiceImpl implements AchievementEvaluationSe
                 progress = (state != null) ? Math.min(1.0, state.getLevel() / 10.0) : 0;
                 break;
             case "Social Butterfly":
-                int friends = userService.getAcceptedFriends(user).size();
+                int friends = userService.getAcceptedFriends(user.getId()).size();
                 progress = Math.min(1.0, friends / 3.0);
                 break;
             default:
@@ -99,7 +99,7 @@ public class AchievementEvaluationServiceImpl implements AchievementEvaluationSe
             case "Master":
                 return (state != null ? state.getLevel() : 1) + " / 10 Level";
             case "Social Butterfly":
-                return (user != null ? userService.getAcceptedFriends(user).size() : 0) + " / 3 Friends";
+                return (user != null ? userService.getAcceptedFriends(user.getId()).size() : 0) + " / 3 Friends";
             default:
                 return "0 / 1";
         }

@@ -16,8 +16,6 @@ import java.util.function.Consumer;
 public class DailyChallengeController {
 
     @FXML
-    private javafx.scene.control.Button btnBack;
-    @FXML
     private Label titleLabel;
     @FXML
     private Label subtitleLabel;
@@ -48,17 +46,11 @@ public class DailyChallengeController {
 
     @FXML
     public void initialize() {
-        if (btnBack != null) {
-            btnBack.setOnAction(e -> {
-                if (onBack != null)
-                    onBack.run();
-            });
-        }
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
         try {
-            this.todayChallenge = dailyChallengeService.getTodaysChallenge();
+            this.todayChallenge = dailyChallengeService.getTodaysChallengeEntity();
             buildChallenges();
         } catch (Exception e) {
             System.err.println("Günün görevi yüklenirken hata oluştu: " + e.getMessage());

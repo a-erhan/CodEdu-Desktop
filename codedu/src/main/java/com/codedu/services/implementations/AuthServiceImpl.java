@@ -1,5 +1,8 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.user.UserDTO;
+import com.codedu.dtos.user.UserLoginDTO;
+import com.codedu.dtos.user.UserRegisterDTO;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.AuthService;
@@ -27,20 +30,14 @@ public class AuthServiceImpl implements AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    /**
-     * Derives a unique username from the email (avoids collisions on the local part only, e.g. two "john@" accounts).
-     */
     private static String usernameFromEmail(String normalizedEmail) {
         return normalizedEmail.replace("@", "_at_").replace(".", "_");
     }
 
-    /**
-     * Handles the user registration process.
-     */
     @Override
     @Transactional
-    public String register(String email, String password) {
-        String normalizedEmail = normalizeEmail(email);
+    public String register(UserRegisterDTO dto) {
+        String normalizedEmail = normalizeEmail(dto.email());
         if (normalizedEmail.isEmpty()) {
             return "ERROR: Email is required.";
         }
@@ -55,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
         User newUser = User.builder()
                 .username(finalUsername)
                 .email(normalizedEmail)
-                .password(password)
+                .password(dto.password())
                 .role(Role.STUDENT)
                 .isActive(true)
                 .build();
@@ -65,13 +62,10 @@ public class AuthServiceImpl implements AuthService {
         return "SUCCESS";
     }
 
-    /**
-     * Logs the user in using the custom validation method defined in the User entity.
-     */
     @Override
     @Transactional(readOnly = true)
-    public User login(String email, String password) {
-        String normalizedEmail = normalizeEmail(email);
+    public UserDTO login(UserLoginDTO dto) {
+        String normalizedEmail = normalizeEmail(dto.email());
         if (normalizedEmail.isEmpty()) {
             return null;
         }
@@ -79,11 +73,21 @@ public class AuthServiceImpl implements AuthService {
 
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            if (user.login(normalizedEmail, password)) {
-                return user;
+            if (user.login(normalizedEmail, dto.password())) {
+                return toDTO(user);
             }
         }
 
         return null;
+    }
+
+    private UserDTO toDTO(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .isActive(user.isActive())
+                .build();
     }
 }

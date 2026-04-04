@@ -12,11 +12,14 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -58,7 +61,7 @@ public class StoreController {
         // Store shows a catalog (Store / Items), Inventory shows the user's owned items (InventoryItem).
         // This method only marks catalog items as owned if the user has them in inventory.
         this.user = user;
-        allItems = storeService.getCatalogItems();
+        allItems = storeService.getCatalogItemEntities();
         markOwnedItemsFromInventory();
         buildGrid();
     }
@@ -114,8 +117,7 @@ public class StoreController {
         card.setMaxWidth(200);
         card.setAlignment(Pos.TOP_CENTER);
 
-        String iconText = item.getName().isEmpty() ? "" : item.getName().substring(0, 1).toUpperCase();
-        Label emoji = new Label(iconText);
+        javafx.scene.Node iconNode = buildItemIcon(item);
 
         Label name = new Label(item.getName());
         name.getStyleClass().add(Styles.TEXT_BOLD);
@@ -189,8 +191,36 @@ public class StoreController {
             st.play();
         });
 
-        card.getChildren().addAll(emoji, name, desc, spacer, priceRow, buyBtn);
+        card.getChildren().addAll(iconNode, name, desc, spacer, priceRow, buyBtn);
         return card;
+    }
+
+    private javafx.scene.Node buildItemIcon(Item item) {
+        if (item.getType() == ItemType.AVATAR) {
+            String name = item.getName().toLowerCase();
+            String file = name.contains("ninja") ? "avatar_ninja.png"
+                    : name.contains("wizard") ? "avatar_wizard.png"
+                    : "avatar_basic.png";
+            try {
+                var url = getClass().getResource("/com/codedu/images/avatars/" + file);
+                if (url != null) {
+                    Image img = new Image(url.toExternalForm());
+                    ImageView iv = new ImageView(img);
+                    iv.setFitWidth(72);
+                    iv.setFitHeight(72);
+                    iv.setPreserveRatio(true);
+                    iv.setClip(new Circle(36, 36, 36));
+                    return iv;
+                }
+            } catch (Exception ignored) {}
+        }
+        // Fallback: styled label
+        String iconText = item.getType() == ItemType.AI_USAGE ? "🤖"
+                : item.getType() == ItemType.BOOSTER ? "⚡"
+                : item.getName().isEmpty() ? "?" : item.getName().substring(0, 1).toUpperCase();
+        Label lbl = new Label(iconText);
+        lbl.setStyle("-fx-font-size: 36px;");
+        return lbl;
     }
 
     private String categoryTitle(ItemType c) {

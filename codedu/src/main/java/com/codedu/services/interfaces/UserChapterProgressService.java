@@ -13,4 +13,6 @@ public interface UserChapterProgressService {
     UserChapterProgress getProgress(User user, Chapter chapter);
 
     UserChapterProgress getDetailedProgress(Long userId, Long chapterId);
+
+    void saveProgressDto(com.codedu.dtos.ChapterProgressDTO dto, String username);
 }

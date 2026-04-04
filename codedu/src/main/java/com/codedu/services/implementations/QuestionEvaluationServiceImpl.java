@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.learning.QuestionDTO;
 import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.services.interfaces.CodeExecutionService;
 import com.codedu.services.interfaces.QuestionEvaluationService;
@@ -22,8 +23,26 @@ public class QuestionEvaluationServiceImpl implements QuestionEvaluationService 
         this.questionRepository = questionRepository;
     }
 
+    // 🚀 METHOD 1: Handles the new QuestionDTO (Used by Learning Path)
+    @Override
+    @Transactional
+    public boolean evaluate(QuestionDTO questionDto, String userAnswer) {
+        if (questionDto == null) return false;
+
+        // Fetch the full entity from the DB using the DTO's ID
+        Question loadedQuestion = questionRepository.findById(questionDto.id()).orElse(null);
+
+        // Pass it to the main evaluation logic below
+        return evaluate(loadedQuestion, userAnswer);
+    }
+
+    // 🚀 METHOD 2: Handles the raw Entity (Used by Matchmaking)
+    @Override
     @Transactional
     public boolean evaluate(Question question, String userAnswer) {
+        if (question == null) return false;
+
+        // Ensure it's fully loaded to avoid Hibernate LazyInitializationExceptions
         Question loadedQuestion = questionRepository.findById(question.getId()).orElse(question);
 
         if (loadedQuestion instanceof CodeImplementationQuestion codeQuestion) {
@@ -51,10 +70,8 @@ public class QuestionEvaluationServiceImpl implements QuestionEvaluationService 
                 }
             }
             return true;
-        }
-
-        else {
-            return question.validateAnswer(userAnswer);
+        } else {
+            return loadedQuestion.validateAnswer(userAnswer);
         }
     }
 }

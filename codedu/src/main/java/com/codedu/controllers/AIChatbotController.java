@@ -1,7 +1,9 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.models.user.User;
 import com.codedu.services.interfaces.AIChatbotService;
+import com.codedu.services.interfaces.InventoryItemService;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -47,13 +49,24 @@ public class AIChatbotController {
     @FXML
     private TextArea codeArea;
 
-    private int remainingRequests = 3;
+    private int remainingRequests = 0;
+    private User currentUser;
 
     private final AIChatbotService geminiAiService;
 
     @Autowired
+    private InventoryItemService inventoryItemService;
+
+    @Autowired
     public AIChatbotController(AIChatbotService geminiAiService) {
         this.geminiAiService = geminiAiService;
+    }
+
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        this.remainingRequests = inventoryItemService.getAiRequestBalance(user);
+        updateRequestsLabel();
+        updateAskButtonState();
     }
 
     public void setRemainingRequests(int remainingRequests) {
@@ -180,7 +193,12 @@ public class AIChatbotController {
                 codeArea.setText(codeBlock);
             }
 
-            remainingRequests = Math.max(0, remainingRequests - 1);
+            if (currentUser != null) {
+                inventoryItemService.consumeAiRequest(currentUser);
+                remainingRequests = inventoryItemService.getAiRequestBalance(currentUser);
+            } else {
+                remainingRequests = Math.max(0, remainingRequests - 1);
+            }
             updateRequestsLabel();
 
             questionArea.clear();

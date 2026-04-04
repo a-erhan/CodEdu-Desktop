@@ -1,8 +1,12 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.dtos.user.UserDTO;
+import com.codedu.dtos.user.UserLoginDTO;
+import com.codedu.dtos.user.UserRegisterDTO;
 import com.codedu.models.user.User;
 import com.codedu.services.interfaces.AuthService;
+import com.codedu.services.interfaces.UserService;
 import com.codedu.ui.StageNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,6 +39,8 @@ public class RegisterController {
     @Autowired
     private AuthService authService;
     @Autowired
+    private UserService userService;
+    @Autowired
     private StageNavigator navigator;
 
     @FXML
@@ -62,7 +68,7 @@ public class RegisterController {
             return;
         }
 
-        String registrationResult = authService.register(email, password);
+        String registrationResult = authService.register(new UserRegisterDTO(null, email, password));
 
         // If registration fails (e.g., email already exists), show the error and stop
         if (!"SUCCESS".equals(registrationResult)) {
@@ -71,16 +77,21 @@ public class RegisterController {
         }
 
         // Registration successful! Now let's automatically log them in to fetch the real User entity from DB
-        User loggedInUser = authService.login(email, password);
+        UserDTO loggedInUser = authService.login(new UserLoginDTO(email, password));
         if (loggedInUser == null) {
             errorLabel.setText("Account created, but automatic login failed. Please go to Login page.");
             return;
         }
 
         try {
+            User fullUser = userService.getUserWithProfileData(loggedInUser.username()).orElse(null);
+            if (fullUser == null) {
+                errorLabel.setText("Failed to load user profile.");
+                return;
+            }
             Stage stage = (Stage) emailField.getScene().getWindow();
             navigator.replaceScene(stage, "/com/codedu/views/MainShell.fxml", MainShellController.class,
-                    c -> c.setUser(loggedInUser));
+                    c -> c.setUser(fullUser));
             stage.setMaximized(true);
         } catch (Exception e) {
             errorLabel.setText("Failed to create account.");
