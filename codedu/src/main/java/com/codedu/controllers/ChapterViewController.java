@@ -315,7 +315,6 @@ public class ChapterViewController {
                     solverController.setLocked(true); // Lock it immediately!
                 }
 
-
                 solverController.setOnSuccessCallback(isCorrect -> {
                     if (isCorrect) {
                         // Only award XP if they haven't beaten this exact question before
@@ -327,18 +326,38 @@ public class ChapterViewController {
                 });
 
                 solverController.setHeartCheckCallback(this::hasEnoughHearts);
-                solverController.setOnWrongAnswerCallback(this::handleWrongAnswer);
 
-// 🚀 1. Create a mini container to hold both the header and the code editor
+                // 🚀 CREATE THE HIDDEN HINT LABEL
+                String hintText = (task.getHint() != null && !task.getHint().isEmpty())
+                        ? "💡 Hint: " + task.getHint()
+                        : "💡 Hint: Double-check your syntax, variable names, and logic!";
+
+                Label hintLabel = new Label(hintText);
+                hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold; -fx-padding: 10px; -fx-background-color: rgba(243, 156, 18, 0.15); -fx-border-color: #f39c12; -fx-border-radius: 4; -fx-background-radius: 4;");
+                hintLabel.setWrapText(true);
+                hintLabel.setVisible(false);  // Invisible by default
+                hintLabel.setManaged(false);  // Prevents empty gaps in the UI
+
+                // 🚀 UPDATE THE WRONG ANSWER CALLBACK TO REVEAL THE HINT
+                solverController.setOnWrongAnswerCallback(() -> {
+                    handleWrongAnswer(); // Still deduct the heart
+
+                    // Reveal the hint!
+                    hintLabel.setVisible(true);
+                    hintLabel.setManaged(true);
+                });
+
+                // 🚀 BUILD THE WRAPPER CONTAINER
                 VBox codeCardWrapper = new VBox(8);
 
-                // 🚀 2. Add the metadata header first, then the loaded FXML editor below it
+                // Add the metadata header, the code editor UI, and the hidden hint below it
                 codeCardWrapper.getChildren().addAll(
                         buildMetadataHeader(task),
-                        solverUI
+                        solverUI,
+                        hintLabel
                 );
 
-                // 3. Apply the spacing to the new wrapper and add it to the screen
+                // Apply the spacing to the new wrapper and add it to the screen
                 VBox.setMargin(codeCardWrapper, new Insets(0, 0, 30, 0));
                 practiceContainer.getChildren().add(codeCardWrapper);
 
