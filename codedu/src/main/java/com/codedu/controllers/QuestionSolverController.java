@@ -18,6 +18,8 @@ import java.util.function.Consumer;
 public class QuestionSolverController {
 
     @FXML
+    private Button btnBack;
+    @FXML
     private Label questionTitleLabel;
     @FXML
     private Label questionDescriptionLabel;
@@ -32,8 +34,16 @@ public class QuestionSolverController {
     private QuestionEvaluationService questionEvaluationService;
 
     private Question currentQuestion;
-
+    private Runnable onBack;
     private Consumer<Boolean> onSuccessCallback;
+
+    public void setOnBack(Runnable onBack) {
+        this.onBack = onBack;
+        if (btnBack != null) {
+            btnBack.setVisible(onBack != null);
+            btnBack.setManaged(onBack != null);
+        }
+    }
 
     @FXML
     public void initialize() {
@@ -42,6 +52,11 @@ public class QuestionSolverController {
         }
         if (submitButton != null) {
             submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.DENSE);
+        }
+        if (btnBack != null) {
+            btnBack.setVisible(false);
+            btnBack.setManaged(false);
+            btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
         }
     }
 

@@ -29,7 +29,7 @@ public class UserGameState extends BaseEntity {
                 .level(1)
                 .xp(0)
                 .heartCount(3)
-                .tokenBalance(0)
+                .tokenBalance(100)
                 .currentStreak(0)
                 .build();
     }

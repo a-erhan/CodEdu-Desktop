@@ -22,6 +22,9 @@
             <Insets top="24" right="24" bottom="24" left="24"/>
         </padding>
 
+        <!-- Back Button -->
+        <Button fx:id="btnBack" text="← Back" styleClass="button-outlined"/>
+
         <!-- Title of the task -->
         <Label fx:id="questionTitleLabel" text="Task Loading..." wrapText="true"/>
 

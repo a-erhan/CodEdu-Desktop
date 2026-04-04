@@ -20,4 +20,10 @@ public interface InventoryItemService {
     void update(InventoryItem inventoryItem);
 
     void setEquipped(InventoryItem inventoryItem, boolean equipped);
+
+    Optional<InventoryItem> getEquippedAvatar(User user);
+
+    int getAiRequestBalance(User user);
+
+    boolean consumeAiRequest(User user);
 }
