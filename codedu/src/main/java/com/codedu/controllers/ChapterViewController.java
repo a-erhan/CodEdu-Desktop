@@ -180,7 +180,6 @@ public class ChapterViewController {
         qLabel.getStyleClass().add("cv-mcq-question");
 
         card.getChildren().add(buildMetadataHeader(q));
-
         card.getChildren().add(qLabel);
 
         VBox optionsBox = new VBox(8);
@@ -190,7 +189,6 @@ public class ChapterViewController {
         String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
         String styleWrong = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #c0392b; -fx-border-radius: 4; -fx-background-radius: 4;";
 
-// 1. Create a counter to track wrong guesses for THIS specific card
         int[] wrongCount = {0};
 
         for (int i = 0; i < options.size(); i++) {
@@ -198,6 +196,7 @@ public class ChapterViewController {
             Button optBtn = new Button(letters[i] + ".  " + options.get(i));
             optBtn.getStyleClass().add("cv-mcq-option");
             optBtn.setMaxWidth(Double.MAX_VALUE);
+            optBtn.setFocusTraversable(false); // 🚀 Prevent scroll-jumping on click
 
             if (isLocked) {
                 optBtn.setMouseTransparent(true);
@@ -211,30 +210,32 @@ public class ChapterViewController {
                 if (idx == correctIndex) {
                     // ✅ They guessed right!
                     optBtn.setStyle(styleCorrect);
-                    optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true)); // Lock all
-                    handleCorrectAnswer(q,false);
+                    optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
+
+                    // Award XP and Tokens (isGiveUp = false)
+                    handleCorrectAnswer(q, false);
                 } else {
                     // ❌ They guessed wrong!
                     optBtn.setStyle(styleWrong);
-                    optBtn.setMouseTransparent(true); // Lock ONLY this wrong button
+                    optBtn.setMouseTransparent(true);
 
-                    wrongCount[0]++; // Increment the wrong guess counter
-                    handleWrongAnswer(); // Deduct the heart
+                    wrongCount[0]++;
+                    handleWrongAnswer();
 
-                    // Check if they have eliminated all wrong options
+                    // Check if they have eliminated all wrong options (usually 3 wrong for a 4-option question)
                     if (wrongCount[0] >= options.size() - 1) {
-                        // Reveal the final correct button
+                        // Reveal the final correct button automatically
                         if (optionsBox.getChildren().get(correctIndex) instanceof Button correctBtn) {
                             correctBtn.setStyle(styleCorrect);
                         }
-                        // Lock the entire card now that it's over
+
+                        // Lock the entire card
                         optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
 
-                        // Treat it as completed so they can move forward
-                        handleCorrectAnswer(q,false);
+                        // 🚀 Progress to next lesson, but NO XP/Tokens (isGiveUp = true)
+                        handleCorrectAnswer(q, true);
                     }
                 }
-
             });
             optionsBox.getChildren().add(optBtn);
         }
