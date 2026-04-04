@@ -54,7 +54,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         String relationStatus = "NONE";
         if (currentUser != null && profileUser != null) {
             try {
-                relationStatus = userService.getRelationStatus(currentUser, profileUser);
+                relationStatus = userService.getRelationStatus(currentUser.getId(), profileUser.getId());
             } catch (Exception ignored) {
             }
         }
@@ -88,7 +88,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         try {
             addFriendButton.setDisable(true);
             addFriendButton.setText("Request Sent");
-            userService.sendFriendRequest(currentUser, profileUser);
+            userService.sendFriendRequest(currentUser.getId(), profileUser.getId());
         } catch (Exception ex) {
             addFriendButton.setDisable(false);
             addFriendButton.setText("Add friend");
@@ -107,7 +107,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         List<User> pendingRequests = List.of();
         if (currentUser != null) {
             try {
-                pendingRequests = userService.getPendingRequests(currentUser);
+                pendingRequests = userService.getPendingRequestEntities(currentUser.getId());
             } catch (Exception ignored) {
             }
         }
@@ -137,7 +137,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         List<User> friends = List.of();
         if (currentUser != null) {
             try {
-                friends = userService.getAcceptedFriends(currentUser);
+                friends = userService.getAcceptedFriendEntities(currentUser.getId());
             } catch (Exception ignored) {
             }
         }
@@ -199,7 +199,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
 
     private void handleAnswerRequest(User currentUser, User requester, boolean accept, Runnable onRefresh) {
         try {
-            userService.answerFriendRequest(currentUser, requester, accept);
+            userService.answerFriendRequest(currentUser.getId(), requester.getId(), accept);
             if (onRefresh != null)
                 onRefresh.run(); // UI'ı yenilemek için ProfileController'ı tetikler
         } catch (Exception ignored) {

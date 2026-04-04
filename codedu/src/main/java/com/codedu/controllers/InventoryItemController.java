@@ -47,7 +47,7 @@ public class InventoryItemController {
             return;
         }
 
-        List<InventoryItem> rows = inventoryItemService.getItemsForUser(user);
+        List<InventoryItem> rows = inventoryItemService.getItemEntitiesForUser(user);
         inventorySummaryLabel.setText(rows.size() + " items");
 
         if (rows.isEmpty()) {

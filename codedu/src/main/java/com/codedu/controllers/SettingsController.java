@@ -140,7 +140,7 @@ public class SettingsController {
                 // GERÇEK BACKEND İŞLEMİ BURADA YAPILIYOR
                 try {
                     // Varsayım: UserService içinde changePassword adında bir metod var
-                    boolean isChanged = userService.changePassword(user, oldP, newP);
+                    boolean isChanged = userService.changePassword(user.getId(), oldP, newP);
 
                     if (isChanged) {
                         feedback.setText("✓ Password changed successfully!");
@@ -229,7 +229,7 @@ public class SettingsController {
         deleteBtn.setOnAction(e -> {
             try {
                 // GERÇEK BACKEND İŞLEMİ (Veritabanından uçurma)
-                userService.deleteUser(user);
+                userService.deleteUser(user.getId());
 
                 dialog.close();
                 // Hesap silindiği için zorunlu çıkış yapıp giriş ekranına atıyoruz

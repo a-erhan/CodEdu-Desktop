@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.UserProfileDTO;
+import com.codedu.dtos.user.UserDTO;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.UserService;
 import com.codedu.models.social.Friendship;
@@ -28,25 +29,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public boolean changePassword(User user, String oldPassword, String newPassword) {
+    public boolean changePassword(int userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return false;
 
         if (user.getPassword() == null || !user.getPassword().equals(oldPassword)) {
             return false;
         }
 
         user.setPassword(newPassword);
-
         userRepository.update(user);
-
         return true;
     }
 
     @Transactional
-    public void deleteUser(User user) {
-        if (user == null || (user.getId()) == 0) {
-            throw new IllegalArgumentException("Cannot find any user to delete");
-        }
-
+    public void deleteUser(int userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Cannot find any user to delete"));
         user.setDeleted(true);
         userRepository.update(user);
     }
@@ -59,7 +58,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public void sendFriendRequest(User requester, User receiver) {
+    public void sendFriendRequest(int requesterId, int receiverId) {
+        User requester = userRepository.findById(requesterId).orElseThrow();
+        User receiver = userRepository.findById(receiverId).orElseThrow();
         Optional<Friendship> existing = friendshipRepository.findFriendshipBetween(requester, receiver);
         if (existing.isPresent()) {
             return;
@@ -74,28 +75,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<User> getAcceptedFriends(User user) {
+    public List<UserDTO> getAcceptedFriends(int userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return List.of();
+
         List<Friendship> friendships = friendshipRepository.findAcceptedFriendships(user);
         return friendships.stream()
                 .map(f -> f.getRequester().getId() == user.getId() ? f.getReceiver() : f.getRequester())
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<User> getPendingRequests(User receiver) {
+    public List<UserDTO> getPendingRequests(int userId) {
+        User receiver = userRepository.findById(userId).orElse(null);
+        if (receiver == null) return List.of();
+
         List<Friendship> requests = friendshipRepository.findPendingRequests(receiver);
         return requests.stream()
                 .map(Friendship::getRequester)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public void answerFriendRequest(User receiver, User requester, boolean accept) {
+    public void answerFriendRequest(int receiverId, int requesterId, boolean accept) {
+        User receiver = userRepository.findById(receiverId).orElseThrow();
+        User requester = userRepository.findById(requesterId).orElseThrow();
+
         Optional<Friendship> friendshipOpt = friendshipRepository.findFriendshipBetween(requester, receiver);
         if (friendshipOpt.isPresent()) {
             Friendship friendship = friendshipOpt.get();
             if (friendship.getStatus() == Friendship.FriendshipStatus.PENDING &&
-                    friendship.getReceiver().getId() == receiver.getId()) {
+                    friendship.getReceiver().getId() == receiverId) {
 
                 if (accept) {
                     friendship.setStatus(Friendship.FriendshipStatus.ACCEPTED);
@@ -109,10 +121,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional(readOnly = true)
-    public String getRelationStatus(User currentUser, User targetUser) {
-        if (currentUser.getId() == targetUser.getId()) {
+    public String getRelationStatus(int currentUserId, int targetUserId) {
+        if (currentUserId == targetUserId) {
             return "SELF";
         }
+        User currentUser = userRepository.findById(currentUserId).orElse(null);
+        User targetUser = userRepository.findById(targetUserId).orElse(null);
+        if (currentUser == null || targetUser == null) return "NONE";
+
         Optional<Friendship> friendship = friendshipRepository.findFriendshipBetween(currentUser, targetUser);
         if (friendship.isEmpty()) {
             return "NONE";
@@ -194,7 +210,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional
-    public User awardXpAndTokens(String username, int xpReward, int tokenReward) {
+    public UserDTO awardXpAndTokens(String username, int xpReward, int tokenReward) {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user != null) {
             UserGameState state = user.getGameState();
@@ -219,8 +235,60 @@ public class UserServiceImpl implements UserService {
             userRepository.update(user);
 
             Hibernate.initialize(user.getGameState());
+            return toDTO(user);
         }
-        return user;
+        return null;
+    }
+
+    private UserDTO toDTO(User user) {
+        return UserDTO.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .isActive(user.isActive())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getAcceptedFriendEntities(int userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return List.of();
+        List<Friendship> friendships = friendshipRepository.findAcceptedFriendships(user);
+        return friendships.stream()
+                .map(f -> f.getRequester().getId() == user.getId() ? f.getReceiver() : f.getRequester())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getPendingRequestEntities(int userId) {
+        User receiver = userRepository.findById(userId).orElse(null);
+        if (receiver == null) return List.of();
+        List<Friendship> requests = friendshipRepository.findPendingRequests(receiver);
+        return requests.stream()
+                .map(Friendship::getRequester)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public User awardXpAndTokensEntity(String username, int xpReward, int tokenReward) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user != null) {
+            UserGameState state = user.getGameState();
+            if (state == null) {
+                state = UserGameState.builder()
+                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                user.setGameState(state);
+            }
+            state.setXp(state.getXp() + xpReward);
+            state.setTokenBalance(state.getTokenBalance() + tokenReward);
+            userRepository.update(user);
+            return user;
+        }
+        return null;
     }
 
     @Override

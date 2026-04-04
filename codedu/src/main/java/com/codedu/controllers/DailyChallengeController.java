@@ -50,7 +50,7 @@ public class DailyChallengeController {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
         try {
-            this.todayChallenge = dailyChallengeService.getTodaysChallenge();
+            this.todayChallenge = dailyChallengeService.getTodaysChallengeEntity();
             buildChallenges();
         } catch (Exception e) {
             System.err.println("Günün görevi yüklenirken hata oluştu: " + e.getMessage());

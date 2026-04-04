@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.user.ItemDTO;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.Store;
 import com.codedu.models.user.User;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class StoreServiceImpl implements StoreService {
@@ -53,7 +55,17 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Item> getCatalogItems() {
+    public List<ItemDTO> getCatalogItems() {
+        Optional<Store> storeOpt = storeRepository.findFirstWithItemsOrderedById();
+        if (storeOpt.isPresent()) {
+            List<ItemDTO> fromStore = storeOpt.get().getAvailableItems().stream()
+                    .filter(i -> !i.isDeleted())
+                    .map(this::toDTO)
+                    .toList();
+            if (!fromStore.isEmpty()) {
+                return new ArrayList<>(fromStore);
+            }
+        }
         return new ArrayList<>(itemService.getAllItems());
     }
 
@@ -79,14 +91,12 @@ public class StoreServiceImpl implements StoreService {
             return Optional.empty();
         }
 
-        // Ensure inventory exists
         UserInventory inv = user.getInventory();
         if (inv == null) {
             inv = new UserInventory();
             user.setInventory(inv);
         }
 
-        // Add or increment inventory row
         InventoryItem row = inventoryItemRepository.findByInventoryAndItem(inv, item).orElse(null);
         if (row == null) {
             row = InventoryItem.builder()
@@ -100,12 +110,9 @@ public class StoreServiceImpl implements StoreService {
             row.setQuantity(row.getQuantity() + 1);
         }
 
-        // Deduct tokens (single source of truth: gameState.tokenBalance)
         user.getGameState().setTokenBalance(user.getGameState().getTokenBalance() - price);
-
         userRepository.update(user);
 
-        // reload with fetches so caller doesn't hit lazy proxies
         return userRepository.findByIdWithInventoryAndGameState(userId);
     }
 
@@ -119,5 +126,31 @@ public class StoreServiceImpl implements StoreService {
     @Transactional
     public void updateStore(Store store) {
         storeRepository.update(store);
+    }
+
+    private ItemDTO toDTO(Item item) {
+        return ItemDTO.builder()
+                .id(item.getId())
+                .name(item.getName())
+                .description(item.getDescription())
+                .iconURL(item.getIconURL())
+                .price(item.getPrice())
+                .type(item.getType())
+                .owned(item.isOwned())
+                .build();
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<Item> getCatalogItemEntities() {
+        Optional<Store> storeOpt = storeRepository.findFirstWithItemsOrderedById();
+        if (storeOpt.isPresent()) {
+            List<Item> fromStore = storeOpt.get().getAvailableItems().stream()
+                    .filter(i -> !i.isDeleted())
+                    .toList();
+            if (!fromStore.isEmpty()) {
+                return new ArrayList<>(fromStore);
+            }
+        }
+        return new ArrayList<>(itemService.getAllItemEntities());
     }
 }

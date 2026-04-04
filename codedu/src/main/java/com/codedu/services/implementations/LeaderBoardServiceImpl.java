@@ -1,5 +1,6 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.matchmaking.LeaderBoardDTO;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +33,37 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
 
     @Override
     @Transactional
-    public LeaderBoard getLeaderboardByName(String name) {
+    public LeaderBoardDTO getLeaderboardByName(String name) {
+        LeaderBoard lb = getLeaderboardEntityByName(name);
+        return toDTO(lb);
+    }
+
+    private LeaderBoardDTO toDTO(LeaderBoard lb) {
+        List<LeaderBoardDTO.LeaderBoardEntryDTO> entries = lb.getCompetitors() != null
+                ? lb.getCompetitors().stream()
+                        .map(c -> LeaderBoardDTO.LeaderBoardEntryDTO.builder()
+                                .rank(c.getUserRank())
+                                .username(c.getUser() != null ? c.getUser().getUsername() : "Unknown")
+                                .rankingPoint(c.getRankingPoint())
+                                .totalWins(c.getTotalWins())
+                                .totalMatches(c.getTotalMatches())
+                                .winRate(c.getWinRate())
+                                .build())
+                        .collect(Collectors.toList())
+                : List.of();
+
+        return LeaderBoardDTO.builder()
+                .id(lb.getId())
+                .name(lb.getName())
+                .requiredLevel(lb.getRequiredLevel())
+                .lastUpdatedAt(lb.getLastUpdatedAt())
+                .entries(entries)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public LeaderBoard getLeaderboardEntityByName(String name) {
         List<User> users = userRepository.findAllActiveWithCompetitorAndGameState();
         List<User> scoped = filterByScope(users, name);
         List<Competitor> rows = new ArrayList<>();

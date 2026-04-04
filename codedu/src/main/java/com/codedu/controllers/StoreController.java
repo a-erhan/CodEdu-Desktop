@@ -61,7 +61,7 @@ public class StoreController {
         // Store shows a catalog (Store / Items), Inventory shows the user's owned items (InventoryItem).
         // This method only marks catalog items as owned if the user has them in inventory.
         this.user = user;
-        allItems = storeService.getCatalogItems();
+        allItems = storeService.getCatalogItemEntities();
         markOwnedItemsFromInventory();
         buildGrid();
     }

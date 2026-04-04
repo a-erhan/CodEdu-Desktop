@@ -76,7 +76,8 @@ public class LeaderboardController {
     }
 
     private void fetchLeaderboardData(String scope) {
-        this.leaderboard = leaderboardService.getLeaderboardByName(scope);
+        System.out.println("Fetching Leaderboard: " + scope);
+        this.leaderboard = leaderboardService.getLeaderboardEntityByName(scope);
         updateSubtitle(scope);
         buildLeaderboard();
     }

@@ -1,11 +1,14 @@
 package com.codedu.services.interfaces;
 
+import com.codedu.dtos.learning.DailyChallengeDTO;
 import com.codedu.models.learning.DailyChallenge;
-import com.codedu.models.user.UserGameState;
 
 public interface DailyChallengeService {
 
-    DailyChallenge getTodaysChallenge();
+    DailyChallengeDTO getTodaysChallenge();
 
-    String submitDailyChallenge(UserGameState gameState, int correctAnswers);
+    /** Entity version for controllers still using entity classes */
+    DailyChallenge getTodaysChallengeEntity();
+
+    String submitDailyChallenge(int userId, int correctAnswers);
 }

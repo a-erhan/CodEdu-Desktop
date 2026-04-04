@@ -351,7 +351,7 @@ public class ChapterViewController {
                 }
 
                 if (xpReward > 0 || tokenReward > 0) {
-                    User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
+                    User updatedUser = userService.awardXpAndTokensEntity(currentUser.getUsername(), xpReward, tokenReward);
 
 
                     if (updatedUser != null && onProgressUpdated != null) {

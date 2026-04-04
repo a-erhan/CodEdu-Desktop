@@ -60,6 +60,9 @@ public class MainShellController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.codedu.services.interfaces.UserGameStateService userGameStateService;
+
     @FXML
     private Label taglineLabel;
     @FXML
@@ -85,12 +88,15 @@ public class MainShellController {
         userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
                 freshUser -> {
                     this.user = freshUser;
-                    this.gameState = freshUser.getGameState();
+                    if (initDemoModelsIfNeeded()) {
+                        userService.saveUser(this.user);
+                    }
                 },
                 () -> {
                     this.user = user;
-                    initDemoModelsIfNeeded();
-                    this.gameState = this.user.getGameState();
+                    if (initDemoModelsIfNeeded()) {
+                        userService.saveUser(this.user);
+                    }
                 }
         );
 
@@ -230,8 +236,10 @@ public class MainShellController {
         if (this.user == null) return;
 
         userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
-            this.user = freshUser;
-            this.gameState = freshUser.getGameState();
+            this.user = freshUser; // Update the shell's memory
+            if (initDemoModelsIfNeeded()) {
+                userService.saveUser(this.user);
+            }
 
             Platform.runLater(this::updateHeader);
         });
@@ -629,12 +637,10 @@ public class MainShellController {
         if (user == null) {
             return false;
         }
-        if (user.getGameState() != null) {
+        if (userGameStateService != null) {
+            userGameStateService.ensureGameStateForUser(user);
             this.gameState = user.getGameState();
-            return false;
         }
-        this.gameState = UserGameState.newDefault();
-        user.setGameState(gameState);
-        return true;
+        return false;
     }
 }
