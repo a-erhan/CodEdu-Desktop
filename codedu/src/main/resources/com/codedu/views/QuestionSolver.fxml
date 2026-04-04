@@ -52,19 +52,27 @@
                   style="-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 14px;"/>
 
         <!-- Action Bar at the bottom -->
-        <HBox alignment="CENTER_LEFT" spacing="15">
-            <!-- Result messages (Success/Fail) will appear here -->
-            <Label fx:id="resultMessageLabel" wrapText="true"/>
-            
-            <!-- Region acts as a spring to push the button to the far right -->
+        <HBox alignment="BOTTOM_LEFT" spacing="15">
+            <Label fx:id="resultMessageLabel" wrapText="true" maxWidth="300"/>
+
             <Region HBox.hgrow="ALWAYS"/>
-            
-            <Button fx:id="submitButton" 
-                    text="Submit Code" 
-                    onAction="#onSubmitCode" 
-                    minWidth="130.0" 
-                    minHeight="35.0"
-                    style="-fx-cursor: hand;"/>
+
+            <VBox spacing="8" alignment="CENTER_RIGHT">
+                <Button fx:id="submitButton"
+                        text="Submit Code"
+                        onAction="#onSubmitCode"
+                        minWidth="130.0"
+                        minHeight="35.0"
+                        style="-fx-cursor: hand;"/>
+
+                <Button fx:id="giveUpButton"
+                        text="Give Up"
+                        minWidth="130.0"
+                        minHeight="35.0"
+                        visible="false"
+                        managed="false"
+                        style="-fx-cursor: hand;"/>
+            </VBox>
         </HBox>
     </VBox>
 

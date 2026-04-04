@@ -295,76 +295,77 @@ public class ChapterViewController {
             Question task = codeQuestions.get(i);
 
             try {
-                // 1. Load your specialized QuestionSolver FXML
-                // ⚠️ Ensure this path matches exactly where your FXML is saved!
+                // 1. Load the QuestionSolver FXML
                 javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
                         getClass().getResource("/com/codedu/views/QuestionSolver.fxml")
                 );
 
-                // 2. Let Spring wire up the JDoodle Service inside the controller
+                // 2. Use Spring to inject the Evaluation Service into the controller
                 loader.setControllerFactory(applicationContext::getBean);
-
-                // 3. Load the UI node (assuming the root of QuestionSolver.fxml is a VBox)
                 javafx.scene.Node solverUI = loader.load();
 
-                // 4. Get the controller and pass the question data
+                // 3. Get the controller and initialize it
                 QuestionSolverController solverController = loader.getController();
                 solverController.setQuestion(task);
 
+                // 🚀 CRITICAL: Setup Give Up logic immediately so the button is ready to listen
+                solverController.setupGiveUpLogic(task.getSolution(), () -> {
+                    System.out.println("User opted to see the solution for Question ID: " + task.getId());
+                });
+
                 if (isQuestionCompleted(task)) {
-                    solverController.setLocked(true); // Lock it immediately!
+                    solverController.setLocked(true);
                 }
 
+                // 💡 4. Create the Hint Label (managed by ChapterViewController)
+                Label hintLabel = new Label("💡 Hint: " + (task.getHint() != null ? task.getHint() : "Check your logic!"));
+                hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-padding: 10; -fx-background-color: rgba(243, 156, 18, 0.1); -fx-border-radius: 4;");
+                hintLabel.setWrapText(true);
+                hintLabel.setVisible(false);
+                hintLabel.setManaged(false);
+
+                // 5. Setup Success Callback
                 solverController.setOnSuccessCallback(isCorrect -> {
-                    if (isCorrect) {
-                        // Only award XP if they haven't beaten this exact question before
-                        if (!isQuestionCompleted(task)) {
-                            handleCorrectAnswer(task);
-                            System.out.println("✅ Practice question completed, XP awarded!");
-                        }
+                    if (isCorrect && !isQuestionCompleted(task)) {
+                        handleCorrectAnswer(task);
+                        // Clean up UI on success
+                        hintLabel.setVisible(false);
+                        hintLabel.setManaged(false);
                     }
                 });
 
+                // 6. Setup Heart and Error Callbacks
                 solverController.setHeartCheckCallback(this::hasEnoughHearts);
 
-                // 🚀 CREATE THE HIDDEN HINT LABEL
-                String hintText = (task.getHint() != null && !task.getHint().isEmpty())
-                        ? "💡 Hint: " + task.getHint()
-                        : "💡 Hint: Double-check your syntax, variable names, and logic!";
-
-                Label hintLabel = new Label(hintText);
-                hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold; -fx-padding: 10px; -fx-background-color: rgba(243, 156, 18, 0.15); -fx-border-color: #f39c12; -fx-border-radius: 4; -fx-background-radius: 4;");
-                hintLabel.setWrapText(true);
-                hintLabel.setVisible(false);  // Invisible by default
-                hintLabel.setManaged(false);  // Prevents empty gaps in the UI
-
-                // 🚀 UPDATE THE WRONG ANSWER CALLBACK TO REVEAL THE HINT
                 solverController.setOnWrongAnswerCallback(() -> {
-                    handleWrongAnswer(); // Still deduct the heart
+                    handleWrongAnswer();
 
-                    // Reveal the hint!
-                    hintLabel.setVisible(true);
-                    hintLabel.setManaged(true);
+                    // Show Hint and Give Up Button immediately on first wrong guess
+                    if (hasEnoughHearts()) {
+                        hintLabel.setVisible(true);
+                        hintLabel.setManaged(true);
+
+                        // 🚀 Tells the controller to unhide its internal Give Up button
+                        solverController.showGiveUpButton();
+                    }
                 });
 
-                // 🚀 BUILD THE WRAPPER CONTAINER
-                VBox codeCardWrapper = new VBox(8);
-
-                // Add the metadata header, the code editor UI, and the hidden hint below it
+                // 7. Final Assembly into the card wrapper
+                VBox codeCardWrapper = new VBox(10);
                 codeCardWrapper.getChildren().addAll(
                         buildMetadataHeader(task),
-                        solverUI,
-                        hintLabel
+                        solverUI,   // This remains visible so instructions are never hidden
+                        hintLabel   // Appears at the bottom after a fail
                 );
 
-                // Apply the spacing to the new wrapper and add it to the screen
-                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 30, 0));
+                // Add spacing between different practice tasks
+                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 40, 0));
                 practiceContainer.getChildren().add(codeCardWrapper);
 
             } catch (Exception e) {
                 e.printStackTrace();
                 Label errorLabel = new Label("⚠️ Failed to load code editor for: " + task.getTitle());
-                errorLabel.setStyle("-fx-text-fill: #e74c3c;");
+                errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-padding: 10;");
                 practiceContainer.getChildren().add(errorLabel);
             }
         }

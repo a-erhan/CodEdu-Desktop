@@ -27,6 +27,8 @@ public class QuestionSolverController {
     private Label resultMessageLabel;
     @FXML
     private Button submitButton;
+    @FXML
+    private Button giveUpButton;
 
     private java.util.function.Supplier<Boolean> heartCheckCallback;
     private Runnable onWrongAnswerCallback;
@@ -45,6 +47,17 @@ public class QuestionSolverController {
         }
         if (submitButton != null) {
             submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.DENSE);
+        }
+
+        // 🚀 Create the button programmatically if FXML didn't provide one
+        if (giveUpButton != null) {
+            giveUpButton.setText("Give Up");
+            // Use Styles.DANGER or Styles.WARNING to make it stand out
+            giveUpButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.WARNING, Styles.DENSE);
+
+            // Hide it until a mistake is made
+            giveUpButton.setVisible(false);
+            giveUpButton.setManaged(false);
         }
     }
 
@@ -144,5 +157,62 @@ public class QuestionSolverController {
     }
     public void setOnWrongAnswerCallback(Runnable callback) {
         this.onWrongAnswerCallback = callback;
+    }
+
+    public void showSolutionState(String solution) {
+        if (codeEditorArea != null) {
+            codeEditorArea.setText(solution);
+            codeEditorArea.setEditable(false);
+
+            codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; -fx-text-fill: #2ecc71; -fx-font-family: 'Consolas';");
+        }
+        if (submitButton != null) {
+            submitButton.setVisible(false);
+            submitButton.setManaged(false);
+        }
+        showResult("💡 Solution Revealed", true);
+    }
+
+    public void setupGiveUpLogic(String solution, Runnable onGiveUpAction) {
+        if (giveUpButton == null) return;
+
+        // Reset state just in case this controller is reused
+        giveUpButton.setVisible(false);
+        giveUpButton.setManaged(false);
+
+        giveUpButton.setOnAction(e -> {
+            // Swap text and lock editor
+            codeEditorArea.setText(solution);
+            codeEditorArea.setEditable(false);
+            codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; -fx-text-fill: #2ecc71; -fx-font-family: 'Consolas';");
+
+            // Hide buttons after use
+            submitButton.setVisible(false);
+            submitButton.setManaged(false);
+            giveUpButton.setVisible(false);
+            giveUpButton.setManaged(false);
+
+            showResult("💡 Solution Revealed", true);
+            if (onGiveUpAction != null) onGiveUpAction.run();
+        });
+    }
+
+    public void showGiveUpButton() {
+        if (giveUpButton != null) {
+            // 🚀 1. Make it physically visible
+            giveUpButton.setVisible(true);
+
+            // 🚀 2. Tell the layout to give it space again
+            giveUpButton.setManaged(true);
+
+            // 🚀 3. Force the parent container to recalculate its size
+            if (giveUpButton.getParent() != null) {
+                giveUpButton.getParent().requestLayout();
+            }
+
+            System.out.println("DEBUG: Give Up button is now visible and managed.");
+        } else {
+            System.out.println("DEBUG: Give Up button is NULL!");
+        }
     }
 }
