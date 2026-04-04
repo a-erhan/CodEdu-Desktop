@@ -55,7 +55,7 @@ public class LearningPathDataSeeder implements CommandLineRunner {
                 .xpReward(100)
                 .orderIndex(1)
                 .path(javaPath)
-                .iconEmoji("👋")
+                .iconImage("/com/codedu/images/learning-path/ch_hello_world.png")
                 .build();
 
         String ch1Learn = """
@@ -98,7 +98,7 @@ public class LearningPathDataSeeder implements CommandLineRunner {
                 .xpReward(150)
                 .orderIndex(2)
                 .path(javaPath)
-                .iconEmoji("🔀")
+                .iconImage("/com/codedu/images/learning-path/ch_control_flow.png")
                 .build();
 
         ChapterContent ch2Content = ChapterContent.builder()
@@ -119,6 +119,18 @@ public class LearningPathDataSeeder implements CommandLineRunner {
         List<String> chapterTitles = Arrays.asList("Loops", "Methods", "Arrays", "OOP", "Inheritance", "Exceptions", "Lists", "Trees");
 
         for (int i = 0; i < chapterTitles.size(); i++) {
+            String iconPath = switch (chapterTitles.get(i)) {
+                case "Loops" -> "/com/codedu/images/learning-path/ch_loops.png";
+                case "Methods" -> "/com/codedu/images/learning-path/ch_functions.png";
+                case "Arrays" -> "/com/codedu/images/learning-path/ch_arrays.png";
+                case "OOP" -> "/com/codedu/images/learning-path/ch_oop.png";
+                case "Inheritance" -> "/com/codedu/images/learning-path/ch_inheritance.png";
+                case "Exceptions" -> "/com/codedu/images/learning-path/ch_exceptions.png";
+                case "Lists" -> "/com/codedu/images/learning-path/ch_linear_ds.png";
+                case "Trees" -> "/com/codedu/images/learning-path/ch_nonlinear_ds.png";
+                default -> null;
+            };
+
             Chapter lockedCh = Chapter.builder()
                     .title(chapterTitles.get(i))
                     .description("Complete previous chapters to unlock.")
@@ -127,7 +139,7 @@ public class LearningPathDataSeeder implements CommandLineRunner {
                     .xpReward(200)
                     .orderIndex(i + 3)
                     .path(javaPath)
-                    .iconEmoji("🔒")
+                    .iconImage(iconPath)
                     .build();
             chapterRepository.save(lockedCh);
         }

@@ -166,6 +166,10 @@ public class MainShellController {
             profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
             profileIconLabel.setOnMouseClicked(e -> loadProfile());
         }
+        if (welcomeNavLabel != null) {
+            welcomeNavLabel.getStyleClass().add(Styles.INTERACTIVE);
+            welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
+        }
         if (xpProgressBar != null) {
             xpProgressBar.getStyleClass().addAll(Styles.MEDIUM, Styles.ROUNDED);
         }
@@ -377,6 +381,12 @@ public class MainShellController {
             controller.setCurrentUser(user);
             controller.setViewingSelf(isSelf);
             controller.setOnProfileClick(this::openUserProfile);
+            if (isSelf) {
+                controller.setOnNavigateToInventory(() -> {
+                    setActiveButton(btnInventory);
+                    loadInventory();
+                });
+            }
             controller.setUserModel(profileUser);
             controller.setGameState(state);
             setContentAndFill(profileView);
@@ -442,7 +452,7 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AIChatbotController controller = loader.getController();
-            controller.setRemainingRequests(3);
+            controller.setCurrentUser(this.user);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -494,6 +504,10 @@ public class MainShellController {
             Parent view = loader.load();
             QuestionSolverController controller = loader.getController();
             controller.setQuestion(question);
+            controller.setOnBack(() -> {
+                setActiveButton(btnDailyChallenge);
+                loadDailyChallenge();
+            });
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();

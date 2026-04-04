@@ -54,15 +54,6 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Transactional(readOnly = true)
     public List<Item> getCatalogItems() {
-        Optional<Store> storeOpt = storeRepository.findFirstWithItemsOrderedById();
-        if (storeOpt.isPresent()) {
-            List<Item> fromStore = storeOpt.get().getAvailableItems().stream()
-                    .filter(i -> !i.isDeleted())
-                    .toList();
-            if (!fromStore.isEmpty()) {
-                return new ArrayList<>(fromStore);
-            }
-        }
         return new ArrayList<>(itemService.getAllItems());
     }
 

@@ -164,10 +164,14 @@ public class UserServiceImpl implements UserService {
     public Optional<User> getUserWithProfileData(String username) {
         return userRepository.findByUsername(username).map(u -> {
             if (u.getGameState() != null) {
-                org.hibernate.Hibernate.initialize(u.getGameState());
+                Hibernate.initialize(u.getGameState());
+                Hibernate.initialize(u.getGameState().getAchievements());
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
             }
+            try {
+                Hibernate.initialize(u.getCompetitor());
+            } catch (Exception ignored) {}
             return u;
         });
     }

@@ -3,17 +3,19 @@ package com.codedu.controllers;
 import atlantafx.base.theme.Styles;
 import com.codedu.models.gamification.Achievement;
 import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.ChatWindowManager;
 import com.codedu.services.interfaces.FriendshipUIManager;
-import javafx.event.EventHandler;
+import com.codedu.services.interfaces.InventoryItemService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Controller
@@ -31,6 +34,9 @@ public class ProfileController {
 
     @Autowired
     private FriendshipUIManager friendshipUIManager;
+
+    @Autowired
+    private InventoryItemService inventoryItemService;
 
     @FXML
     private Label avatarDisplay;
@@ -80,6 +86,11 @@ public class ProfileController {
     private UserGameState gameState;
     private boolean viewingSelf;
     private Consumer<User> onProfileClick;
+    private Runnable onNavigateToInventory;
+
+    public void setOnNavigateToInventory(Runnable callback) {
+        this.onNavigateToInventory = callback;
+    }
 
     public void setViewingSelf(boolean viewingSelf) {
         this.viewingSelf = viewingSelf;
@@ -141,12 +152,40 @@ public class ProfileController {
         String username = profileUser.getUsername() != null ? profileUser.getUsername() : "Unknown";
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
-        avatarDisplay.setText(initial);
         avatarDisplay.setAlignment(Pos.CENTER);
         avatarDisplay.setMinSize(100, 100);
         avatarDisplay.setShape(new Circle(50));
-        avatarDisplay.setStyle(
-                "-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+
+        Optional<InventoryItem> equippedAvatar;
+        try {
+            equippedAvatar = inventoryItemService.getEquippedAvatar(profileUser);
+        } catch (Exception ex) {
+            equippedAvatar = Optional.empty();
+        }
+        if (equippedAvatar.isPresent()) {
+            String itemName = equippedAvatar.get().getItem().getName().toLowerCase();
+            String imageFile = itemName.contains("ninja") ? "avatar_ninja.png"
+                    : itemName.contains("wizard") ? "avatar_wizard.png"
+                    : "avatar_basic.png";
+            try {
+                var imgUrl = getClass().getResource("/com/codedu/images/avatars/" + imageFile);
+                if (imgUrl == null) throw new RuntimeException("Avatar image not found: " + imageFile);
+                Image img = new Image(imgUrl.toExternalForm());
+                ImageView iv = new ImageView(img);
+                iv.setFitWidth(100);
+                iv.setFitHeight(100);
+                iv.setPreserveRatio(true);
+                avatarDisplay.setGraphic(iv);
+                avatarDisplay.setText("");
+                avatarDisplay.setStyle("-fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+            } catch (Exception e) {
+                avatarDisplay.setText(initial);
+                avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+            }
+        } else {
+            avatarDisplay.setText(initial);
+            avatarDisplay.setStyle("-fx-font-weight: bold; -fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.15); -fx-border-width: 2; -fx-border-radius: 50;");
+        }
 
         if (!avatarDisplay.getStyleClass().contains(Styles.TITLE_2)) {
             avatarDisplay.getStyleClass().add(Styles.TITLE_2);
@@ -308,6 +347,11 @@ public class ProfileController {
                             "-fx-border-width: 1.2; " +
                             "-fx-background-radius: " + smoothRadius + "; " +
                             "-fx-border-radius: " + smoothRadius + ";"));
+        }
+
+        if (itemsCard != null && onNavigateToInventory != null) {
+            itemsCard.getStyleClass().add(Styles.INTERACTIVE);
+            itemsCard.setOnMouseClicked(e -> onNavigateToInventory.run());
         }
     }
 }
