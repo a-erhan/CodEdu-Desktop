@@ -200,6 +200,7 @@ public class ChapterViewController {
             }
 
             optBtn.setOnAction(e -> {
+                if (!hasEnoughHearts()) return;
                 if (idx == correctIndex) {
                     optBtn.setStyle(styleCorrect);
                     handleCorrectAnswer(q);
@@ -208,6 +209,7 @@ public class ChapterViewController {
                     if (optionsBox.getChildren().get(correctIndex) instanceof Button correctBtn) {
                         correctBtn.setStyle(styleCorrect);
                     }
+                    handleWrongAnswer();
                 }
                 optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
             });
@@ -237,6 +239,7 @@ public class ChapterViewController {
         }
 
         checkBtn.setOnAction(e -> {
+            if (!hasEnoughHearts()) return;
             if (inputField.getText().trim().equalsIgnoreCase(q.getSolution())) {
                 inputField.setStyle(styleCorrectField);
                 inputField.setMouseTransparent(true);
@@ -244,6 +247,7 @@ public class ChapterViewController {
                 handleCorrectAnswer(q);
             } else {
                 inputField.setStyle("-fx-border-color: #dc3545;");
+                handleWrongAnswer();
             }
         });
 
@@ -285,7 +289,7 @@ public class ChapterViewController {
                     solverController.setLocked(true); // Lock it immediately!
                 }
 
-                // 5. 🚀 THE HOOK: Listen for the JDoodle success signal
+
                 solverController.setOnSuccessCallback(isCorrect -> {
                     if (isCorrect) {
                         // Only award XP if they haven't beaten this exact question before
@@ -295,6 +299,9 @@ public class ChapterViewController {
                         }
                     }
                 });
+
+                solverController.setHeartCheckCallback(this::hasEnoughHearts);
+                solverController.setOnWrongAnswerCallback(this::handleWrongAnswer);
 
                 // Optional: Add some spacing between multiple code questions
                 VBox.setMargin(solverUI, new Insets(0, 0, 30, 0));
@@ -397,5 +404,37 @@ public class ChapterViewController {
     public void setOnBack(Runnable onBack) {
         this.onBack = onBack;
         btnBack.setOnAction(e -> { if (onBack != null) onBack.run(); });
+    }
+
+    private boolean hasEnoughHearts() {
+        if (currentUser != null && currentUser.getGameState() != null) {
+            if (currentUser.getGameState().getHeartCount() <= 0) {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+                alert.setTitle("Out of Hearts!");
+                alert.setHeaderText(null);
+                alert.setContentText("You have 0 hearts remaining. Wait for them to refill or buy more in the store!");
+                alert.showAndWait();
+                return false; // Blocks the code from running
+            }
+        }
+        return true;
+    }
+
+    private void handleWrongAnswer() {
+        if (currentUser != null) {
+
+            userService.decrementHeart(currentUser.getUsername());
+
+            userService.getUserWithProfileData(currentUser.getUsername()).ifPresent(freshUser -> {
+
+
+                this.currentUser = freshUser;
+
+
+                if (onProgressUpdated != null) {
+                    javafx.application.Platform.runLater(() -> onProgressUpdated.accept(freshUser));
+                }
+            });
+        }
     }
 }

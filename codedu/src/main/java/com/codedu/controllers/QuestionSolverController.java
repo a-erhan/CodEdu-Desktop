@@ -30,6 +30,9 @@ public class QuestionSolverController {
     @FXML
     private Button submitButton;
 
+    private java.util.function.Supplier<Boolean> heartCheckCallback;
+    private Runnable onWrongAnswerCallback;
+
     @Autowired
     private QuestionEvaluationService questionEvaluationService;
 
@@ -98,6 +101,10 @@ public class QuestionSolverController {
 
     @FXML
     public void onSubmitCode() {
+        if (heartCheckCallback != null && !heartCheckCallback.get()) {
+            return;
+        }
+
         if (currentQuestion == null)
             return;
 
@@ -129,6 +136,7 @@ public class QuestionSolverController {
                     }
                 } else {
                     showResult("Incorrect solution or compilation failed. Please try again.", false);
+                    if (onWrongAnswerCallback != null) onWrongAnswerCallback.run();
                 }
             });
         });
@@ -144,5 +152,12 @@ public class QuestionSolverController {
                 resultMessageLabel.getStyleClass().add(Styles.DANGER);
             }
         }
+    }
+
+    public void setHeartCheckCallback(java.util.function.Supplier<Boolean> callback) {
+        this.heartCheckCallback = callback;
+    }
+    public void setOnWrongAnswerCallback(Runnable callback) {
+        this.onWrongAnswerCallback = callback;
     }
 }

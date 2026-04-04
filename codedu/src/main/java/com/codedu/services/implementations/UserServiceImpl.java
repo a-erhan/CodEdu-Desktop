@@ -222,4 +222,16 @@ public class UserServiceImpl implements UserService {
         }
         return user;
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public User decrementHeart(String username) {
+        return userRepository.findByUsername(username).map(user -> {
+            if (user.getGameState() != null && user.getGameState().getHeartCount() > 0) {
+                user.getGameState().setHeartCount(user.getGameState().getHeartCount() - 1);
+                return userRepository.save(user);
+            }
+            return user;
+        }).orElse(null);
+    }
 }

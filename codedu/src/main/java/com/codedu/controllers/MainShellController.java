@@ -63,6 +63,8 @@ public class MainShellController {
     @FXML
     private Label taglineLabel;
     @FXML
+    private Label heartLabel;
+    @FXML
     private VBox sidebar, sidebarContainer;
     @FXML
     private ScrollPane sidebarScroll;
@@ -108,6 +110,22 @@ public class MainShellController {
         styleAndWireNavigation();
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
+
+        if (heartLabel == null) {
+            heartLabel = new Label("❤️ 3");
+            heartLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+
+
+            if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
+
+                int tokenIndex = parentBox.getChildren().indexOf(tokenLabel);
+                parentBox.getChildren().add(tokenIndex, heartLabel);
+
+                if (parentBox instanceof javafx.scene.layout.HBox) {
+                    javafx.scene.layout.HBox.setMargin(heartLabel, new javafx.geometry.Insets(0, 15, 0, 0));
+                }
+            }
+        }
     }
 
     private void ensureShellFillsScene() {
@@ -525,10 +543,15 @@ public class MainShellController {
         int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
         int level = (gameState != null) ? gameState.getLevel() : 1;
         int xp = (gameState != null) ? gameState.getXp() : 0;
+        int hearts = (gameState != null) ? gameState.getHeartCount() : 0;
 
         tokenLabel.setText("Tokens: " + tokens);
         badgeLabel.setText("Lvl " + level);
         welcomeNavLabel.setText("@" + username);
+
+        if (heartLabel != null) {
+            heartLabel.setText("\u2764 " + hearts);
+        }
 
         int levelCap = Math.max(1, level * 100);
         double progress = (double) xp / levelCap;

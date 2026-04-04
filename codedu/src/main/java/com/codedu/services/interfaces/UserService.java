@@ -31,4 +31,6 @@ public interface UserService {
     Optional<User> loadUserForPublicProfile(int userId);
 
     User awardXpAndTokens(String username, int xpReward, int tokenReward);
+
+    User decrementHeart(String username);
 }
