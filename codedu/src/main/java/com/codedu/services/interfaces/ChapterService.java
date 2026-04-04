@@ -13,4 +13,6 @@ public interface ChapterService {
     List<ChapterDTO> getAllChapters();
 
     Optional<Chapter> getChapterWithQuestions(Long id);
+
+    Optional<ChapterDTO> getChapterDtoWithQuestions(Long id);
 }

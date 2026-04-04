@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.ChapterProgressDTO;
+import com.codedu.dtos.learning.ChapterDTO;
 import com.codedu.services.interfaces.LearningPathService;
 import com.codedu.models.learning.Chapter;
 import com.codedu.models.learning.UserChapterProgress;
@@ -22,7 +23,7 @@ public class LearningPathServiceImpl implements LearningPathService {
     private final UserChapterProgressRepository progressRepository;
 
     public LearningPathServiceImpl(ChapterRepository chapterRepository,
-                               UserChapterProgressRepository progressRepository) {
+                                   UserChapterProgressRepository progressRepository) {
         this.chapterRepository = chapterRepository;
         this.progressRepository = progressRepository;
     }
@@ -56,23 +57,7 @@ public class LearningPathServiceImpl implements LearningPathService {
             currentPath = getLearningPathForUser(user);
         }
 
-        // 🚀 THE FIX: Safely inject the dynamic question count into the DTOs
-        // Because of @Transactional, calling .size() here will not crash!
-        for (ChapterProgressDTO dto : currentPath) {
-            if (dto.getChapter() != null &&
-                    dto.getChapter().getContent() != null &&
-                    dto.getChapter().getContent().getQuestions() != null) {
-
-                int realQuestionCount = dto.getChapter().getContent().getQuestions().size();
-
-                // Only set it if we successfully found questions
-                if (realQuestionCount > 0) {
-                    dto.setDynamicTotalLessons(realQuestionCount);
-                }
-            }
-        }
-
-        // Now both new users AND existing users return the dynamically updated DTOs
+        // 🚀 We removed the broken loop here! The mapping is now handled safely below.
         return currentPath;
     }
 
@@ -101,11 +86,34 @@ public class LearningPathServiceImpl implements LearningPathService {
             // A chapter is locked if the previous one wasn't finished
             boolean locked = !previousChapterCompleted;
 
+            // 🚀 1. Calculate dynamic lessons directly from the DB Entity
+            int dynamicLessons = 0;
+            if (chapter.getContent() != null && chapter.getContent().getQuestions() != null) {
+                dynamicLessons = chapter.getContent().getQuestions().size();
+            }
+
+            // 🚀 2. Map the Database Entity to the new ChapterDTO
+            ChapterDTO chapterDTO = ChapterDTO.builder()
+                    .id(chapter.getId())
+                    .title(chapter.getTitle())
+                    .description(chapter.getDescription())
+                    .iconEmoji(chapter.getIconEmoji())
+                    .iconImage(chapter.getIconImage())
+                    .difficulty(chapter.getDifficulty())
+                    .totalLessons(chapter.getTotalLessons())
+                    .xpReward(chapter.getXpReward())
+                    .tokenReward(chapter.getTokenReward())
+                    .orderIndex(chapter.getOrderIndex())
+                    .topicName(chapter.getTopicName())
+                    .build();
+
+            // 🚀 3. Build the Progress DTO
             dtos.add(ChapterProgressDTO.builder()
-                    .chapter(chapter)
+                    .chapter(chapterDTO)
                     .completedLessons(completed)
                     .isCompleted(finished)
                     .isLocked(locked)
+                    .dynamicTotalLessons(dynamicLessons) // Injected safely here!
                     .build());
 
             // Set tracker for the next chapter in the loop

@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+//@Component
 @Order(5)
 public class StoreItemSeeder implements CommandLineRunner {
 
@@ -28,6 +28,7 @@ public class StoreItemSeeder implements CommandLineRunner {
 
     @Autowired
     private UserGameStateRepository userGameStateRepository;
+
 
     @Override
     @Transactional

@@ -1,6 +1,6 @@
 package com.codedu.dtos;
 
-import com.codedu.models.learning.Chapter;
+import com.codedu.dtos.learning.ChapterDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,23 +11,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChapterProgressDTO {
-    private Chapter chapter;
+    // 🚀 Changed from Chapter (Entity) to ChapterDTO
+    private ChapterDTO chapter;
     private int completedLessons;
     private boolean isLocked;
     private boolean isCompleted;
-
-    // 🚀 1. ADD THIS FIELD: A safe place to store the real count
-    // without ever touching the database!
     private int dynamicTotalLessons;
 
     public double getProgress() {
         if (chapter == null) return 0.0;
-
-        // 🚀 2. THE MATH FIX: Use dynamic count if we found it, otherwise fallback to DB
-        int total = (dynamicTotalLessons > 0) ? dynamicTotalLessons : chapter.getTotalLessons();
-
-        if (total <= 0) return 0.0; // Prevent divide by zero!
-
+        int total = (dynamicTotalLessons > 0) ? dynamicTotalLessons : chapter.totalLessons();
+        if (total <= 0) return 0.0;
         return (double) completedLessons / total;
     }
 }

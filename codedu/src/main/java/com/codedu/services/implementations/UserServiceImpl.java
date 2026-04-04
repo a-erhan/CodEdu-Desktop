@@ -3,12 +3,14 @@ package com.codedu.services.implementations;
 import com.codedu.dtos.UserProfileDTO;
 import com.codedu.dtos.user.UserDTO;
 import com.codedu.models.user.UserGameState;
+import com.codedu.repositories.interfaces.UserGameStateRepository;
 import com.codedu.services.interfaces.UserService;
 import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
 import com.codedu.repositories.interfaces.UserRepository;
 import org.hibernate.Hibernate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
+    @Autowired
+    private UserGameStateRepository userGameStateRepository; // 🚀 Add this!
 
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
@@ -272,20 +276,36 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     @Transactional
     public User awardXpAndTokensEntity(String username, int xpReward, int tokenReward) {
         User user = userRepository.findByUsername(username).orElse(null);
         if (user != null) {
             UserGameState state = user.getGameState();
+
             if (state == null) {
                 state = UserGameState.builder()
                         .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
+
             state.setXp(state.getXp() + xpReward);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
+
+            int xpRequired = state.getLevel() * 100;
+
+            while (state.getXp() >= xpRequired) {
+                state.setXp(state.getXp() - xpRequired);
+                state.setLevel(state.getLevel() + 1);
+                xpRequired = state.getLevel() * 100;
+            }
+
+            // 🚀 THE DATABASE FIX: Save the game state explicitly first!
+            userGameStateRepository.update(state);
+
+            // Then save the user
             userRepository.update(user);
+
+            org.hibernate.Hibernate.initialize(user.getGameState());
             return user;
         }
         return null;

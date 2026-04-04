@@ -3,7 +3,11 @@ package com.codedu.controllers;
 import atlantafx.base.theme.NordDark;
 import atlantafx.base.theme.NordLight;
 import atlantafx.base.theme.Styles;
+import com.codedu.dtos.ChapterProgressDTO;
+import com.codedu.dtos.learning.ChapterDTO;
+import com.codedu.dtos.learning.QuestionDTO;
 import com.codedu.models.learning.Chapter;
+import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.learning.Question;
 import com.codedu.models.user.User;
@@ -38,7 +42,7 @@ public class MainShellController {
     @Autowired
     private ApplicationContext applicationContext;
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     private UserChapterProgressService progressService;
 
     @FXML
@@ -117,13 +121,13 @@ public class MainShellController {
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
 
+        // 🚀 Set the fallback to 0. It will instantly update to the real DB value
+        // as soon as setUser() triggers updateHeader() a few milliseconds later!
         if (heartLabel == null) {
-            heartLabel = new Label("❤️ 3");
+            heartLabel = new Label("❤️ 0");
             heartLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
 
-
             if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
-
                 int tokenIndex = parentBox.getChildren().indexOf(tokenLabel);
                 parentBox.getChildren().add(tokenIndex, heartLabel);
 
@@ -217,7 +221,6 @@ public class MainShellController {
             setActiveButton(btnStore);
             loadStore();
         });
-
         btnInventory.setOnAction(e -> {
             setActiveButton(btnInventory);
             loadInventory();
@@ -236,11 +239,10 @@ public class MainShellController {
         if (this.user == null) return;
 
         userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
-            this.user = freshUser; // Update the shell's memory
+            this.user = freshUser;
             if (initDemoModelsIfNeeded()) {
                 userService.saveUser(this.user);
             }
-
             Platform.runLater(this::updateHeader);
         });
 
@@ -250,6 +252,7 @@ public class MainShellController {
             Parent view = loader.load();
 
             LearningPathController lpController = loader.getController();
+            // 🚀 Learning Path now emits a ChapterDTO, which we pass to loadChapterView
             lpController.setOnStartChapter(this::loadChapterView);
 
             lpController.loadUserData(this.user);
@@ -260,7 +263,8 @@ public class MainShellController {
         }
     }
 
-    private void loadChapterView(Chapter chapter) {
+    // 🚀 Updated to accept ChapterDTO
+    private void loadChapterView(ChapterDTO chapterDto) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ChapterView.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -268,23 +272,25 @@ public class MainShellController {
 
             ChapterViewController controller = loader.getController();
 
-            com.codedu.models.learning.UserChapterProgress progress =
-                    progressService.getProgress(this.user, chapter);
+            // 1. Create a dummy Chapter entity just to use as a search key for the repository
+            Chapter searchKey = new Chapter();
+            searchKey.setId(chapterDto.id());
 
-            if (progress == null) {
-                progress = new com.codedu.models.learning.UserChapterProgress();
-                progress.setUser(this.user);
-                progress.setChapter(chapter);
-                progress.setCompletedLessons(0);
-                progress.setCompleted(false);
-                progressService.saveProgress(progress);
-            }
+            // 2. See if the user has database progress
+            com.codedu.models.learning.UserChapterProgress dbProgress =
+                    progressService.getProgress(this.user, searchKey);
 
+            // 3. Map it to the ChapterProgressDTO the UI expects
+            ChapterProgressDTO progressDto = new ChapterProgressDTO();
+            progressDto.setChapter(chapterDto);
+            progressDto.setCompletedLessons(dbProgress != null ? dbProgress.getCompletedLessons() : 0);
+            progressDto.setCompleted(dbProgress != null && dbProgress.isCompleted());
+            progressDto.setLocked(false);
 
             controller.setCurrentUser(this.user);
 
-            controller.setChapter(chapter, progress);
-
+            // 🚀 Pass both DTOs to the ChapterViewController
+            controller.setChapter(chapterDto, progressDto);
 
             controller.setOnProgressUpdated((updatedUser) -> {
                 this.user = updatedUser;
@@ -292,7 +298,11 @@ public class MainShellController {
                 Platform.runLater(this::updateHeader);
             });
 
-            controller.setOnBack(() -> loadLearningPath());
+            controller.setOnBack(() -> {
+                setActiveButton(btnLearningPath);
+                loadLearningPath();
+            });
+
             setContentAndFill(chapterView);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -306,12 +316,49 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
+            // 🚀 Receives standard Question entity, maps it internally
             controller.setOnStartQuestion(this::openChallengePage);
             controller.setOnBack(this::loadLearningPath);
             setContentAndFill(view);
         } catch (Exception ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Daily challenges", "Error loading daily challenges module.");
+        }
+    }
+
+    // 🚀 Intercepts the raw Entity from Daily Challenge and turns it into a DTO
+    private void openChallengePage(Question question) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent view = loader.load();
+            QuestionSolverController controller = loader.getController();
+
+            // 🚀 Map the raw Question entity to the QuestionDTO expected by the Solver
+            QuestionDTO questionDto = QuestionDTO.builder()
+                    .id(question.getId())
+                    .title(question.getTitle())
+                    .content(question.getContent())
+                    .hint(question.getHint())
+                    .solution(question.getSolution())
+                    .questionType(question.getQuestionType())
+                    .questionDifficulty(question.getQuestionDifficulty())
+                    .rewardXp(question.getReward() != null ? question.getReward().getXp() : 0)
+                    .rewardToken(question.getReward() != null ? question.getReward().getToken() : 0)
+                    .boilerplateCode(question instanceof CodeImplementationQuestion cq ? cq.getBoilerplateCode() : "")
+                    .build();
+
+            controller.setQuestion(questionDto);
+
+            controller.setOnBack(() -> {
+                setActiveButton(btnDailyChallenge);
+                loadDailyChallenge();
+            });
+
+            setContentAndFill(view);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            showSectionPlaceholder("Question Solver", "Error opening question solver.");
         }
     }
 
@@ -502,24 +549,6 @@ public class MainShellController {
         } catch (IOException ex) {
             ex.printStackTrace();
             showSectionPlaceholder("Profile", "Error loading competitor profile.");
-        }
-    }
-
-    private void openChallengePage(Question question) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent view = loader.load();
-            QuestionSolverController controller = loader.getController();
-            controller.setQuestion(question);
-            controller.setOnBack(() -> {
-                setActiveButton(btnDailyChallenge);
-                loadDailyChallenge();
-            });
-            setContentAndFill(view);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            showSectionPlaceholder("Question Solver", "Error opening question solver.");
         }
     }
 
