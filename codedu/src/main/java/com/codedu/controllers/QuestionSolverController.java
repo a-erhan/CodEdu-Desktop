@@ -47,6 +47,7 @@ public class QuestionSolverController {
         }
         if (submitButton != null) {
             submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.DENSE);
+            submitButton.setFocusTraversable(false);
         }
 
         // 🚀 Create the button programmatically if FXML didn't provide one
@@ -54,7 +55,7 @@ public class QuestionSolverController {
             giveUpButton.setText("Give Up");
             // Use Styles.DANGER or Styles.WARNING to make it stand out
             giveUpButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.WARNING, Styles.DENSE);
-
+            giveUpButton.setFocusTraversable(false);
             // Hide it until a mistake is made
             giveUpButton.setVisible(false);
             giveUpButton.setManaged(false);
@@ -89,9 +90,17 @@ public class QuestionSolverController {
         if (codeEditorArea != null) {
             codeEditorArea.setEditable(!isLocked); // Disable typing
         }
+
         if (submitButton != null) {
-            submitButton.setVisible(!isLocked); // Hide the run button completely
+            submitButton.setVisible(!isLocked);
+            submitButton.setManaged(!isLocked);
         }
+
+        if (giveUpButton != null) {
+            giveUpButton.setVisible(false);
+            giveUpButton.setManaged(false);
+        }
+
         if (isLocked) {
             showResult("✅ Completed", true);
         }
@@ -163,13 +172,23 @@ public class QuestionSolverController {
         if (codeEditorArea != null) {
             codeEditorArea.setText(solution);
             codeEditorArea.setEditable(false);
-
-            codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; -fx-text-fill: #2ecc71; -fx-font-family: 'Consolas';");
+            // 🚀 STYLE FIX: Monospace font and green text for solution
+            codeEditorArea.setStyle("-fx-control-inner-background: #1e272e; " +
+                    "-fx-text-fill: #2ecc71; " +
+                    "-fx-font-family: 'Consolas', 'Monospaced'; " +
+                    "-fx-font-size: 14px;");
         }
+
         if (submitButton != null) {
             submitButton.setVisible(false);
             submitButton.setManaged(false);
         }
+        if (giveUpButton != null) {
+            giveUpButton.setVisible(false);
+            giveUpButton.setManaged(false);
+        }
+
+        // This matches the "💡 Solution Revealed" in your image
         showResult("💡 Solution Revealed", true);
     }
 

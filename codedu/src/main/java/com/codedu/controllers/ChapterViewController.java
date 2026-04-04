@@ -212,7 +212,7 @@ public class ChapterViewController {
                     // ✅ They guessed right!
                     optBtn.setStyle(styleCorrect);
                     optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true)); // Lock all
-                    handleCorrectAnswer(q);
+                    handleCorrectAnswer(q,false);
                 } else {
                     // ❌ They guessed wrong!
                     optBtn.setStyle(styleWrong);
@@ -231,7 +231,7 @@ public class ChapterViewController {
                         optionsBox.getChildren().forEach(c -> c.setMouseTransparent(true));
 
                         // Treat it as completed so they can move forward
-                        handleCorrectAnswer(q);
+                        handleCorrectAnswer(q,false);
                     }
                 }
 
@@ -270,7 +270,7 @@ public class ChapterViewController {
                 inputField.setStyle(styleCorrectField);
                 inputField.setMouseTransparent(true);
                 checkBtn.setMouseTransparent(true);
-                handleCorrectAnswer(q);
+                handleCorrectAnswer(q,false);
             } else {
                 inputField.setStyle("-fx-border-color: #dc3545;");
                 handleWrongAnswer();
@@ -284,6 +284,35 @@ public class ChapterViewController {
     private void buildPracticeSection(List<Question> codeQuestions) {
         practiceContainer.getChildren().clear();
 
+        // 🚀 1. Calculate how many Quiz questions (MCQ + Fill) exist in this chapter
+        long quizCount = uiQuestionOrder.stream()
+                .filter(q -> q.getQuestionType() != QuestionType.CODE_IMPLEMENTATION)
+                .count();
+
+        // 🚀 2. If progress hasn't reached the practice part yet, show the Lock screen
+        if (currentLessonCount < quizCount && !isChapterFinished) {
+            VBox lockedUI = new VBox(15);
+            lockedUI.setAlignment(javafx.geometry.Pos.CENTER);
+            lockedUI.setPadding(new Insets(80, 40, 80, 40));
+
+            Label lockIcon = new Label("🔒");
+            lockIcon.setStyle("-fx-font-size: 60px;");
+
+            Label lockedTitle = new Label("Practice Section Locked");
+            lockedTitle.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
+
+            Label lockedDesc = new Label("You must complete the Multiple Choice and Fill-in-the-Blank sections before you can start coding!");
+            lockedDesc.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 15px;");
+            lockedDesc.setWrapText(true);
+            lockedDesc.setMaxWidth(400);
+            lockedDesc.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
+
+            lockedUI.getChildren().addAll(lockIcon, lockedTitle, lockedDesc);
+            practiceContainer.getChildren().add(lockedUI);
+            return;
+        }
+
+        // 🚀 3. Standard Logic (only runs if Quiz is completed)
         if (codeQuestions.isEmpty()) {
             Label emptyLabel = new Label("No coding exercises for this chapter yet.");
             emptyLabel.setStyle("-fx-text-fill: white; -fx-padding: 20px;");
@@ -293,85 +322,72 @@ public class ChapterViewController {
 
         for (int i = 0; i < codeQuestions.size(); i++) {
             Question task = codeQuestions.get(i);
-
             try {
-                // 1. Load the QuestionSolver FXML
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                        getClass().getResource("/com/codedu/views/QuestionSolver.fxml")
-                );
-
-                // 2. Use Spring to inject the Evaluation Service into the controller
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
                 loader.setControllerFactory(applicationContext::getBean);
                 javafx.scene.Node solverUI = loader.load();
+                solverUI.setFocusTraversable(false);
 
-                // 3. Get the controller and initialize it
                 QuestionSolverController solverController = loader.getController();
                 solverController.setQuestion(task);
 
-                // 🚀 CRITICAL: Setup Give Up logic immediately so the button is ready to listen
+                Runnable pinScroll = () -> {
+                    double currentVval = practiceScroll.getVvalue();
+                    practiceContainer.requestFocus();
+                    javafx.application.Platform.runLater(() -> practiceScroll.setVvalue(currentVval));
+                };
+
                 solverController.setupGiveUpLogic(task.getSolution(), () -> {
-                    System.out.println("User opted to see the solution for Question ID: " + task.getId());
+                    pinScroll.run();
+                    handleCorrectAnswer(task, true);
+                    solverController.showSolutionState(task.getSolution());
                 });
 
                 if (isQuestionCompleted(task)) {
+                    solverController.showSolutionState(task.getSolution());
                     solverController.setLocked(true);
                 }
 
-                // 💡 4. Create the Hint Label (managed by ChapterViewController)
                 Label hintLabel = new Label("💡 Hint: " + (task.getHint() != null ? task.getHint() : "Check your logic!"));
                 hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-padding: 10; -fx-background-color: rgba(243, 156, 18, 0.1); -fx-border-radius: 4;");
                 hintLabel.setWrapText(true);
                 hintLabel.setVisible(false);
                 hintLabel.setManaged(false);
 
-                // 5. Setup Success Callback
                 solverController.setOnSuccessCallback(isCorrect -> {
                     if (isCorrect && !isQuestionCompleted(task)) {
-                        handleCorrectAnswer(task);
-                        // Clean up UI on success
+                        pinScroll.run();
+                        handleCorrectAnswer(task, false);
                         hintLabel.setVisible(false);
                         hintLabel.setManaged(false);
                     }
                 });
 
-                // 6. Setup Heart and Error Callbacks
                 solverController.setHeartCheckCallback(this::hasEnoughHearts);
 
                 solverController.setOnWrongAnswerCallback(() -> {
+                    pinScroll.run();
                     handleWrongAnswer();
-
-                    // Show Hint and Give Up Button immediately on first wrong guess
                     if (hasEnoughHearts()) {
                         hintLabel.setVisible(true);
                         hintLabel.setManaged(true);
-
-                        // 🚀 Tells the controller to unhide its internal Give Up button
                         solverController.showGiveUpButton();
                     }
                 });
 
-                // 7. Final Assembly into the card wrapper
                 VBox codeCardWrapper = new VBox(10);
-                codeCardWrapper.getChildren().addAll(
-                        buildMetadataHeader(task),
-                        solverUI,   // This remains visible so instructions are never hidden
-                        hintLabel   // Appears at the bottom after a fail
-                );
-
-                // Add spacing between different practice tasks
+                codeCardWrapper.setFocusTraversable(true);
+                codeCardWrapper.getChildren().addAll(buildMetadataHeader(task), solverUI, hintLabel);
                 VBox.setMargin(codeCardWrapper, new Insets(0, 0, 40, 0));
                 practiceContainer.getChildren().add(codeCardWrapper);
 
             } catch (Exception e) {
                 e.printStackTrace();
-                Label errorLabel = new Label("⚠️ Failed to load code editor for: " + task.getTitle());
-                errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-padding: 10;");
-                practiceContainer.getChildren().add(errorLabel);
             }
         }
     }
 
-    private void handleCorrectAnswer(Question q) {
+    private void handleCorrectAnswer(Question q, boolean isGiveUp) {
         // Check if the chapter was already finished before this answer
         boolean alreadyFinishedBefore = isChapterFinished;
 
@@ -385,7 +401,7 @@ public class ChapterViewController {
 
         try {
             if (currentUser != null) {
-                // Save chapter progress
+                // 1. ALWAYS Save progress so they can move to the next lesson/chapter
                 UserChapterProgress realProgress = progressService.getProgress(currentUser, chapter);
                 if (realProgress == null) realProgress = userProgress;
 
@@ -395,31 +411,36 @@ public class ChapterViewController {
                     progressService.saveProgress(realProgress);
                 }
 
-                // Calculate standard rewards from the question
-                int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
-                int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
+                // 🚀 2. ONLY Award XP/Tokens if they DID NOT give up
+                if (!isGiveUp) {
+                    int xpReward = (q != null && q.getReward() != null) ? q.getReward().getXp() : 0;
+                    int tokenReward = (q != null && q.getReward() != null) ? q.getReward().getToken() : 0;
 
+                    if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
+                        xpReward += chapter.getXpReward();
+                        tokenReward += 50;
+                    }
 
-                if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
-                    xpReward += chapter.getXpReward(); // Add the large chapter completion bonus
-                    tokenReward += 50; // Optional: Add a flat token bonus for finishing chapters
-                }
-
-                if (xpReward > 0 || tokenReward > 0) {
-                    User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
-
-
-                    if (updatedUser != null && onProgressUpdated != null) {
-                        javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
+                    if (xpReward > 0 || tokenReward > 0) {
+                        User updatedUser = userService.awardXpAndTokens(currentUser.getUsername(), xpReward, tokenReward);
+                        if (updatedUser != null && onProgressUpdated != null) {
+                            javafx.application.Platform.runLater(() -> onProgressUpdated.accept(updatedUser));
+                        }
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("⚠️ Database save issue, but UI will still update.");
             e.printStackTrace();
         } finally {
-            // 3. PUSH UPDATED COUNTER TO THE SCREEN INSTANTLY
-            javafx.application.Platform.runLater(this::updateHeaderProgress);
+            javafx.application.Platform.runLater(() -> {
+                updateHeaderProgress();
+
+                // 🚀 REFRESH PRACTICE: Rebuild the list to see if it should unlock now
+                List<Question> codeQuestions = uiQuestionOrder.stream()
+                        .filter(quest -> quest.getQuestionType() == QuestionType.CODE_IMPLEMENTATION)
+                        .collect(Collectors.toList());
+                buildPracticeSection(codeQuestions);
+            });
         }
     }
 
@@ -439,13 +460,12 @@ public class ChapterViewController {
     private boolean isQuestionCompleted(Question q) {
         if (isChapterFinished) return true;
 
-        int globalIndex = uiQuestionOrder.indexOf(q);
-        if (globalIndex == -1) {
-            for (int i = 0; i < uiQuestionOrder.size(); i++) {
-                if (uiQuestionOrder.get(i).getId() == q.getId()) {
-                    globalIndex = i;
-                    break;
-                }
+        int globalIndex = -1;
+        // 🚀 Use ID comparison instead of .indexOf() for reliability after refresh
+        for (int i = 0; i < uiQuestionOrder.size(); i++) {
+            if (uiQuestionOrder.get(i).getId() == q.getId()) {
+                globalIndex = i;
+                break;
             }
         }
 
