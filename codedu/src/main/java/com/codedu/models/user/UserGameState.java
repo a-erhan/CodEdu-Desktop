@@ -31,7 +31,7 @@ public class UserGameState extends BaseEntity {
         return UserGameState.builder()
                 .level(1)
                 .xp(0)
-                .heartCount(3)
+                .heartCount(15)
                 .tokenBalance(100)
                 .currentStreak(0)
                 .build();
