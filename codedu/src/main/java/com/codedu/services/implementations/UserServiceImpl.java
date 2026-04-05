@@ -231,9 +231,9 @@ public class UserServiceImpl implements UserService {
             int xpRequired = state.getLevel() * 100;
 
             while (state.getXp() >= xpRequired) {
-                state.setXp(state.getXp() - xpRequired); 
-                state.setLevel(state.getLevel() + 1);   
-                xpRequired = state.getLevel() * 100;   
+                state.setXp(state.getXp() - xpRequired);
+                state.setLevel(state.getLevel() + 1);
+                xpRequired = state.getLevel() * 100;
             }
 
             userRepository.update(user);
@@ -288,21 +288,38 @@ public class UserServiceImpl implements UserService {
                 user.setGameState(state);
             }
 
+            // 1. Add XP and Tokens
             state.setXp(state.getXp() + xpReward);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
+            // 2. Level Up Math
             int xpRequired = state.getLevel() * 100;
-
             while (state.getXp() >= xpRequired) {
                 state.setXp(state.getXp() - xpRequired);
                 state.setLevel(state.getLevel() + 1);
                 xpRequired = state.getLevel() * 100;
             }
 
-            // 🚀 THE DATABASE FIX: Save the game state explicitly first!
-            userGameStateRepository.update(state);
+            // 🚀 3. STREAK LOGIC (This was missing from the Entity method!)
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDate lastDate = state.getLastActiveDate(); // Or getLastStreakDate() depending on what you named it
 
-            // Then save the user
+            if (lastDate == null) {
+                // First time ever getting XP
+                state.setCurrentStreak(1);
+            } else if (lastDate.equals(today.minusDays(1))) {
+                // They played yesterday! Increment the streak
+                state.setCurrentStreak(state.getCurrentStreak() + 1);
+            } else if (lastDate.isBefore(today.minusDays(1))) {
+                // They missed a day. Reset the streak to 1
+                state.setCurrentStreak(1);
+            }
+
+            // Always update the last active date to today
+            state.setLastActiveDate(today);
+
+            // 4. Save to Database
+            userGameStateRepository.update(state); // (Or .save(state) if using standard Spring Data)
             userRepository.update(user);
 
             org.hibernate.Hibernate.initialize(user.getGameState());

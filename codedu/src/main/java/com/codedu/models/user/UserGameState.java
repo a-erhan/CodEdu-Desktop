@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,12 @@ public class UserGameState extends BaseEntity {
     private int level;
     private int xp;
     private int tokenBalance;
-    private int currentStreak;
+
+    @Column(name = "current_streak")
+    private int currentStreak = 0;
+
+    @Column(name = "last_active_date")
+    private LocalDate lastActiveDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_game_state_id"), inverseJoinColumns = @JoinColumn(name = "achievement_id"))
