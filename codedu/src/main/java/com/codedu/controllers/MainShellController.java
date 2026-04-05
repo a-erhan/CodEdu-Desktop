@@ -72,6 +72,8 @@ public class MainShellController {
     @FXML
     private Label heartLabel;
     @FXML
+    private Label streakLabel;
+    @FXML
     private VBox sidebar, sidebarContainer;
     @FXML
     private ScrollPane sidebarScroll;
@@ -114,6 +116,7 @@ public class MainShellController {
         });
     }
 
+
     @FXML
     public void initialize() {
         initSidebarAndHeaderStyles();
@@ -121,17 +124,34 @@ public class MainShellController {
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
 
-        // 🚀 Set the fallback to 0. It will instantly update to the real DB value
-        // as soon as setUser() triggers updateHeader() a few milliseconds later!
+        // 1. Create Streak Label if it doesn't exist yet
+        if (streakLabel == null) {
+            streakLabel = new Label("🔥 0");
+            streakLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #95a5a6; -fx-font-weight: bold;");
+        }
+
+        // 2. Create Heart Label if it doesn't exist yet
         if (heartLabel == null) {
             heartLabel = new Label("❤️ 0");
             heartLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        }
 
-            if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
+        // 3. Inject both into the Top Bar layout
+        if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
+
+            // Safety check to prevent adding duplicates if initialize() runs twice
+            if (!parentBox.getChildren().contains(streakLabel)) {
                 int tokenIndex = parentBox.getChildren().indexOf(tokenLabel);
-                parentBox.getChildren().add(tokenIndex, heartLabel);
 
+                // Insert Streak at Token's position (pushes Token to the right)
+                parentBox.getChildren().add(tokenIndex, streakLabel);
+
+                // Insert Heart right after Streak (pushes Token to the right again)
+                parentBox.getChildren().add(tokenIndex + 1, heartLabel);
+
+                // Add nice spacing between them
                 if (parentBox instanceof javafx.scene.layout.HBox) {
+                    javafx.scene.layout.HBox.setMargin(streakLabel, new javafx.geometry.Insets(0, 15, 0, 0));
                     javafx.scene.layout.HBox.setMargin(heartLabel, new javafx.geometry.Insets(0, 15, 0, 0));
                 }
             }
@@ -581,6 +601,7 @@ public class MainShellController {
         int level = (gameState != null) ? gameState.getLevel() : 1;
         int xp = (gameState != null) ? gameState.getXp() : 0;
         int hearts = (gameState != null) ? gameState.getHeartCount() : 0;
+        int streak = (gameState != null) ? gameState.getCurrentStreak() : 0;
 
         tokenLabel.setText("Tokens: " + tokens);
         badgeLabel.setText("Lvl " + level);
@@ -598,6 +619,17 @@ public class MainShellController {
         if (profileIconLabel != null) {
             profileIconLabel.setText(username.substring(0, 1).toUpperCase());
             profileIconLabel.setStyle("-fx-background-color: -color-accent-emphasis; -fx-text-fill: white;");
+        }
+
+        if (streakLabel != null) {
+
+            streakLabel.setText("🔥 " + streak);
+
+            if (streak > 0) {
+                streakLabel.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
+            } else {
+                streakLabel.setStyle("-fx-text-fill: #95a5a6;"); // Gray if starting out
+            }
         }
     }
 

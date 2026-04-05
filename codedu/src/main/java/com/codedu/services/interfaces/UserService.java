@@ -21,7 +21,6 @@ public interface UserService {
 
     List<UserDTO> getPendingRequests(int userId);
 
-    /** Entity versions for controllers still using entity classes */
     List<User> getAcceptedFriendEntities(int userId);
 
     List<User> getPendingRequestEntities(int userId);
@@ -36,7 +35,6 @@ public interface UserService {
 
     UserDTO awardXpAndTokens(String username, int xpReward, int tokenReward);
 
-    /** Entity version for controllers still using entity classes */
     User awardXpAndTokensEntity(String username, int xpReward, int tokenReward);
 
     Optional<User> loadUserForPublicProfile(int userId);
