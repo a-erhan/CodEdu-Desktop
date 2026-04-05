@@ -6,49 +6,41 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/25"
-      xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.ForumPostController"
-      alignment="TOP_CENTER" spacing="16" maxWidth="900">
+      spacing="20" style="-fx-background-color: #1A1F25;">
 
-    <padding>
-        <Insets top="16" right="24" bottom="24" left="24"/>
-    </padding>
+    <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
-    <!-- Header with back button -->
-    <HBox alignment="CENTER_LEFT" spacing="8">
-        <Button fx:id="backButton" text="← Back to forum"/>
-        <Region HBox.hgrow="ALWAYS"/>
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Button fx:id="backButton" text="← Back to Forum" />
     </HBox>
 
-    <!-- Post content -->
-    <VBox fx:id="postCard" spacing="8">
-        <Label fx:id="titleLabel" text="Post title"/>
-        <Label fx:id="metaLabel" text="Posted by User" wrapText="true"/>
-        <ScrollPane fitToWidth="true" prefViewportHeight="200">
-            <TextArea fx:id="contentArea" editable="false" wrapText="true"/>
-        </ScrollPane>
-    </VBox>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+        <VBox spacing="25">
+            <VBox fx:id="postCard" spacing="15">
+                <VBox spacing="5">
+                    <Label fx:id="titleLabel" wrapText="true" />
+                    <Label fx:id="metaLabel" />
+                </VBox>
+                <TextArea fx:id="contentArea" editable="false" wrapText="true" prefRowCount="8"
+                          style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0;"/>
+            </VBox>
 
-    <!-- Replies -->
-    <VBox fx:id="repliesCard" spacing="8">
-        <Label text="Replies"/>
-        <VBox fx:id="repliesList" spacing="8"/>
-    </VBox>
+            <VBox spacing="15">
+                <Label text="REPLIES" style="-fx-text-fill: #00ADEF; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                <VBox fx:id="repliesList" spacing="12" />
+            </VBox>
 
-    <!-- Add reply -->
-    <VBox fx:id="replyEditor" spacing="8">
-        <Label text="Add a reply"/>
-        <TextArea fx:id="replyArea" prefRowCount="4"
-                  promptText="Write your reply here..."/>
-        <HBox alignment="CENTER_RIGHT" spacing="8">
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="replyButton" text="Reply" disable="true"/>
-        </HBox>
-    </VBox>
-
+            <VBox spacing="10" style="-fx-background-color: #303846; -fx-padding: 20; -fx-background-radius: 20;">
+                <Label text="ADD A REPLY" style="-fx-text-fill: #D9822B; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                <TextArea fx:id="replyArea" promptText="Write your reply here..." prefRowCount="4" wrapText="true"/>
+                <HBox alignment="CENTER_RIGHT">
+                    <Button fx:id="replyButton" text="Post Reply" prefWidth="120" prefHeight="35"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </ScrollPane>
 </VBox>
-

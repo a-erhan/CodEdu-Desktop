@@ -10,48 +10,40 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/25"
-      xmlns:fx="http://javafx.com/fxml/1"
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.ForumController"
-      alignment="TOP_CENTER" spacing="20" maxWidth="1100">
+      alignment="TOP_CENTER" spacing="25" maxWidth="1200" style="-fx-background-color: #1A1F25;">
 
-    <padding>
-        <Insets top="10" right="0" bottom="10" left="0"/>
-    </padding>
+    <padding><Insets top="30" right="30" bottom="30" left="30"/></padding>
 
-    <Label fx:id="titleLabel" text="Forum"/>
-    <Label fx:id="subtitleLabel"
-           text="Ask questions, share tips, and read what other learners are working on."
-           wrapText="true"/>
-
-    <!-- New post composer -->
-    <VBox fx:id="newPostCard" spacing="8">
-        <Label fx:id="newPostTitleLabel" text="Start a new discussion"/>
-        <TextField fx:id="newPostTitleField" promptText="Title" />
-        <TextArea fx:id="newPostBodyArea"
-                  promptText="Share your question or tip..."
-                  prefRowCount="4"/>
-        <HBox alignment="CENTER_RIGHT" spacing="8">
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="postButton" text="Post" disable="true"/>
-        </HBox>
+    <VBox alignment="CENTER_LEFT" spacing="5">
+        <Label fx:id="titleLabel" text="Community Forum"/>
+        <Label fx:id="subtitleLabel" text="Connect with other developers and share your journey."/>
     </VBox>
 
-    <!-- Main content: thread list + selected post viewer -->
-    <HBox spacing="16" alignment="TOP_LEFT">
+    <HBox spacing="30" alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
 
-        <ScrollPane fitToWidth="true" prefWidth="480">
-            <VBox fx:id="threadList" spacing="16" fillWidth="true">
-                <padding><Insets top="4" right="4" bottom="4" left="0"/></padding>
-            </VBox>
-        </ScrollPane>
-
-        <VBox fx:id="selectedPostCard" spacing="8" prefWidth="520" visible="false" managed="false">
-            <Label fx:id="selectedTitle" text=""/>
-            <Label fx:id="selectedMeta" text="" wrapText="true"/>
-            <TextArea fx:id="selectedContent" editable="false" wrapText="true" prefRowCount="10"/>
+        <VBox spacing="15" HBox.hgrow="ALWAYS" maxWidth="750">
+            <Label text="LATEST DISCUSSIONS" style="-fx-text-fill: #00ADEF; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <VBox fx:id="threadList" spacing="15"/>
+            </ScrollPane>
         </VBox>
+
+        <VBox spacing="20" prefWidth="320">
+            <VBox fx:id="newPostCard" spacing="12">
+                <Label text="NEW DISCUSSION" style="-fx-text-fill: #D9822B; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                <TextField fx:id="newPostTitleField" promptText="Thread Title"/>
+                <TextArea fx:id="newPostBodyArea" promptText="What's on your mind?" prefRowCount="5" wrapText="true"/>
+                <Button fx:id="postButton" text="Post to Forum" maxWidth="Infinity" prefHeight="35"/>
+            </VBox>
+
+            <VBox spacing="10" style="-fx-background-color: #303846; -fx-padding: 20; -fx-background-radius: 20;">
+                <Label text="COMMUNITY RULES" style="-fx-text-fill: #A0AAB4; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                <Label text="• Be respectful&#10;• Post relevant code&#10;• Help others learn"
+                       wrapText="true" style="-fx-text-fill: #808B96; -fx-font-size: 11px;"/>
+            </VBox>
+        </VBox>
+
     </HBox>
-
 </VBox>
-

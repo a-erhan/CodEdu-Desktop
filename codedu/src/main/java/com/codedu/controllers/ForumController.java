@@ -6,8 +6,15 @@ import com.codedu.models.user.User;
 import com.codedu.services.interfaces.ForumService;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.input.MouseEvent;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,31 +23,22 @@ import java.util.concurrent.CompletableFuture;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 @Controller
 @Scope("prototype")
 public class ForumController {
 
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private VBox newPostCard;
-    @FXML
-    private TextField newPostTitleField;
-    @FXML
-    private TextArea newPostBodyArea;
-    @FXML
-    private Button postButton;
-    @FXML
-    private VBox threadList;
-    @FXML
-    private VBox selectedPostCard;
-    @FXML
-    private Label selectedTitle;
-    @FXML
-    private Label selectedMeta;
-    @FXML
-    private TextArea selectedContent;
+    @FXML private Label titleLabel;
+    @FXML private VBox newPostCard;
+    @FXML private TextField newPostTitleField;
+    @FXML private TextArea newPostBodyArea;
+    @FXML private Button postButton;
+    @FXML private VBox threadList;
+    @FXML private VBox selectedPostCard;
+    @FXML private Label selectedTitle;
+    @FXML private Label selectedMeta;
+    @FXML private TextArea selectedContent;
 
     private List<ForumPostListDto> posts = new ArrayList<>();
     private User currentUser;
@@ -52,123 +50,181 @@ public class ForumController {
 
     @FXML
     public void initialize() {
-        if (titleLabel != null) titleLabel.getStyleClass().add(Styles.TITLE_3);
+        if (titleLabel != null) {
+            titleLabel.getStyleClass().add(Styles.TITLE_3);
+            titleLabel.setStyle("-fx-text-fill: white;");
+        }
 
         if (newPostCard != null) {
-            newPostCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
-            newPostCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
+            newPostCard.setPadding(new Insets(20));
+            newPostCard.setStyle("-fx-background-color: #303846; -fx-background-radius: 20; -fx-border-color: #404856; -fx-border-radius: 20;");
         }
 
         if (postButton != null) {
             postButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
-            postButton.setOnAction(e -> handleCreatePost());
+            postButton.setStyle("-fx-background-color: #00ADEF; -fx-text-fill: white; -fx-font-weight: bold;");
+            postButton.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent e) {
+                    handleCreatePost();
+                }
+            });
         }
 
         if (newPostTitleField != null && newPostBodyArea != null) {
-            newPostTitleField.textProperty().addListener((obs, o, n) -> updatePostButtonState());
-            newPostBodyArea.textProperty().addListener((obs, o, n) -> updatePostButtonState());
+            newPostTitleField.textProperty().addListener(new javafx.beans.value.ChangeListener<String>() {
+                @Override
+                public void changed(javafx.beans.value.ObservableValue<? extends String> obs, String o, String n) {
+                    updatePostButtonState();
+                }
+            });
+            newPostBodyArea.textProperty().addListener(new javafx.beans.value.ChangeListener<String>() {
+                @Override
+                public void changed(javafx.beans.value.ObservableValue<? extends String> obs, String o, String n) {
+                    updatePostButtonState();
+                }
+            });
         }
 
-        if (selectedPostCard != null) {
-            selectedPostCard.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
-            selectedPostCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
-        }
-
-        loadPostsFromDatabase(() -> buildThreads(false));
+        loadPostsFromDatabase(new Runnable() {
+            @Override
+            public void run() { buildThreads(false); }
+        });
     }
 
-    private void loadPostsFromDatabase(Runnable onSuccess) {
-        CompletableFuture.supplyAsync(() -> forumService.getAllMainPosts())
-                .thenAccept(result -> Platform.runLater(() -> {
-                    this.posts = result;
-                    if (onSuccess != null) onSuccess.run();
-                }))
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
+    private void loadPostsFromDatabase(final Runnable onSuccess) {
+        CompletableFuture.supplyAsync(new Supplier<List<ForumPostListDto>>() {
+            @Override
+            public List<ForumPostListDto> get() { return forumService.getAllMainPosts(); }
+        }).thenAccept(new Consumer<List<ForumPostListDto>>() {
+            @Override
+            public void accept(final List<ForumPostListDto> result) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        posts = result;
+                        if (onSuccess != null) onSuccess.run();
+                    }
                 });
+            }
+        });
     }
 
     private void handleCreatePost() {
         String title = newPostTitleField.getText().trim();
         String body = newPostBodyArea.getText().trim();
-
         if (this.currentUser == null || title.isEmpty() || body.isEmpty()) return;
 
-        ForumPostCreateDto createDto = ForumPostCreateDto.builder()
-                .title(title)
-                .content(body)
-                .authorId(this.currentUser.getId())
-                .build();
+        final ForumPostCreateDto createDto = ForumPostCreateDto.builder()
+                .title(title).content(body).authorId(this.currentUser.getId()).build();
 
-        CompletableFuture.runAsync(() -> forumService.createPost(createDto))
-                .thenRun(() -> Platform.runLater(() -> {
-                    newPostTitleField.clear();
-                    newPostBodyArea.clear();
-                    updatePostButtonState();
-                    loadPostsFromDatabase(() -> buildThreads(false));
-                }));
+        CompletableFuture.runAsync(new Runnable() {
+            @Override
+            public void run() { forumService.createPost(createDto); }
+        }).thenRun(new Runnable() {
+            @Override
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        newPostTitleField.clear();
+                        newPostBodyArea.clear();
+                        updatePostButtonState();
+                        loadPostsFromDatabase(new Runnable() {
+                            @Override
+                            public void run() { buildThreads(false); }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     private void buildThreads(boolean loadFromDb) {
         if (loadFromDb) {
-            loadPostsFromDatabase(() -> buildThreads(false));
+            loadPostsFromDatabase(new Runnable() {
+                @Override
+                public void run() { buildThreads(false); }
+            });
             return;
         }
         if (threadList == null) return;
         threadList.getChildren().clear();
 
-        for (ForumPostListDto post : posts) {
-            VBox card = new VBox(6);
-            card.setAlignment(Pos.TOP_LEFT);
-            card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
-            card.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE, Styles.INTERACTIVE);
+        for (int i = 0; i < posts.size(); i++) {
+            final ForumPostListDto post = posts.get(i);
+            final VBox card = new VBox(8);
+            card.setPadding(new Insets(20));
+
+            final String baseStyle = "-fx-background-color: #303846; -fx-background-radius: 20; -fx-border-color: #404856; -fx-border-width: 1; -fx-border-radius: 20;";
+            final String hoverStyle = "-fx-background-color: #3A4452; -fx-background-radius: 20; -fx-border-color: #00ADEF; -fx-border-width: 1; -fx-border-radius: 20;";
+            card.setStyle(baseStyle);
 
             Label postTitle = new Label(post.title());
-            postTitle.getStyleClass().add(Styles.TEXT_BOLD);
+            postTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
 
             String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
-            Label meta = new Label("By " + authorName + " • " + post.replyCount() + " replies");
-            meta.getStyleClass().add(Styles.TEXT_SUBTLE);
+            final Label meta = new Label("BY " + authorName.toUpperCase() + " • " + post.replyCount() + " REPLIES");
+            meta.setStyle("-fx-text-fill: #D9822B; -fx-font-size: 11px; -fx-font-weight: bold;");
 
             if (post.authorUsername() != null) {
-                meta.setOnMouseClicked(e -> {
-                    if (onOpenProfile != null) onOpenProfile.accept(post.authorUsername());
-                    e.consume();
+                meta.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent e) {
+                        if (onOpenProfile != null) onOpenProfile.accept(post.authorUsername());
+                        e.consume();
+                    }
                 });
-                meta.setOnMouseEntered(e -> meta.setStyle("-fx-underline: true; -fx-cursor: hand;"));
-                meta.setOnMouseExited(e -> meta.setStyle("-fx-underline: false;"));
             }
 
             Label snippet = new Label(truncate(post.content(), 120));
             snippet.setWrapText(true);
+            snippet.setStyle("-fx-text-fill: #A0AAB4;");
 
-            card.getChildren().addAll(postTitle, meta, snippet);
+            card.getChildren().addAll(meta, postTitle, snippet);
 
-            card.setOnMouseClicked(e -> {
-                if (onOpenPost != null) onOpenPost.accept(post.id());
-                else fetchAndShowPost(post.id());
+            card.setOnMouseEntered(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) { card.setStyle(hoverStyle); }
+            });
+            card.setOnMouseExited(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) { card.setStyle(baseStyle); }
+            });
+
+            card.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent e) {
+                    if (onOpenPost != null) onOpenPost.accept(post.id());
+                    else fetchAndShowPost(post.id());
+                }
             });
 
             threadList.getChildren().add(card);
         }
     }
 
-    private void fetchAndShowPost(int id) {
-        CompletableFuture.supplyAsync(() -> forumService.getPostWithReplies(id))
-                .thenAccept(detailDto -> Platform.runLater(() -> {
-                    if (selectedPostCard != null) {
-                        selectedPostCard.setVisible(true);
-                        selectedPostCard.setManaged(true);
+    private void fetchAndShowPost(final int id) {
+        CompletableFuture.supplyAsync(new Supplier<ForumPostDetailDto>() {
+            @Override
+            public ForumPostDetailDto get() { return forumService.getPostWithReplies(id); }
+        }).thenAccept(new Consumer<ForumPostDetailDto>() {
+            @Override
+            public void accept(final ForumPostDetailDto detailDto) {
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (selectedPostCard != null) {
+                            selectedPostCard.setVisible(true);
+                            selectedPostCard.setManaged(true);
+                        }
+                        selectedTitle.setText(detailDto.title());
+                        selectedMeta.setText("Posted by " + detailDto.authorUsername());
+                        selectedContent.setText(detailDto.content());
                     }
-                    selectedTitle.setText(detailDto.title());
-                    selectedMeta.setText("Posted by " + detailDto.authorUsername());
-                    selectedContent.setText(detailDto.content());
-                }))
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
                 });
+            }
+        });
     }
 
     private String truncate(String text, int length) {
