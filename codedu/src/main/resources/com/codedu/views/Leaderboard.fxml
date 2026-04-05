@@ -28,10 +28,12 @@
         <Label fx:id="myScoreLabel" alignment="CENTER" contentDisplay="CENTER" text="2000 XP · 60% wins" />
     </VBox>
 
-    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" pannable="true"
-                minHeight="0.0" maxHeight="Infinity" maxWidth="Infinity" VBox.vgrow="ALWAYS"
-                style="-fx-background-color: transparent; -fx-background: transparent;">
-        <VBox fx:id="boardList" alignment="TOP_CENTER" spacing="18" maxWidth="800" fillWidth="true" />
+    <ScrollPane fitToWidth="true" styleClass="edge-to-edge" hbarPolicy="NEVER">
+        <VBox fx:id="boardList" alignment="TOP_CENTER" spacing="10">
+            <padding>
+                <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+        </VBox>
     </ScrollPane>
 
 </VBox>

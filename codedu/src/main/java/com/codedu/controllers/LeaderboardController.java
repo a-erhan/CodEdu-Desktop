@@ -5,14 +5,24 @@ import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import com.codedu.services.interfaces.LeaderBoardService;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 
@@ -63,13 +73,19 @@ public class LeaderboardController {
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
         }
+        if (boardList != null) {
+            boardList.setAlignment(Pos.TOP_CENTER);
+        }
         if (scopeComboBox != null) {
             scopeComboBox.getItems().addAll("Weekly", "Monthly", "All-Time");
             scopeComboBox.setValue("Weekly");
 
-            scopeComboBox.setOnAction(e -> {
-                String selectedScope = scopeComboBox.getValue();
-                fetchLeaderboardData(selectedScope);
+            scopeComboBox.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    String selectedScope = scopeComboBox.getValue();
+                    fetchLeaderboardData(selectedScope);
+                }
             });
         }
         fetchLeaderboardData("Weekly");
@@ -126,8 +142,13 @@ public class LeaderboardController {
             return;
         }
 
-        List<Competitor> competitors = new java.util.ArrayList<>(rawCompetitors);
-        competitors.sort((c1, c2) -> Integer.compare(c2.getRankingPoint(), c1.getRankingPoint()));
+        List<Competitor> competitors = new ArrayList<>(rawCompetitors);
+        competitors.sort(new Comparator<Competitor>() {
+            @Override
+            public int compare(Competitor c1, Competitor c2) {
+                return Integer.compare(c2.getRankingPoint(), c1.getRankingPoint());
+            }
+        });
 
         int total = competitors.size();
         int myIndex = -1;
@@ -146,8 +167,8 @@ public class LeaderboardController {
         Competitor me = isUnranked ? null : competitors.get(myIndex);
 
         myCard.getChildren().clear();
-        myCard.setAlignment(javafx.geometry.Pos.CENTER);
-        myCard.setPadding(new javafx.geometry.Insets(20));
+        myCard.setAlignment(Pos.CENTER);
+        myCard.setPadding(new Insets(20));
         myCard.setStyle("-fx-background-radius: 20; -fx-border-radius: 20;");
         myCard.getStyleClass().addAll(
                 Styles.BORDERED,
@@ -156,7 +177,7 @@ public class LeaderboardController {
                 Styles.ELEVATED_1);
 
         VBox gapContainer = new VBox(5);
-        gapContainer.setAlignment(javafx.geometry.Pos.CENTER);
+        gapContainer.setAlignment(Pos.CENTER);
 
         if (isUnranked) {
             Label topLabel = new Label("Play a match to get ranked!");
@@ -169,7 +190,7 @@ public class LeaderboardController {
             Label gapLabel = new Label(gap + " pts to reach #" + myIndex);
             gapLabel.setStyle("-fx-text-fill: #95a5a6; -fx-font-size: 11px; -fx-font-style: italic;");
 
-            javafx.scene.control.ProgressBar gapBar = new javafx.scene.control.ProgressBar();
+            ProgressBar gapBar = new ProgressBar();
             gapBar.setPrefWidth(180);
             gapBar.setMaxHeight(6);
 
@@ -185,19 +206,15 @@ public class LeaderboardController {
             gapContainer.getChildren().add(topLabel);
         }
 
-        String myName = (me != null && me.getUser() != null && me.getUser().getUsername() != null)
-                ? me.getUser().getUsername()
-                : (currentUser != null && currentUser.getUsername() != null ? currentUser.getUsername() : "You");
-
         Label myTitleLabel = new Label("Your position:");
         myTitleLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
         Label myRankText = new Label(isUnranked ? "Unranked" : "#" + myRank + " of " + total);
         myRankText.getStyleClass().add(Styles.TITLE_3);
-        myRankText.setAlignment(javafx.geometry.Pos.CENTER);
+        myRankText.setAlignment(Pos.CENTER);
 
         HBox myStatsBox = new HBox(10);
-        myStatsBox.setAlignment(javafx.geometry.Pos.CENTER);
+        myStatsBox.setAlignment(Pos.CENTER);
 
         Label myXp = new Label(me != null ? formatProgression(me) : "Lv 1 · 0 XP");
         myXp.setStyle("-fx-font-weight: bold;");
@@ -213,13 +230,14 @@ public class LeaderboardController {
         boardList.getChildren().clear();
 
         for (int i = 0; i < competitors.size(); i++) {
-            Competitor c = competitors.get(i);
+            final Competitor c = competitors.get(i);
+            final int index = i;
 
             HBox line = new HBox(15);
-            line.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            line.setPadding(new javafx.geometry.Insets(10, 20, 10, 20));
-            line.setMaxWidth(Double.MAX_VALUE);
-            javafx.scene.layout.HBox.setHgrow(line, javafx.scene.layout.Priority.ALWAYS);
+            line.setAlignment(Pos.CENTER_LEFT);
+            line.setPadding(new Insets(10, 20, 10, 20));
+            line.setMaxWidth(600);
+            VBox.setMargin(line, new Insets(0, 0, 0, 0));
 
             String baseStyle = "-fx-background-radius: 15; -fx-border-radius: 15;";
             if (i == myIndex) {
@@ -246,35 +264,36 @@ public class LeaderboardController {
                             "-fx-font-weight: bold; " +
                             "-fx-opacity: 0.8;");
 
-            line.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
+            line.setOnMouseEntered(new EventHandler<MouseEvent>() {
                 @Override
-                public void handle(javafx.scene.input.MouseEvent e) {
+                public void handle(MouseEvent e) {
                     line.setStyle(finalBaseStyle + "-fx-background-color: #384351; -fx-cursor: hand;");
                     line.setScaleX(1.01);
                     line.setScaleY(1.01);
                 }
             });
 
-            line.setOnMouseExited(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
+            line.setOnMouseExited(new EventHandler<MouseEvent>() {
                 @Override
-                public void handle(javafx.scene.input.MouseEvent e) {
+                public void handle(MouseEvent e) {
                     line.setStyle(finalBaseStyle);
                     line.setScaleX(1.0);
                     line.setScaleY(1.0);
                 }
             });
 
-            line.setOnMouseClicked(e -> {
-                if (onOpenProfile != null) {
-                    onOpenProfile.accept(c, competitors);
+            line.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    if (onOpenProfile != null) {
+                        onOpenProfile.accept(c, competitors);
+                    }
                 }
             });
 
             Label pos = new Label("#" + String.valueOf(i + 1));
             pos.getStyleClass().add(Styles.TEXT_BOLD);
 
-            Label posIcon = new Label();
-            posIcon.setMinWidth(30);
             if (i == 0) {
                 pos.setStyle("-fx-text-fill: #FFD700;");
             } else if (i == 1) {
@@ -289,18 +308,15 @@ public class LeaderboardController {
             Label name = new Label(nameText);
             name.setStyle("-fx-font-weight: bold;");
 
-            javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
-            javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
 
             Label xpLabel = new Label(formatProgression(c));
             xpLabel.setStyle("-fx-text-fill: #2775b1; -fx-font-weight: bold;");
 
-            Label sep = new Label("|");
-
             Label winLabel = new Label(String.format("%.0f", c.getWinRate()) + "% Win Rate");
             winLabel.setStyle("-fx-text-fill: #308f5a; -fx-font-weight: bold;");
 
-            line.getChildren().clear();
             line.getChildren().addAll(pos, name, levelBadge, spacer, xpLabel, new Label("|"), winLabel);
             boardList.getChildren().add(line);
         }
