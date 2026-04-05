@@ -109,6 +109,23 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     }
 
     @Override
+    public Optional<User> findByUsernameWithInventoryAndGameState(String username) {
+        return entityManager
+                .createQuery(
+                        "SELECT DISTINCT u FROM User u " +
+                                "LEFT JOIN FETCH u.gameState gs " +
+                                "LEFT JOIN FETCH u.inventory inv " +
+                                "LEFT JOIN FETCH inv.items ii " +
+                                "LEFT JOIN FETCH ii.item it " +
+                                "WHERE u.username = :username AND u.isDeleted = false",
+                        User.class
+                )
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst();
+    }
+
+    @Override
     public List<User> findAllActiveWithCompetitorAndGameState() {
         return entityManager.createQuery(
                 "SELECT DISTINCT u FROM User u " +

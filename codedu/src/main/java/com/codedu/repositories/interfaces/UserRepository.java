@@ -17,6 +17,8 @@ public interface UserRepository extends GenericRepository<User> {
 
     Optional<User> findByIdWithInventoryAndGameState(int id);
 
+    Optional<User> findByUsernameWithInventoryAndGameState(String username);
+
     List<User> findAllActiveWithCompetitorAndGameState();
 
     Optional<User> findByIdWithGameStateAndAchievements(int id);

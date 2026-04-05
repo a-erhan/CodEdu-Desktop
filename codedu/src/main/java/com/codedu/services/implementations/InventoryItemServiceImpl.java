@@ -7,6 +7,7 @@ import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserInventory;
 import com.codedu.repositories.interfaces.InventoryItemRepository;
+import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.InventoryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,15 +21,27 @@ import java.util.stream.Collectors;
 public class InventoryItemServiceImpl implements InventoryItemService {
 
     private final InventoryItemRepository inventoryItemRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public InventoryItemServiceImpl(InventoryItemRepository inventoryItemRepository) {
+    public InventoryItemServiceImpl(
+            InventoryItemRepository inventoryItemRepository,
+            UserRepository userRepository) {
         this.inventoryItemRepository = inventoryItemRepository;
+        this.userRepository = userRepository;
+    }
+
+    private User resolveUserForInventory(User user) {
+        if (user == null || user.getId() <= 0) {
+            return user;
+        }
+        return userRepository.findByIdWithInventoryAndGameState(user.getId()).orElse(user);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<InventoryItemDTO> getItemsForUser(User user) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return List.of();
 
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
@@ -46,6 +59,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public Optional<InventoryItem> findByUserAndItem(User user, Item item) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null || item == null) return Optional.empty();
 
         return inventoryItemRepository.findByInventoryAndItem(user.getInventory(), item)
@@ -67,6 +81,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public Optional<InventoryItem> getEquippedAvatar(User user) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return Optional.empty();
 
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
@@ -80,6 +95,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public int getAiRequestBalance(User user) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return 0;
 
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
@@ -91,6 +107,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional
     public boolean consumeAiRequest(User user) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return false;
 
         // Find the first available pack that has uses left
@@ -163,6 +180,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         if (user == null || item == null || quantityDelta <= 0) {
             return;
         }
+        user = resolveUserForInventory(user);
         UserInventory inv = user.getInventory();
         if (inv == null) {
             inv = new UserInventory();
@@ -180,11 +198,15 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         }
         InventoryItem row = InventoryItem.builder().inventory(inv).item(item).quantity(add).build();
         inv.addItem(row);
+        if (inv.getId() > 0) {
+            inventoryItemRepository.save(row);
+        }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<InventoryItem> getItemEntitiesForUser(User user) {
+        user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return List.of();
 
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()

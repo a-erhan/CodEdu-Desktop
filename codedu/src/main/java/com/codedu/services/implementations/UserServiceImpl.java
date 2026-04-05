@@ -182,13 +182,24 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> getUserWithProfileData(String username) {
-        return userRepository.findByUsername(username).map(u -> {
+        return userRepository.findByUsernameWithInventoryAndGameState(username).map(u -> {
             if (u.getGameState() != null) {
                 Hibernate.initialize(u.getGameState());
                 Hibernate.initialize(u.getGameState().getAchievements());
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
                 u.getGameState().getHeartCount();
+            }
+            if (u.getInventory() != null) {
+                Hibernate.initialize(u.getInventory());
+                if (u.getInventory().getItems() != null) {
+                    Hibernate.initialize(u.getInventory().getItems());
+                    for (var ii : u.getInventory().getItems()) {
+                        if (ii != null && ii.getItem() != null) {
+                            Hibernate.initialize(ii.getItem());
+                        }
+                    }
+                }
             }
             try {
                 Hibernate.initialize(u.getCompetitor());
