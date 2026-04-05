@@ -247,15 +247,15 @@ public class ChapterViewController {
     }
 
     private void buildPracticeSection(List<QuestionDTO> codeQuestions) {
-        practiceContainer.getChildren().clear();
-
         long quizCount = uiQuestionOrder.stream()
                 .filter(q -> q.questionType() != QuestionType.CODE_IMPLEMENTATION)
                 .count();
 
         boolean isGodMode = currentUser != null && "tester".equalsIgnoreCase(currentUser.getUsername());
 
+        // 1. Check if the section should be locked
         if (currentLessonCount < quizCount && !isChapterFinished && !isGodMode) {
+            practiceContainer.getChildren().clear(); // Safe to clear here since it's locked
             VBox lockedUI = new VBox(15);
             lockedUI.setAlignment(javafx.geometry.Pos.CENTER);
             lockedUI.setPadding(new Insets(80, 40, 80, 40));
@@ -273,70 +273,96 @@ public class ChapterViewController {
             return;
         }
 
+        // 2. Clear the Locked UI if it was showing, but DON'T clear if we already have questions
+        // We only clear if the first item is the "Locked UI" (the 🔒 label)
+        if (!practiceContainer.getChildren().isEmpty() &&
+                practiceContainer.getChildren().get(0) instanceof VBox v &&
+                !v.getChildren().isEmpty() &&
+                v.getChildren().get(0) instanceof Label l && l.getText().equals("🔒")) {
+            practiceContainer.getChildren().clear();
+        }
+
         if (codeQuestions.isEmpty()) {
+            practiceContainer.getChildren().clear();
             Label emptyLabel = new Label("No coding exercises for this chapter yet.");
             emptyLabel.setStyle("-fx-text-fill: white; -fx-padding: 20px;");
             practiceContainer.getChildren().add(emptyLabel);
             return;
         }
 
+        // 3. Loop through questions and only add them if they don't already exist
         for (int i = 0; i < codeQuestions.size(); i++) {
             QuestionDTO task = codeQuestions.get(i);
-            try {
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
-                loader.setControllerFactory(applicationContext::getBean);
-                javafx.scene.Node solverUI = loader.load();
-                solverUI.setFocusTraversable(false);
 
-                QuestionSolverController solverController = loader.getController();
-                solverController.setQuestion(task); // Make sure QuestionSolverController expects QuestionDTO!
-
-                Runnable pinScroll = () -> {
-                    double currentVval = practiceScroll.getVvalue();
-                    practiceContainer.requestFocus();
-                    javafx.application.Platform.runLater(() -> practiceScroll.setVvalue(currentVval));
-                };
-
-                solverController.setupGiveUpLogic(task.solution(), () -> {
-                    pinScroll.run();
-                    handleCorrectAnswer(task, true);
-                    solverController.showSolutionState(task.solution());
-                });
-
-                if (isQuestionCompleted(task)) {
-                    solverController.showSolutionState(task.solution());
-                    solverController.setLocked(true);
+            // Check if this task ID is already in the container
+            boolean isAlreadyInUI = false;
+            for (javafx.scene.Node node : practiceContainer.getChildren()) {
+                if (node.getUserData() != null && node.getUserData().equals(task.id())) {
+                    isAlreadyInUI = true;
+                    break;
                 }
+            }
 
-                Label hintLabel = new Label("💡 Hint: " + (task.hint() != null ? task.hint() : "Check your logic!"));
-                hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-padding: 10; -fx-background-color: rgba(243, 156, 18, 0.1); -fx-border-radius: 4;");
-                hintLabel.setWrapText(true); hintLabel.setVisible(false); hintLabel.setManaged(false);
+            if (!isAlreadyInUI) {
+                try {
+                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
+                    loader.setControllerFactory(applicationContext::getBean);
+                    javafx.scene.Node solverUI = loader.load();
+                    solverUI.setFocusTraversable(false);
 
-                solverController.setOnSuccessCallback(isCorrect -> {
-                    if (isCorrect && !isQuestionCompleted(task)) {
+                    QuestionSolverController solverController = loader.getController();
+                    solverController.setQuestion(task);
+
+                    Runnable pinScroll = () -> {
+                        double currentVval = practiceScroll.getVvalue();
+                        practiceContainer.requestFocus();
+                        javafx.application.Platform.runLater(() -> practiceScroll.setVvalue(currentVval));
+                    };
+
+                    solverController.setupGiveUpLogic(task.solution(), () -> {
                         pinScroll.run();
-                        handleCorrectAnswer(task, false);
-                        hintLabel.setVisible(false); hintLabel.setManaged(false);
+                        handleCorrectAnswer(task, true);
+                        solverController.showSolutionState(task.solution());
+                    });
+
+                    // If loading from DB and it's already done
+                    if (isQuestionCompleted(task)) {
+                        solverController.showSolutionState(task.solution());
+                        solverController.setLocked(true);
                     }
-                });
 
-                solverController.setHeartCheckCallback(this::hasEnoughHearts);
-                solverController.setOnWrongAnswerCallback(() -> {
-                    pinScroll.run();
-                    handleWrongAnswer();
-                    if (hasEnoughHearts()) {
-                        hintLabel.setVisible(true); hintLabel.setManaged(true);
-                        solverController.showGiveUpButton();
-                    }
-                });
+                    Label hintLabel = new Label("💡 Hint: " + (task.hint() != null ? task.hint() : "Check your logic!"));
+                    hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-padding: 10; -fx-background-color: rgba(243, 156, 18, 0.1); -fx-border-radius: 4;");
+                    hintLabel.setWrapText(true); hintLabel.setVisible(false); hintLabel.setManaged(false);
 
-                VBox codeCardWrapper = new VBox(10);
-                codeCardWrapper.setFocusTraversable(true);
-                codeCardWrapper.getChildren().addAll(buildMetadataHeader(task), solverUI, hintLabel);
-                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 40, 0));
-                practiceContainer.getChildren().add(codeCardWrapper);
+                    solverController.setOnSuccessCallback(isCorrect -> {
+                        if (isCorrect && !isQuestionCompleted(task)) {
+                            pinScroll.run();
+                            handleCorrectAnswer(task, false);
+                            hintLabel.setVisible(false); hintLabel.setManaged(false);
+                        }
+                    });
 
-            } catch (Exception e) { e.printStackTrace(); }
+                    solverController.setHeartCheckCallback(this::hasEnoughHearts);
+                    solverController.setOnWrongAnswerCallback(() -> {
+                        pinScroll.run();
+                        handleWrongAnswer();
+                        if (hasEnoughHearts()) {
+                            hintLabel.setVisible(true); hintLabel.setManaged(true);
+                            solverController.showGiveUpButton();
+                        }
+                    });
+
+                    VBox codeCardWrapper = new VBox(10);
+                    codeCardWrapper.setUserData(task.id()); // 🚀 THE KEY: Tag the node with the ID
+                    codeCardWrapper.setFocusTraversable(true);
+                    codeCardWrapper.getChildren().addAll(buildMetadataHeader(task), solverUI, hintLabel);
+                    VBox.setMargin(codeCardWrapper, new Insets(0, 0, 40, 0));
+
+                    practiceContainer.getChildren().add(codeCardWrapper);
+
+                } catch (Exception e) { e.printStackTrace(); }
+            }
         }
     }
 
@@ -381,10 +407,24 @@ public class ChapterViewController {
         } finally {
             javafx.application.Platform.runLater(() -> {
                 updateHeaderProgress();
-                List<QuestionDTO> codeQuestions = uiQuestionOrder.stream()
-                        .filter(quest -> quest.questionType() == QuestionType.CODE_IMPLEMENTATION)
-                        .collect(Collectors.toList());
-                buildPracticeSection(codeQuestions);
+
+                // ONLY rebuild everything if we just unlocked the practice section
+                // or if we finished the whole chapter.
+                long quizCount = uiQuestionOrder.stream()
+                        .filter(quest -> quest.questionType() != QuestionType.CODE_IMPLEMENTATION)
+                        .count();
+
+                // If we just hit the threshold to unlock practice, OR we finished the chapter
+                if (currentLessonCount == quizCount || currentLessonCount >= uiQuestionOrder.size()) {
+                    List<QuestionDTO> codeQuestions = uiQuestionOrder.stream()
+                            .filter(quest -> quest.questionType() == QuestionType.CODE_IMPLEMENTATION)
+                            .collect(Collectors.toList());
+                    buildPracticeSection(codeQuestions);
+                } else {
+                    // Do nothing! The QuestionSolverController already updated its own UI.
+                    // This prevents the "Flash and Reset" bug.
+                    System.out.println("Question handled locally, skipping full rebuild.");
+                }
             });
         }
     }
