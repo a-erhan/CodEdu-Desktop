@@ -60,6 +60,9 @@ public class UserGameState extends BaseEntity {
     @Column(name = "last_active_date")
     private LocalDate lastActiveDate;
 
+    @Column(name = "double_xp_active_until")
+    private LocalDateTime doubleXpActiveUntil;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_game_state_id"), inverseJoinColumns = @JoinColumn(name = "achievement_id"))
     @Builder.Default
@@ -88,6 +91,28 @@ public class UserGameState extends BaseEntity {
         if (this.heartCount < MAX_HEARTS) {
             this.heartCount++;
         }
+    }
+
+    public boolean isDoubleXpActive() {
+        return doubleXpActiveUntil != null && LocalDateTime.now().isBefore(doubleXpActiveUntil);
+    }
+
+    public void extendDoubleXpMinutes(int minutes) {
+        if (minutes <= 0) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = doubleXpActiveUntil != null && now.isBefore(doubleXpActiveUntil)
+                ? doubleXpActiveUntil
+                : now;
+        this.doubleXpActiveUntil = base.plusMinutes(minutes);
+    }
+
+    public int withDoubleXpApplied(int baseXp) {
+        if (baseXp <= 0) {
+            return baseXp;
+        }
+        return isDoubleXpActive() ? baseXp * 2 : baseXp;
     }
 
     @UpdateTimestamp

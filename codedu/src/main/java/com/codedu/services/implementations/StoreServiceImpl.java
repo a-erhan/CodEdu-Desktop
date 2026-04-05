@@ -2,7 +2,7 @@ package com.codedu.services.implementations;
 
 import com.codedu.dtos.user.ItemDTO;
 import com.codedu.models.user.*;
-import com.codedu.repositories.interfaces.InventoryItemRepository;
+import com.codedu.services.interfaces.InventoryItemService;
 import com.codedu.repositories.interfaces.StoreRepository;
 import com.codedu.repositories.interfaces.UserGameStateRepository;
 import com.codedu.repositories.interfaces.UserRepository;
@@ -19,9 +19,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class StoreServiceImpl implements StoreService {
+
+    private static final Pattern AI_PACK_QUANTITY = Pattern.compile("\\((\\d+)\\)");
 
     private static final String SQL_INCREMENT_HEART_VIA_USER = """
             UPDATE user_game_states AS ugs SET heart_count = LEAST(ugs.heart_count + 1, ?)
@@ -37,7 +41,7 @@ public class StoreServiceImpl implements StoreService {
     private final ItemService itemService;
     private final UserRepository userRepository;
     private final UserGameStateRepository userGameStateRepository;
-    private final InventoryItemRepository inventoryItemRepository;
+    private final InventoryItemService inventoryItemService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -47,13 +51,13 @@ public class StoreServiceImpl implements StoreService {
             StoreRepository storeRepository,
             ItemService itemService,
             UserRepository userRepository,
-            InventoryItemRepository inventoryItemRepository,
+            InventoryItemService inventoryItemService,
             UserGameStateRepository userGameStateRepository
     ) {
         this.storeRepository = storeRepository;
         this.itemService = itemService;
         this.userRepository = userRepository;
-        this.inventoryItemRepository = inventoryItemRepository;
+        this.inventoryItemService = inventoryItemService;
         this.userGameStateRepository = userGameStateRepository;
     }
 
@@ -103,10 +107,14 @@ public class StoreServiceImpl implements StoreService {
             return Optional.empty();
         }
 
-        updateUserInventory(user, item);
+        inventoryItemService.addOrIncrementItemQuantity(user, item, purchaseInventoryDelta(item));
 
-        if (!heartByName && item.getType() == ItemType.BOOSTER && name.contains("xp")) {
-            gs.addXpAndResolveLevelUps(500);
+        if (item.getType() == ItemType.BOOSTER && name.contains("xp")) {
+            if (name.contains("mega")) {
+                gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
+            } else if (name.contains("double")) {
+                gs.extendDoubleXpMinutes(30);
+            }
         }
 
         gs.setTokenBalance(gs.getTokenBalance() - price);
@@ -151,19 +159,19 @@ public class StoreServiceImpl implements StoreService {
         return userRepository.findByIdWithInventoryAndGameState(userId);
     }
 
-    private void updateUserInventory(User user, Item item) {
-        UserInventory inv = user.getInventory();
-        if (inv == null) {
-            inv = new UserInventory();
-            user.setInventory(inv);
+    private static int purchaseInventoryDelta(Item item) {
+        if (item.getType() != ItemType.AI_USAGE || item.getName() == null) {
+            return 1;
         }
-        InventoryItem row = inventoryItemRepository.findByInventoryAndItem(inv, item).orElse(null);
-        if (row == null) {
-            row = InventoryItem.builder().inventory(inv).item(item).quantity(1).build();
-            inv.addItem(row);
-        } else {
-            row.setQuantity(row.getQuantity() + 1);
+        Matcher m = AI_PACK_QUANTITY.matcher(item.getName());
+        if (m.find()) {
+            try {
+                return Math.max(1, Integer.parseInt(m.group(1)));
+            } catch (NumberFormatException ignored) {
+                return 1;
+            }
         }
+        return 1;
     }
 
     @Override

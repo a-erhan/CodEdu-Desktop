@@ -90,6 +90,7 @@ public class DailyChallengeServiceImpl implements DailyChallengeService {
 
         int totalPotentialXp = todaysChallenge.getReward().getXp();
         int earnedXp = (totalPotentialXp * correctAnswers) / 3;
+        earnedXp = gameState.withDoubleXpApplied(earnedXp);
 
         gameState.setXp(gameState.getXp() + earnedXp);
 

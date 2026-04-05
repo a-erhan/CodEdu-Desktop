@@ -226,7 +226,8 @@ public class UserServiceImpl implements UserService {
                 user.setGameState(state);
             }
 
-            state.setXp(state.getXp() + xpReward);
+            int xpToAdd = state.withDoubleXpApplied(xpReward);
+            state.setXp(state.getXp() + xpToAdd);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
             int xpRequired = state.getLevel() * 100;
@@ -289,11 +290,10 @@ public class UserServiceImpl implements UserService {
                 user.setGameState(state);
             }
 
-            // 1. Add XP and Tokens
-            state.setXp(state.getXp() + xpReward);
+            int xpToAdd = state.withDoubleXpApplied(xpReward);
+            state.setXp(state.getXp() + xpToAdd);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
-            // 2. Level Up Math
             int xpRequired = state.getLevel() * 100;
             while (state.getXp() >= xpRequired) {
                 state.setXp(state.getXp() - xpRequired);

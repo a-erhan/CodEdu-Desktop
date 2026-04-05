@@ -101,7 +101,7 @@ public class ItemServiceImpl implements ItemService {
         UserGameState gs = user.getGameState();
         if (gs == null) return;
 
-        String name = item.getName().toLowerCase();
+        String name = item.getName() != null ? item.getName().toLowerCase() : "";
 
         switch (item.getType()) {
             case BOOSTER -> {
@@ -113,7 +113,9 @@ public class ItemServiceImpl implements ItemService {
                     }
                 } else if (name.contains("xp")) {
                     if (name.contains("mega")) {
-                        gs.addXpAndResolveLevelUps(500);
+                        gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
+                    } else if (name.contains("double")) {
+                        gs.extendDoubleXpMinutes(30);
                     }
                 }
             }
@@ -125,7 +127,6 @@ public class ItemServiceImpl implements ItemService {
                 }
             }
             case AI_USAGE -> {
-                // Future: increment AI usage tokens
             }
             case AVATAR -> {
                 // Avatars are handled by the 'Equip' logic in the Inventory

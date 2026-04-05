@@ -5,6 +5,7 @@ import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
+import com.codedu.models.user.UserInventory;
 import com.codedu.repositories.interfaces.InventoryItemRepository;
 import com.codedu.services.interfaces.InventoryItemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -154,6 +155,31 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                 .quantity(ii.getQuantity())
                 .isEquipped(ii.isEquipped())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void addOrIncrementItemQuantity(User user, Item item, int quantityDelta) {
+        if (user == null || item == null || quantityDelta <= 0) {
+            return;
+        }
+        UserInventory inv = user.getInventory();
+        if (inv == null) {
+            inv = new UserInventory();
+            user.setInventory(inv);
+        }
+        int add = Math.max(1, quantityDelta);
+        if (inv.getId() > 0) {
+            Optional<InventoryItem> existing = findByUserAndItem(user, item);
+            if (existing.isPresent()) {
+                InventoryItem row = existing.get();
+                row.setQuantity(row.getQuantity() + add);
+                inventoryItemRepository.update(row);
+                return;
+            }
+        }
+        InventoryItem row = InventoryItem.builder().inventory(inv).item(item).quantity(add).build();
+        inv.addItem(row);
     }
 
     @Override
