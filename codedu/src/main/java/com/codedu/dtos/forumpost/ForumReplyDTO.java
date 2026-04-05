@@ -4,7 +4,7 @@ import com.codedu.models.user.User;
 
 import java.time.LocalDateTime;
 
-public record ForumReplyDto(
+public record ForumReplyDTO(
         int id,
         String content,
         String authorUsername,

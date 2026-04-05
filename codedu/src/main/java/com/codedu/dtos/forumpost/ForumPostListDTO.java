@@ -5,7 +5,7 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record ForumPostListDto (
+public record ForumPostListDTO(
         int id,
         String title,
         String content,

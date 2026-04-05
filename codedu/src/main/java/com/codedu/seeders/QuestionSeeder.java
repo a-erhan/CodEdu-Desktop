@@ -1,45 +1,49 @@
-package com.codedu.services.implementations;
+package com.codedu.seeders;
 
 import com.codedu.models.learning.CodeImplementationQuestion;
-import com.codedu.services.interfaces.QuestionSeederService;
 import com.codedu.models.learning.QuestionDifficulty;
 import com.codedu.models.learning.QuestionType;
 import com.codedu.models.learning.TestCase;
 import com.codedu.repositories.interfaces.QuestionRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-@Service
-public class QuestionSeederServiceImpl implements QuestionSeederService {
+@Component
+public class QuestionSeeder implements CommandLineRunner {
 
     private final QuestionRepository questionRepository;
+    private final TransactionTemplate transactionTemplate;
 
-    public QuestionSeederServiceImpl(QuestionRepository questionRepository) {
+    public QuestionSeeder(QuestionRepository questionRepository, PlatformTransactionManager transactionManager) {
         this.questionRepository = questionRepository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Override
-    public void run(String... args) throws Exception {
-        // We use findByQuestionType to check for existing content
-        // This is more efficient than loading the full list
-        long currentCount = questionRepository.findByQuestionType(QuestionType.CODE_IMPLEMENTATION).size();
+    public void run(String... args) {
+        // Programmatic transaction avoids @Transactional CGLIB proxies, which break under JPMS
+        // when spring-aop reflects from the unnamed module.
+        transactionTemplate.executeWithoutResult(status -> {
+            long currentCount = questionRepository.findByQuestionType(QuestionType.CODE_IMPLEMENTATION).size();
 
-        if (currentCount >= 50) {
-            System.out.println(">>> [Seeder] Questions already exist (" + currentCount + "). Skipping seeding.");
-            return;
-        }
+            if (currentCount >= 50) {
+                System.out.println(">>> [Seeder] Questions already exist (" + currentCount + "). Skipping seeding.");
+                return;
+            }
 
-        System.out.println(">>> [Seeder] Starting Procedural Generation of 100 Code Implementation Questions...");
-        generateQuestions();
-        System.out.println(">>> [Seeder] Procedural Generation Completed!");
+            System.out.println(">>> [Seeder] Starting Procedural Generation of 100 Code Implementation Questions...");
+            generateQuestions();
+            System.out.println(">>> [Seeder] Procedural Generation Completed!");
+        });
     }
 
-    @Transactional
-    public void generateQuestions() {
+    private void generateQuestions() {
         Random random = new Random(12345); // deterministic seed for consistent DB if needed
         List<CodeImplementationQuestion> questionsToSave = new ArrayList<>();
 

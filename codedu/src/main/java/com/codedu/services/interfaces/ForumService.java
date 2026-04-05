@@ -1,21 +1,21 @@
 package com.codedu.services.interfaces;
 
-import com.codedu.dtos.forumpost.ForumPostCreateDto;
-import com.codedu.dtos.forumpost.ForumPostDetailDto;
-import com.codedu.dtos.forumpost.ForumPostListDto;
-import com.codedu.dtos.forumpost.ForumPostUpdateDto;
+import com.codedu.dtos.forumpost.ForumPostCreateDTO;
+import com.codedu.dtos.forumpost.ForumPostDetailDTO;
+import com.codedu.dtos.forumpost.ForumPostListDTO;
+import com.codedu.dtos.forumpost.ForumPostUpdateDTO;
 
 import java.util.List;
 
 public interface ForumService {
 
-    List<ForumPostListDto> getAllMainPosts();
+    List<ForumPostListDTO> getAllMainPosts();
 
-    ForumPostDetailDto getPostWithReplies(int id);
+    ForumPostDetailDTO getPostWithReplies(int id);
 
-    void createPost(ForumPostCreateDto dto);
+    void createPost(ForumPostCreateDTO dto);
 
-    void updatePost(ForumPostUpdateDto dto);
+    void updatePost(ForumPostUpdateDTO dto);
 
-    ForumPostDetailDto addReply(int parentPostId, String content, int authorId);
+    ForumPostDetailDTO addReply(int parentPostId, String content, int authorId);
 }

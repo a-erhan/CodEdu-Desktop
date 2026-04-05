@@ -24,13 +24,13 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional(readOnly = true)
-    public List<ForumPostListDto> getAllMainPosts() {
+    public List<ForumPostListDTO> getAllMainPosts() {
         return forumPostRepository.findAllMainPosts().stream()
                 .map(post -> {
                     String username = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
                     User authorObj = post.getAuthor();
 
-                    return new ForumPostListDto(
+                    return new ForumPostListDTO(
                             post.getId(),
                             post.getTitle(),
                             post.getContent(),
@@ -44,16 +44,16 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional(readOnly = true)
-    public ForumPostDetailDto getPostWithReplies(int id) {
+    public ForumPostDetailDTO getPostWithReplies(int id) {
         ForumPost post = forumPostRepository.findByIdWithReplies(id);
         if (post == null) return null;
 
         String mainAuthorName = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
 
-        List<ForumReplyDto> replyDtos = post.getReplies().stream()
+        List<ForumReplyDTO> replyDtos = post.getReplies().stream()
                 .map(reply -> {
                     String replyAuthorName = (reply.getAuthor() != null) ? reply.getAuthor().getUsername() : "Anonymous";
-                    return new ForumReplyDto(
+                    return new ForumReplyDTO(
                             reply.getId(),
                             reply.getContent(),
                             replyAuthorName,
@@ -63,7 +63,7 @@ public class ForumServiceImpl implements ForumService {
                 })
                 .collect(Collectors.toList());
 
-        return new ForumPostDetailDto(
+        return new ForumPostDetailDTO(
                 post.getId(),
                 post.getTitle(),
                 post.getContent(),
@@ -76,7 +76,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional
-    public void createPost(ForumPostCreateDto dto) {
+    public void createPost(ForumPostCreateDTO dto) {
         User author = userRepository.findById(dto.authorId())
                 .orElseThrow(() -> new RuntimeException("Author not found"));
 
@@ -88,7 +88,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional
-    public void updatePost(ForumPostUpdateDto dto) {
+    public void updatePost(ForumPostUpdateDTO dto) {
         ForumPost post = forumPostRepository.findById(dto.id())
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -99,7 +99,7 @@ public class ForumServiceImpl implements ForumService {
     }
 
     @Transactional
-    public ForumPostDetailDto addReply(int parentPostId, String content, int authorId) {
+    public ForumPostDetailDTO addReply(int parentPostId, String content, int authorId) {
         ForumPost parent = forumPostRepository.findByIdWithReplies(parentPostId);
         if (parent == null)
             throw new RuntimeException("Parent post not found");

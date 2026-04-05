@@ -8,7 +8,7 @@ import java.util.List;
 
 @Builder
 
-public record ForumPostDetailDto (
+public record ForumPostDetailDTO(
         int id,
         String title,
         String content,
@@ -16,6 +16,6 @@ public record ForumPostDetailDto (
         User author,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        List<ForumReplyDto> replies
+        List<ForumReplyDTO> replies
 ){}
 

@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 
-public record ForumPostCreateDto (
+public record ForumPostCreateDTO(
     String title,
     String content,
     int authorId,

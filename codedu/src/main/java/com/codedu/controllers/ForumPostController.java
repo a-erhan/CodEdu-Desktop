@@ -37,7 +37,7 @@ public class ForumPostController {
     @FXML
     private Button replyButton;
 
-    private ForumPostDetailDto post;
+    private ForumPostDetailDTO post;
     private User currentUser;
     private Runnable onBack;
     private Consumer<String> onOpenProfile;
@@ -101,7 +101,7 @@ public class ForumPostController {
 
         repliesList.getChildren().clear();
 
-        for (ForumReplyDto reply : post.replies()) {
+        for (ForumReplyDTO reply : post.replies()) {
             VBox replyCard = new VBox(4);
             replyCard.setPadding(new javafx.geometry.Insets(8, 10, 8, 10));
             replyCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);

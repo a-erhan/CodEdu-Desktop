@@ -42,7 +42,7 @@ public class ForumController {
     @FXML
     private TextArea selectedContent;
 
-    private List<ForumPostListDto> posts = new ArrayList<>();
+    private List<ForumPostListDTO> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<Integer> onOpenPost;
     private Consumer<String> onOpenProfile;
@@ -95,7 +95,7 @@ public class ForumController {
 
         if (this.currentUser == null || title.isEmpty() || body.isEmpty()) return;
 
-        ForumPostCreateDto createDto = ForumPostCreateDto.builder()
+        ForumPostCreateDTO createDto = ForumPostCreateDTO.builder()
                 .title(title)
                 .content(body)
                 .authorId(this.currentUser.getId())
@@ -118,7 +118,7 @@ public class ForumController {
         if (threadList == null) return;
         threadList.getChildren().clear();
 
-        for (ForumPostListDto post : posts) {
+        for (ForumPostListDTO post : posts) {
             VBox card = new VBox(6);
             card.setAlignment(Pos.TOP_LEFT);
             card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
