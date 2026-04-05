@@ -30,4 +30,6 @@ public interface InventoryItemService {
     int getAiRequestBalance(User user);
 
     boolean consumeAiRequest(User user);
+
+    void addOrIncrementItemQuantity(User user, Item item, int quantityDelta);
 }

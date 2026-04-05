@@ -182,12 +182,24 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> getUserWithProfileData(String username) {
-        return userRepository.findByUsername(username).map(u -> {
+        return userRepository.findByUsernameWithInventoryAndGameState(username).map(u -> {
             if (u.getGameState() != null) {
                 Hibernate.initialize(u.getGameState());
                 Hibernate.initialize(u.getGameState().getAchievements());
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
+                u.getGameState().getHeartCount();
+            }
+            if (u.getInventory() != null) {
+                Hibernate.initialize(u.getInventory());
+                if (u.getInventory().getItems() != null) {
+                    Hibernate.initialize(u.getInventory().getItems());
+                    for (var ii : u.getInventory().getItems()) {
+                        if (ii != null && ii.getItem() != null) {
+                            Hibernate.initialize(ii.getItem());
+                        }
+                    }
+                }
             }
             try {
                 Hibernate.initialize(u.getCompetitor());
@@ -221,19 +233,20 @@ public class UserServiceImpl implements UserService {
 
             if (state == null) {
                 state = UserGameState.builder()
-                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                        .level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
 
-            state.setXp(state.getXp() + xpReward);
+            int xpToAdd = state.withDoubleXpApplied(xpReward);
+            state.setXp(state.getXp() + xpToAdd);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
             int xpRequired = state.getLevel() * 100;
 
             while (state.getXp() >= xpRequired) {
-                state.setXp(state.getXp() - xpRequired); 
-                state.setLevel(state.getLevel() + 1);   
-                xpRequired = state.getLevel() * 100;   
+                state.setXp(state.getXp() - xpRequired);
+                state.setLevel(state.getLevel() + 1);
+                xpRequired = state.getLevel() * 100;
             }
 
             userRepository.update(user);
@@ -284,25 +297,41 @@ public class UserServiceImpl implements UserService {
 
             if (state == null) {
                 state = UserGameState.builder()
-                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                        .level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
 
-            state.setXp(state.getXp() + xpReward);
+            int xpToAdd = state.withDoubleXpApplied(xpReward);
+            state.setXp(state.getXp() + xpToAdd);
             state.setTokenBalance(state.getTokenBalance() + tokenReward);
 
             int xpRequired = state.getLevel() * 100;
-
             while (state.getXp() >= xpRequired) {
                 state.setXp(state.getXp() - xpRequired);
                 state.setLevel(state.getLevel() + 1);
                 xpRequired = state.getLevel() * 100;
             }
 
-            // 🚀 THE DATABASE FIX: Save the game state explicitly first!
-            userGameStateRepository.update(state);
+            // 🚀 3. STREAK LOGIC (This was missing from the Entity method!)
+            java.time.LocalDate today = java.time.LocalDate.now();
+            java.time.LocalDate lastDate = state.getLastActiveDate(); // Or getLastStreakDate() depending on what you named it
 
-            // Then save the user
+            if (lastDate == null) {
+                // First time ever getting XP
+                state.setCurrentStreak(1);
+            } else if (lastDate.equals(today.minusDays(1))) {
+                // They played yesterday! Increment the streak
+                state.setCurrentStreak(state.getCurrentStreak() + 1);
+            } else if (lastDate.isBefore(today.minusDays(1))) {
+                // They missed a day. Reset the streak to 1
+                state.setCurrentStreak(1);
+            }
+
+            // Always update the last active date to today
+            state.setLastActiveDate(today);
+
+            // 4. Save to Database
+            userGameStateRepository.update(state); // (Or .save(state) if using standard Spring Data)
             userRepository.update(user);
 
             org.hibernate.Hibernate.initialize(user.getGameState());

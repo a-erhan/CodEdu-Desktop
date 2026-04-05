@@ -40,7 +40,7 @@ public class ForumController {
     @FXML private Label selectedMeta;
     @FXML private TextArea selectedContent;
 
-    private List<ForumPostListDto> posts = new ArrayList<>();
+    private List<ForumPostListDTO> posts = new ArrayList<>();
     private User currentUser;
     private Consumer<Integer> onOpenPost;
     private Consumer<String> onOpenProfile;
@@ -93,12 +93,12 @@ public class ForumController {
     }
 
     private void loadPostsFromDatabase(final Runnable onSuccess) {
-        CompletableFuture.supplyAsync(new Supplier<List<ForumPostListDto>>() {
+        CompletableFuture.supplyAsync(new Supplier<List<ForumPostListDTO>>() {
             @Override
-            public List<ForumPostListDto> get() { return forumService.getAllMainPosts(); }
-        }).thenAccept(new Consumer<List<ForumPostListDto>>() {
+            public List<ForumPostListDTO> get() { return forumService.getAllMainPosts(); }
+        }).thenAccept(new Consumer<List<ForumPostListDTO>>() {
             @Override
-            public void accept(final List<ForumPostListDto> result) {
+            public void accept(final List<ForumPostListDTO> result) {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -115,8 +115,11 @@ public class ForumController {
         String body = newPostBodyArea.getText().trim();
         if (this.currentUser == null || title.isEmpty() || body.isEmpty()) return;
 
-        final ForumPostCreateDto createDto = ForumPostCreateDto.builder()
-                .title(title).content(body).authorId(this.currentUser.getId()).build();
+        ForumPostCreateDTO createDto = ForumPostCreateDTO.builder()
+                .title(title)
+                .content(body)
+                .authorId(this.currentUser.getId())
+                .build();
 
         CompletableFuture.runAsync(new Runnable() {
             @Override
@@ -151,14 +154,15 @@ public class ForumController {
         if (threadList == null) return;
         threadList.getChildren().clear();
 
-        for (int i = 0; i < posts.size(); i++) {
-            final ForumPostListDto post = posts.get(i);
+        for (ForumPostListDTO post : posts) {
             final VBox card = new VBox(8);
             card.setPadding(new Insets(20));
 
             final String baseStyle = "-fx-background-color: #303846; -fx-background-radius: 20; -fx-border-color: #404856; -fx-border-width: 1; -fx-border-radius: 20;";
             final String hoverStyle = "-fx-background-color: #3A4452; -fx-background-radius: 20; -fx-border-color: #00ADEF; -fx-border-width: 1; -fx-border-radius: 20;";
             card.setStyle(baseStyle);
+            card.setAlignment(Pos.TOP_LEFT);
+            card.getStyleClass().addAll(Styles.INTERACTIVE);
 
             Label postTitle = new Label(post.title());
             postTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
@@ -205,12 +209,12 @@ public class ForumController {
     }
 
     private void fetchAndShowPost(final int id) {
-        CompletableFuture.supplyAsync(new Supplier<ForumPostDetailDto>() {
+        CompletableFuture.supplyAsync(new Supplier<ForumPostDetailDTO>() {
             @Override
-            public ForumPostDetailDto get() { return forumService.getPostWithReplies(id); }
-        }).thenAccept(new Consumer<ForumPostDetailDto>() {
+            public ForumPostDetailDTO get() { return forumService.getPostWithReplies(id); }
+        }).thenAccept(new Consumer<ForumPostDetailDTO>() {
             @Override
-            public void accept(final ForumPostDetailDto detailDto) {
+            public void accept(final ForumPostDetailDTO detailDto) {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {

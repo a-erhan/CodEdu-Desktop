@@ -34,7 +34,7 @@ public class ForumPostController {
     @FXML private TextArea replyArea;
     @FXML private Button replyButton;
 
-    private ForumPostDetailDto post;
+    private ForumPostDetailDTO post;
     private User currentUser;
     private Runnable onBack;
     private Consumer<String> onOpenProfile;
@@ -43,12 +43,12 @@ public class ForumPostController {
     private ForumService forumService;
 
     public void setPostId(final int postId) {
-        CompletableFuture.supplyAsync(new Supplier<ForumPostDetailDto>() {
+        CompletableFuture.supplyAsync(new Supplier<ForumPostDetailDTO>() {
             @Override
-            public ForumPostDetailDto get() { return forumService.getPostWithReplies(postId); }
-        }).thenAccept(new Consumer<ForumPostDetailDto>() {
+            public ForumPostDetailDTO get() { return forumService.getPostWithReplies(postId); }
+        }).thenAccept(new Consumer<ForumPostDetailDTO>() {
             @Override
-            public void accept(final ForumPostDetailDto dto) {
+            public void accept(final ForumPostDetailDTO dto) {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -123,13 +123,11 @@ public class ForumPostController {
 
         repliesList.getChildren().clear();
 
-        for (int i = 0; i < post.replies().size(); i++) {
-            // FIX: Using 'final' here prevents the "inner class" error shown in your screenshot
-            final ForumReplyDto reply = post.replies().get(i);
-
+        for (ForumReplyDTO reply : post.replies()) {
             VBox replyCard = new VBox(8);
             replyCard.setPadding(new Insets(15));
             replyCard.setStyle("-fx-background-color: #303846; -fx-background-radius: 15; -fx-border-color: #404856; -fx-border-radius: 15;");
+            replyCard.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
             Label author = new Label(reply.authorUsername() != null ? reply.authorUsername() : "Anonymous");
             author.setStyle("-fx-text-fill: #00ADEF; -fx-font-weight: bold;");

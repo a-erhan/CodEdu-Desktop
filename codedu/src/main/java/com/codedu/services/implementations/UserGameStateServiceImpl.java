@@ -65,7 +65,7 @@ public class UserGameStateServiceImpl implements UserGameStateService {
     public void addXpAndTokens(int userId, int xpDelta, int tokenDelta) {
         UserGameState gs = userGameStateRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalStateException("No game state for user id " + userId));
-        gs.addXpAndResolveLevelUps(xpDelta);
+        gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(xpDelta));
         gs.setTokenBalance(gs.getTokenBalance() + tokenDelta);
         gs.setLastActivityDate(LocalDateTime.now());
         userGameStateRepository.update(gs);

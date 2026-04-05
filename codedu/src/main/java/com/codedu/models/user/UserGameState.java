@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,8 @@ import java.util.List;
 @Builder
 public class UserGameState extends BaseEntity {
 
+    public static final int MAX_HEARTS = 15;
+
     /**
      * Default progression row for a new account (matches shell bootstrap and seeder
      * expectations).
@@ -28,20 +31,14 @@ public class UserGameState extends BaseEntity {
         return UserGameState.builder()
                 .level(1)
                 .xp(0)
-                .heartCount(15)
+                .heartCount(3)
                 .tokenBalance(100)
                 .currentStreak(0)
                 .build();
     }
 
-    /**
-     * Owning side of the one-to-one: {@code user_game_states.user_id} references
-     * {@code users.id}.
-     */
     @Setter(AccessLevel.NONE)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true, nullable = false) // Changed nullable to
-                                                                                                // false
+    @OneToOne(mappedBy = "gameState", fetch = FetchType.LAZY)
     private User user;
 
     /**
@@ -56,7 +53,15 @@ public class UserGameState extends BaseEntity {
     private int level;
     private int xp;
     private int tokenBalance;
-    private int currentStreak;
+
+    @Column(name = "current_streak")
+    private int currentStreak = 0;
+
+    @Column(name = "last_active_date")
+    private LocalDate lastActiveDate;
+
+    @Column(name = "double_xp_active_until")
+    private LocalDateTime doubleXpActiveUntil;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_game_state_id"), inverseJoinColumns = @JoinColumn(name = "achievement_id"))
@@ -83,9 +88,31 @@ public class UserGameState extends BaseEntity {
     }
 
     public void addHeart() {
-        if (this.heartCount < 5) {
+        if (this.heartCount < MAX_HEARTS) {
             this.heartCount++;
         }
+    }
+
+    public boolean isDoubleXpActive() {
+        return doubleXpActiveUntil != null && LocalDateTime.now().isBefore(doubleXpActiveUntil);
+    }
+
+    public void extendDoubleXpMinutes(int minutes) {
+        if (minutes <= 0) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime base = doubleXpActiveUntil != null && now.isBefore(doubleXpActiveUntil)
+                ? doubleXpActiveUntil
+                : now;
+        this.doubleXpActiveUntil = base.plusMinutes(minutes);
+    }
+
+    public int withDoubleXpApplied(int baseXp) {
+        if (baseXp <= 0) {
+            return baseXp;
+        }
+        return isDoubleXpActive() ? baseXp * 2 : baseXp;
     }
 
     @UpdateTimestamp

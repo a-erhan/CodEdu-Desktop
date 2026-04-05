@@ -1,13 +1,10 @@
 package com.codedu.services.implementations;
 
 import com.codedu.dtos.user.ItemDTO;
-import com.codedu.models.user.Item;
-import com.codedu.models.user.Store;
-import com.codedu.models.user.User;
-import com.codedu.models.user.InventoryItem;
-import com.codedu.models.user.UserInventory;
-import com.codedu.repositories.interfaces.InventoryItemRepository;
+import com.codedu.models.user.*;
+import com.codedu.services.interfaces.InventoryItemService;
 import com.codedu.repositories.interfaces.StoreRepository;
+import com.codedu.repositories.interfaces.UserGameStateRepository;
 import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.ItemService;
 import com.codedu.services.interfaces.StoreService;
@@ -15,30 +12,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class StoreServiceImpl implements StoreService {
 
+    private static final Pattern AI_PACK_QUANTITY = Pattern.compile("\\((\\d+)\\)");
+
+    private static final String SQL_INCREMENT_HEART_VIA_USER = """
+            UPDATE user_game_states AS ugs SET heart_count = LEAST(ugs.heart_count + 1, ?)
+            FROM users u
+            WHERE u.id = ? AND u.game_state_id = ugs.id""";
+
+    private static final String SQL_SET_FULL_HEARTS_VIA_USER = """
+            UPDATE user_game_states AS ugs SET heart_count = ?
+            FROM users u
+            WHERE u.id = ? AND u.game_state_id = ugs.id""";
+
     private final StoreRepository storeRepository;
     private final ItemService itemService;
     private final UserRepository userRepository;
-    private final InventoryItemRepository inventoryItemRepository;
+    private final UserGameStateRepository userGameStateRepository;
+    private final InventoryItemService inventoryItemService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public StoreServiceImpl(
             StoreRepository storeRepository,
             ItemService itemService,
             UserRepository userRepository,
-            InventoryItemRepository inventoryItemRepository
+            InventoryItemService inventoryItemService,
+            UserGameStateRepository userGameStateRepository
     ) {
         this.storeRepository = storeRepository;
         this.itemService = itemService;
         this.userRepository = userRepository;
-        this.inventoryItemRepository = inventoryItemRepository;
+        this.inventoryItemService = inventoryItemService;
+        this.userGameStateRepository = userGameStateRepository;
     }
 
     @Override
@@ -56,25 +76,16 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Transactional(readOnly = true)
     public List<ItemDTO> getCatalogItems() {
-        Optional<Store> storeOpt = storeRepository.findFirstWithItemsOrderedById();
-        if (storeOpt.isPresent()) {
-            List<ItemDTO> fromStore = storeOpt.get().getAvailableItems().stream()
-                    .filter(i -> !i.isDeleted())
-                    .map(this::toDTO)
-                    .toList();
-            if (!fromStore.isEmpty()) {
-                return new ArrayList<>(fromStore);
-            }
-        }
-        return new ArrayList<>(itemService.getAllItems());
+        List<Item> items = getCatalogItemEntities();
+        return items.stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     @Override
     @Transactional
     public Optional<User> purchaseItem(int userId, int itemId) {
-        if (userId <= 0 || itemId <= 0) {
-            return Optional.empty();
-        }
+        if (userId <= 0 || itemId <= 0) return Optional.empty();
 
         User user = userRepository.findByIdWithInventoryAndGameState(userId).orElse(null);
         if (user == null || user.getGameState() == null) {
@@ -82,38 +93,85 @@ public class StoreServiceImpl implements StoreService {
         }
 
         Item item = itemService.getItemById(itemId).orElse(null);
-        if (item == null || item.isDeleted()) {
-            return Optional.empty();
-        }
+        if (item == null || item.isDeleted()) return Optional.empty();
 
         int price = Math.max(0, item.getPrice());
-        if (!user.getGameState().hasEnoughTokens(price)) {
+        com.codedu.models.user.UserGameState gs = user.getGameState();
+        if (!gs.hasEnoughTokens(price)) return Optional.empty();
+
+        String name = item.getName() != null ? item.getName().toLowerCase(Locale.ROOT) : "";
+        boolean heartByName = name.contains("heart");
+
+        if (heartByName && !name.contains("full")
+                && gs.getHeartCount() >= UserGameState.MAX_HEARTS) {
             return Optional.empty();
         }
 
-        UserInventory inv = user.getInventory();
-        if (inv == null) {
-            inv = new UserInventory();
-            user.setInventory(inv);
+        inventoryItemService.addOrIncrementItemQuantity(user, item, purchaseInventoryDelta(item));
+
+        if (item.getType() == ItemType.BOOSTER && name.contains("xp")) {
+            if (name.contains("mega")) {
+                gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
+            } else if (name.contains("double")) {
+                gs.extendDoubleXpMinutes(30);
+            }
         }
 
-        InventoryItem row = inventoryItemRepository.findByInventoryAndItem(inv, item).orElse(null);
-        if (row == null) {
-            row = InventoryItem.builder()
-                    .inventory(inv)
-                    .item(item)
-                    .quantity(1)
-                    .isEquipped(false)
-                    .build();
-            inv.addItem(row);
-        } else {
-            row.setQuantity(row.getQuantity() + 1);
-        }
+        gs.setTokenBalance(gs.getTokenBalance() - price);
 
-        user.getGameState().setTokenBalance(user.getGameState().getTokenBalance() - price);
+        userGameStateRepository.update(gs);
         userRepository.update(user);
 
+        entityManager.flush();
+
+        if (heartByName) {
+            int rows;
+            if (name.contains("full")) {
+                rows = entityManager.createNativeQuery(SQL_SET_FULL_HEARTS_VIA_USER)
+                        .setParameter(1, UserGameState.MAX_HEARTS)
+                        .setParameter(2, userId)
+                        .executeUpdate();
+                if (rows == 0) {
+                    rows = entityManager.createQuery(
+                                    "UPDATE UserGameState g SET g.heartCount = :max WHERE g.user.id = :uid")
+                            .setParameter("max", UserGameState.MAX_HEARTS)
+                            .setParameter("uid", userId)
+                            .executeUpdate();
+                }
+            } else {
+                rows = entityManager.createNativeQuery(SQL_INCREMENT_HEART_VIA_USER)
+                        .setParameter(1, UserGameState.MAX_HEARTS)
+                        .setParameter(2, userId)
+                        .executeUpdate();
+                if (rows == 0) {
+                    rows = entityManager.createQuery(
+                                    "UPDATE UserGameState g SET g.heartCount = g.heartCount + 1 "
+                                            + "WHERE g.user.id = :uid AND g.heartCount < :max")
+                            .setParameter("uid", userId)
+                            .setParameter("max", UserGameState.MAX_HEARTS)
+                            .executeUpdate();
+                }
+            }
+            entityManager.flush();
+        }
+
+        entityManager.clear();
         return userRepository.findByIdWithInventoryAndGameState(userId);
+    }
+
+    private static int purchaseInventoryDelta(Item item) {
+        if (item.getType() != ItemType.AI_USAGE || item.getName() == null) {
+            return 1;
+        }
+        Matcher m = AI_PACK_QUANTITY.matcher(item.getName());
+        if (m.find()) {
+            try {
+                return Math.max(1, Integer.parseInt(m.group(1)));
+            } catch (NumberFormatException ignored) {
+                return 1;
+            }
+        }
+        return 1;
     }
 
     @Override
@@ -139,6 +197,7 @@ public class StoreServiceImpl implements StoreService {
                 .owned(item.isOwned())
                 .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<Item> getCatalogItemEntities() {

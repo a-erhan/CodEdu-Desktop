@@ -29,7 +29,7 @@ public class LearningPathServiceImpl implements LearningPathService {
     }
 
     @Override
-    @Transactional // 🚀 This ensures the progress is saved to Neon correctly
+    @Transactional
     public List<ChapterProgressDTO> getOrCreateLearningPath(User user) {
         List<ChapterProgressDTO> currentPath = getLearningPathForUser(user);
 
@@ -53,11 +53,9 @@ public class LearningPathServiceImpl implements LearningPathService {
             }
             progressRepository.flush();
 
-            // Re-fetch the newly generated path instead of returning immediately
             currentPath = getLearningPathForUser(user);
         }
 
-        // 🚀 We removed the broken loop here! The mapping is now handled safely below.
         return currentPath;
     }
 
@@ -85,6 +83,11 @@ public class LearningPathServiceImpl implements LearningPathService {
 
             // A chapter is locked if the previous one wasn't finished
             boolean locked = !previousChapterCompleted;
+
+            //God mode for testing
+            if (user.getUsername() != null && user.getUsername().equalsIgnoreCase("tester")) {
+                locked = false;
+            }
 
             // 🚀 1. Calculate dynamic lessons directly from the DB Entity
             int dynamicLessons = 0;

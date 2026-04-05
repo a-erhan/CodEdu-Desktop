@@ -90,12 +90,13 @@ public class DailyChallengeServiceImpl implements DailyChallengeService {
 
         int totalPotentialXp = todaysChallenge.getReward().getXp();
         int earnedXp = (totalPotentialXp * correctAnswers) / 3;
+        earnedXp = gameState.withDoubleXpApplied(earnedXp);
 
         gameState.setXp(gameState.getXp() + earnedXp);
 
         while (gameState.getXp() >= gameState.getXpToNextLevel()) {
             gameState.setLevel(gameState.getLevel() + 1);
-            gameState.setHeartCount(5);
+            gameState.setHeartCount(UserGameState.MAX_HEARTS);
         }
 
         if (correctAnswers == 3) {

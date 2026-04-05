@@ -42,10 +42,6 @@ public class AchievementsController {
         buildAchievements();
     }
 
-    public void setLeaderboard(LeaderBoard leaderboard) {
-        // No longer using the demo leaderboard logic
-    }
-
     @FXML
     public void initialize() {
         if (titleLabel != null) {

@@ -1,3 +1,6 @@
+-- Align legacy DBs with UserGameState.doubleXpActiveUntil (Hibernate maps to double_xp_active_until).
+ALTER TABLE user_game_states ADD COLUMN IF NOT EXISTS double_xp_active_until TIMESTAMP NULL;
+
 -- Forum thread replies (matches com.codedu.models.social.Reply)
 CREATE TABLE IF NOT EXISTS replies (
     id SERIAL PRIMARY KEY,

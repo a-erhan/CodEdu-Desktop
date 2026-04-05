@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
-//@Component
+@Component
 @Order(5)
 public class StoreItemSeeder implements CommandLineRunner {
 
@@ -29,29 +29,28 @@ public class StoreItemSeeder implements CommandLineRunner {
     @Autowired
     private UserGameStateRepository userGameStateRepository;
 
-
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         seedAiItems();
         seedAvatarItems();
+        seedBoosterItems();
         ensureStoreHasAllItems();
         grantStarterTokensToExistingUsers();
     }
 
-    private void grantStarterTokensToExistingUsers() {
-        List<UserGameState> states = userGameStateRepository.getAll();
-        int granted = 0;
-        for (UserGameState state : states) {
-            if (state.getTokenBalance() == 0) {
-                state.setTokenBalance(100);
-                userGameStateRepository.update(state);
-                granted++;
-            }
-        }
-        if (granted > 0) {
-            System.out.println(">>> [StoreSeeder] Granted 100 starter tokens to " + granted + " users.");
-        }
+    private void seedBoosterItems() {
+        List<Item> existing = itemRepository.findByType(ItemType.BOOSTER);
+        if (!existing.isEmpty()) return;
+
+        System.out.println(">>> [StoreSeeder] Seeding booster items...");
+        // Heart Refills
+        itemRepository.save(new Item("Heart Refill", "Instantly restores 1 heart.", null, 30, ItemType.BOOSTER));
+        itemRepository.save(new Item("Full Heart Pack", "Restores all hearts to maximum.", null, 100, ItemType.BOOSTER));
+
+        // XP Boosters
+        itemRepository.save(new Item("Double XP (30m)", "Earn 2x XP for the next 30 minutes.", null, 150, ItemType.BOOSTER));
+        itemRepository.save(new Item("XP Mega-Boost", "Instantly gain 500 XP.", null, 400, ItemType.BOOSTER));
     }
 
     private void seedAiItems() {
@@ -71,6 +70,24 @@ public class StoreItemSeeder implements CommandLineRunner {
         itemRepository.save(new Item("Basic Avatar", "The classic look.", null, 0, ItemType.AVATAR));
         itemRepository.save(new Item("Ninja Avatar", "Silent and swift.", null, 200, ItemType.AVATAR));
         itemRepository.save(new Item("Wizard Avatar", "Wise and powerful.", null, 500, ItemType.AVATAR));
+        // Added a high-end one for "whales"
+        itemRepository.save(new Item("Cyberpunk Legend", "Exclusive neon-lit style.", null, 1500, ItemType.AVATAR));
+    }
+
+    private void grantStarterTokensToExistingUsers() {
+        List<UserGameState> states = userGameStateRepository.getAll();
+        int granted = 0;
+        for (UserGameState state : states) {
+            // Check for 0 balance specifically to avoid spamming existing rich users
+            if (state.getTokenBalance() == 0) {
+                state.setTokenBalance(100);
+                userGameStateRepository.update(state);
+                granted++;
+            }
+        }
+        if (granted > 0) {
+            System.out.println(">>> [StoreSeeder] Granted 100 starter tokens to " + granted + " users.");
+        }
     }
 
     private void ensureStoreHasAllItems() {
