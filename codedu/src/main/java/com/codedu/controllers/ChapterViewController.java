@@ -45,6 +45,12 @@ public class ChapterViewController {
     private java.util.function.Consumer<User> onProgressUpdated;
     private User currentUser;
 
+    // Brand Colors
+    private final String LOGO_BLUE = "#00AEEF";
+    private final String LOGO_ORANGE = "#F7941D";
+    private final String CARD_BG = "#3b4252";
+    private final String CARD_BORDER = "#4c566a";
+
     public void setCurrentUser(User user) {
         this.currentUser = user;
     }
@@ -54,6 +60,11 @@ public class ChapterViewController {
         tabLearn.setOnAction(e -> switchTab("learn"));
         tabQuiz.setOnAction(e -> switchTab("quiz"));
         tabPractice.setOnAction(e -> switchTab("practice"));
+
+        // Initial button styling
+        btnBack.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px;");
+        headerTitle.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold; -fx-font-size: 20px;");
+        headerXP.setStyle("-fx-text-fill: " + LOGO_BLUE + "; -fx-font-weight: bold;");
     }
 
     public void setChapter(ChapterDTO chapter, ChapterProgressDTO progress) {
@@ -105,44 +116,54 @@ public class ChapterViewController {
         quizScroll.setVisible("quiz".equals(tab));
         practiceScroll.setVisible("practice".equals(tab));
 
-        tabLearn.getStyleClass().remove("cv-tab-active");
-        tabQuiz.getStyleClass().remove("cv-tab-active");
-        tabPractice.getStyleClass().remove("cv-tab-active");
+        tabLearn.setStyle("-fx-background-color: transparent; -fx-text-fill: #d8dee9;");
+        tabQuiz.setStyle("-fx-background-color: transparent; -fx-text-fill: #d8dee9;");
+        tabPractice.setStyle("-fx-background-color: transparent; -fx-text-fill: #d8dee9;");
 
-        if ("learn".equals(tab)) tabLearn.getStyleClass().add("cv-tab-active");
-        else if ("quiz".equals(tab)) tabQuiz.getStyleClass().add("cv-tab-active");
-        else if ("practice".equals(tab)) tabPractice.getStyleClass().add("cv-tab-active");
+        String activeStyle = "-fx-background-color: transparent; -fx-border-color: " + LOGO_BLUE + "; -fx-border-width: 0 0 3 0; -fx-text-fill: " + LOGO_BLUE + "; -fx-font-weight: bold;";
+
+        if ("learn".equals(tab)) tabLearn.setStyle(activeStyle);
+        else if ("quiz".equals(tab)) tabQuiz.setStyle(activeStyle);
+        else if ("practice".equals(tab)) tabPractice.setStyle(activeStyle);
     }
 
     private void buildLearnSection(String text) {
         learnContainer.getChildren().clear();
         if (text == null || text.isEmpty()) text = "No learning material available for this chapter yet.";
+
+        VBox card = new VBox();
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-padding: 25;");
+
         Label learnLabel = new Label(text);
         learnLabel.setWrapText(true);
-        learnLabel.setStyle("-fx-font-size: 16px; -fx-padding: 20px; -fx-line-spacing: 0.5em; -fx-text-fill: #FFFFFF;");
+        learnLabel.setStyle("-fx-font-size: 16px; -fx-line-spacing: 0.6em; -fx-text-fill: #eceff4;");
         learnLabel.setMaxWidth(Double.MAX_VALUE);
-        VBox.setVgrow(learnLabel, Priority.ALWAYS);
-        learnContainer.getChildren().add(learnLabel);
+
+        card.getChildren().add(learnLabel);
+        learnContainer.getChildren().add(card);
     }
 
     private void buildQuizSection(List<QuestionDTO> mcqs, List<QuestionDTO> fills) {
         quizContainer.getChildren().clear();
-        Label mcqHeader = new Label("Multiple Choice");
-        mcqHeader.getStyleClass().add("cv-section-title");
+
+        Label mcqHeader = new Label("MULTIPLE CHOICE");
+        mcqHeader.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold; -fx-letter-spacing: 0.1em;");
         quizContainer.getChildren().add(mcqHeader);
+
         for (int i = 0; i < mcqs.size(); i++) quizContainer.getChildren().add(buildMCQCard(mcqs.get(i), i + 1));
 
-        Label fillHeader = new Label("Fill in the Blank");
-        fillHeader.getStyleClass().add("cv-section-title");
-        VBox.setMargin(fillHeader, new Insets(20, 0, 0, 0));
+        Label fillHeader = new Label("FILL IN THE BLANK");
+        fillHeader.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold; -fx-letter-spacing: 0.1em;");
+        VBox.setMargin(fillHeader, new Insets(30, 0, 10, 0));
         quizContainer.getChildren().add(fillHeader);
+
         for (int i = 0; i < fills.size(); i++) quizContainer.getChildren().add(buildFillBlankCard(fills.get(i), i + 1));
     }
 
     private VBox buildMCQCard(QuestionDTO q, int number) {
-        VBox card = new VBox(12);
-        card.getStyleClass().add("cv-mcq-card");
-        card.setPadding(new Insets(18, 22, 18, 22));
+        VBox card = new VBox(15);
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12;");
+        card.setPadding(new Insets(20));
 
         String[] contentLines = q.content().split("\n");
         List<String> options = new ArrayList<>();
@@ -151,25 +172,27 @@ public class ChapterViewController {
         int correctIndex = (q.solution() != null && !q.solution().isEmpty()) ? q.solution().toUpperCase().charAt(0) - 'A' : 0;
 
         Label qLabel = new Label("Q" + number + ". " + contentLines[0]);
-        qLabel.getStyleClass().add("cv-mcq-question");
+        qLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
 
         card.getChildren().add(buildMetadataHeader(q));
         card.getChildren().add(qLabel);
 
-        VBox optionsBox = new VBox(8);
+        VBox optionsBox = new VBox(10);
         String[] letters = { "A", "B", "C", "D" };
 
         boolean isLocked = isQuestionCompleted(q);
-        String styleCorrect = "-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #27ae60; -fx-border-radius: 4; -fx-background-radius: 4;";
-        String styleWrong = "-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-border-color: #c0392b; -fx-border-radius: 4; -fx-background-radius: 4;";
+        String styleCorrect = "-fx-background-color: #a3be8c; -fx-text-fill: #2e3440; -fx-font-weight: bold; -fx-background-radius: 8;";
+        String styleWrong = "-fx-background-color: #bf616a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;";
+        String styleDefault = "-fx-background-color: transparent; -fx-border-color: #4c566a; -fx-border-radius: 8; -fx-text-fill: #d8dee9;";
 
         int[] wrongCount = {0};
 
         for (int i = 0; i < options.size(); i++) {
             int idx = i;
             Button optBtn = new Button(letters[i] + ".  " + options.get(i));
-            optBtn.getStyleClass().add("cv-mcq-option");
+            optBtn.setStyle(styleDefault);
             optBtn.setMaxWidth(Double.MAX_VALUE);
+            optBtn.setPadding(new Insets(10, 15, 10, 15));
             optBtn.setFocusTraversable(false);
 
             if (isLocked) {
@@ -205,22 +228,31 @@ public class ChapterViewController {
     }
 
     private VBox buildFillBlankCard(QuestionDTO q, int number) {
-        VBox card = new VBox(12);
-        card.getStyleClass().add("cv-fill-card");
-        card.setPadding(new Insets(18, 22, 18, 22));
+        VBox card = new VBox(15);
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12;");
+        card.setPadding(new Insets(20));
 
         Label title = new Label("Exercise " + number);
-        Label codeLabel = new Label(q.content());
-        TextField inputField = new TextField();
-        Button checkBtn = new Button("Check");
+        title.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
 
-        String styleCorrectField = "-fx-background-color: #d4edda; -fx-text-fill: #155724; -fx-border-color: #28a745;";
+        Label codeLabel = new Label(q.content());
+        codeLabel.setStyle("-fx-font-family: 'Consolas', monospace; -fx-text-fill: #eceff4; -fx-background-color: #2e3440; -fx-padding: 10; -fx-background-radius: 5;");
+
+        TextField inputField = new TextField();
+        inputField.setPromptText("Enter missing code...");
+        inputField.setStyle("-fx-background-color: #434c5e; -fx-text-fill: white; -fx-border-color: #4c566a; -fx-border-radius: 4;");
+
+        Button checkBtn = new Button("Check Answer");
+        checkBtn.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: #2e3440; -fx-font-weight: bold;");
+
+        String styleCorrectField = "-fx-background-color: #a3be8c; -fx-text-fill: #2e3440; -fx-border-color: #a3be8c;";
 
         if (isQuestionCompleted(q)) {
             inputField.setText(q.solution());
             inputField.setStyle(styleCorrectField);
             inputField.setMouseTransparent(true);
             checkBtn.setMouseTransparent(true);
+            checkBtn.setOpacity(0.5);
         }
 
         checkBtn.setOnAction(e -> {
@@ -234,12 +266,15 @@ public class ChapterViewController {
                 checkBtn.setMouseTransparent(true);
                 handleCorrectAnswer(q,false);
             } else {
-                inputField.setStyle("-fx-border-color: #dc3545;");
+                inputField.setStyle("-fx-background-color: #434c5e; -fx-text-fill: white; -fx-border-color: #bf616a;");
                 handleWrongAnswer();
             }
         });
 
-        card.getChildren().addAll(buildMetadataHeader(q), title, codeLabel, new HBox(10, inputField, checkBtn));
+        HBox controls = new HBox(10, inputField, checkBtn);
+        HBox.setHgrow(inputField, Priority.ALWAYS);
+
+        card.getChildren().addAll(buildMetadataHeader(q), title, codeLabel, controls);
         return card;
     }
 
@@ -251,14 +286,14 @@ public class ChapterViewController {
                 .count();
 
         if (currentLessonCount < quizCount && !isChapterFinished) {
-            VBox lockedUI = new VBox(15);
+            VBox lockedUI = new VBox(20);
             lockedUI.setAlignment(javafx.geometry.Pos.CENTER);
             lockedUI.setPadding(new Insets(80, 40, 80, 40));
 
             Label lockIcon = new Label("🔒"); lockIcon.setStyle("-fx-font-size: 60px;");
             Label lockedTitle = new Label("Practice Section Locked");
-            lockedTitle.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
-            Label lockedDesc = new Label("You must complete the Multiple Choice and Fill-in-the-Blank sections before you can start coding!");
+            lockedTitle.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-size: 24px; -fx-font-weight: bold;");
+            Label lockedDesc = new Label("Complete the theory and quiz sections to unlock this coding challenge!");
             lockedDesc.setStyle("-fx-text-fill: #bdc3c7; -fx-font-size: 15px;");
             lockedDesc.setWrapText(true); lockedDesc.setMaxWidth(400);
             lockedDesc.setTextAlignment(javafx.scene.text.TextAlignment.CENTER);
@@ -284,7 +319,7 @@ public class ChapterViewController {
                 solverUI.setFocusTraversable(false);
 
                 QuestionSolverController solverController = loader.getController();
-                solverController.setQuestion(task); // Make sure QuestionSolverController expects QuestionDTO!
+                solverController.setQuestion(task);
 
                 Runnable pinScroll = () -> {
                     double currentVval = practiceScroll.getVvalue();
@@ -304,7 +339,7 @@ public class ChapterViewController {
                 }
 
                 Label hintLabel = new Label("💡 Hint: " + (task.hint() != null ? task.hint() : "Check your logic!"));
-                hintLabel.setStyle("-fx-text-fill: #f39c12; -fx-padding: 10; -fx-background-color: rgba(243, 156, 18, 0.1); -fx-border-radius: 4;");
+                hintLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-padding: 12; -fx-background-color: rgba(247, 148, 29, 0.1); -fx-background-radius: 8;");
                 hintLabel.setWrapText(true); hintLabel.setVisible(false); hintLabel.setManaged(false);
 
                 solverController.setOnSuccessCallback(isCorrect -> {
@@ -325,10 +360,10 @@ public class ChapterViewController {
                     }
                 });
 
-                VBox codeCardWrapper = new VBox(10);
+                VBox codeCardWrapper = createQuestionContainer();
                 codeCardWrapper.setFocusTraversable(true);
                 codeCardWrapper.getChildren().addAll(buildMetadataHeader(task), solverUI, hintLabel);
-                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 40, 0));
+                VBox.setMargin(codeCardWrapper, new Insets(0, 0, 30, 0));
                 practiceContainer.getChildren().add(codeCardWrapper);
 
             } catch (Exception e) { e.printStackTrace(); }
@@ -347,11 +382,10 @@ public class ChapterViewController {
 
         try {
             if (currentUser != null) {
-                // Assuming service uses DTO or IDs. If not, map it here.
                 if (userProgress != null) {
                     userProgress.setCompletedLessons(currentLessonCount);
                     if (isChapterFinished) userProgress.setCompleted(true);
-                    progressService.saveProgressDto(userProgress, currentUser.getUsername()); // Adjusted method name assumption
+                    progressService.saveProgressDto(userProgress, currentUser.getUsername());
                 }
 
                 if (!isGiveUp) {
@@ -387,8 +421,7 @@ public class ChapterViewController {
     private void updateHeaderProgress() {
         int total = uiQuestionOrder.size();
         if (total == 0 && chapter != null) total = chapter.totalLessons();
-        int xpReward = (chapter != null) ? chapter.xpReward() : 0;
-        headerXP.setText(String.format("XP: %d | %d/%d Lessons", xpReward, currentLessonCount, total));
+        headerXP.setText(String.format("%d/%d Lessons", currentLessonCount, total));
     }
 
     private boolean isQuestionCompleted(QuestionDTO q) {
@@ -436,12 +469,18 @@ public class ChapterViewController {
 
     private Label buildMetadataHeader(QuestionDTO q) {
         int xp = q.rewardXp();
-        int tokens = q.rewardToken();
         String difficulty = (q.questionDifficulty() != null) ? q.questionDifficulty().toString() : "NORMAL";
 
-        String metaText = String.format("ID: %d  |  Difficulty: %s  |  XP: %d  |  Tokens: %d", q.id(), difficulty, xp, tokens);
+        String metaText = String.format("%s • %d XP", difficulty, xp);
         Label metaLabel = new Label(metaText);
-        metaLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #95a5a6; -fx-font-weight: bold; -fx-padding: 0 0 5 0;");
+        metaLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: " + LOGO_BLUE + "; -fx-font-weight: bold; -fx-opacity: 0.8;");
         return metaLabel;
+    }
+
+    private VBox createQuestionContainer() {
+        VBox container = new VBox(15);
+        container.setPadding(new Insets(20));
+        container.setStyle("-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-border-width: 1;");
+        return container;
     }
 }

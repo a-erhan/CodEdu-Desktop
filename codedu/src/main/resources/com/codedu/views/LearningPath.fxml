@@ -1,64 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/25"
-            xmlns:fx="http://javafx.com/fxml/1"
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.codedu.controllers.LearningPathController">
 
     <top>
-        <VBox spacing="4">
-            <padding><Insets top="20" right="28" bottom="16" left="28"/></padding>
-
-            <HBox alignment="CENTER_LEFT" spacing="12">
-                <Label text="Learning path"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <Label fx:id="chapterCountLabel" text="0 Chapters"/>
-            </HBox>
-
-            <Label text="Master programming step-by-step. Complete chapters to unlock new challenges and earn XP."/>
+        <VBox spacing="8">
+            <padding><Insets top="25" right="45" bottom="20" left="45"/></padding>
+            <Label text="Learning Path" style="-fx-font-size: 26; -fx-font-weight: bold; -fx-text-fill: #eceff4;" />
+            <Label fx:id="chapterCountLabel" text="0 Chapters" style="-fx-text-fill: #00AEEF; -fx-font-weight: bold;" />
+            <Separator style="-fx-opacity: 0.3;" />
         </VBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent; -fx-background: #2e3440; -fx-border-color: transparent;">
             <VBox fx:id="pathContainer" alignment="TOP_CENTER" spacing="0">
-                <padding><Insets top="20" right="40" bottom="40" left="40"/></padding>
+                <padding><Insets top="15" bottom="50" /></padding>
             </VBox>
         </ScrollPane>
     </center>
 
     <right>
-        <VBox fx:id="detailPanel" spacing="12"
-              prefWidth="280" visible="false" managed="false">
-            <padding><Insets top="24" right="20" bottom="24" left="20"/></padding>
+        <VBox fx:id="detailPanel" spacing="22" prefWidth="320" visible="false" managed="false"
+              style="-fx-background-color: #3b4252; -fx-border-color: #4c566a; -fx-border-width: 0 0 0 1.5;">
+            <padding><Insets top="35" right="25" bottom="35" left="25"/></padding>
 
-            <ImageView fx:id="detailIconImage" fitWidth="72" fitHeight="72" preserveRatio="true"/>
-            <Label fx:id="detailTitle"/>
-            <Label fx:id="detailDifficulty"/>
-            <Label fx:id="detailDescription" wrapText="true"/>
+            <Label fx:id="detailTitle" textAlignment="CENTER" wrapText="true" />
+            <Label fx:id="detailDifficulty" />
 
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <Label fx:id="detailLessons"/>
+            <Separator style="-fx-opacity: 0.3;" />
+
+            <VBox spacing="8">
+                <Label text="COURSE OVERVIEW" style="-fx-font-size: 10; -fx-font-weight: bold; -fx-text-fill: #F7941D;" />
+                <Label fx:id="detailDescription" wrapText="true" style="-fx-text-fill: #d8dee9; -fx-line-spacing: 4;" />
+            </VBox>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="🏆" style="-fx-font-size: 16;" />
+                <Label fx:id="detailXP" style="-fx-font-size: 14; -fx-text-fill: #00AEEF;" />
             </HBox>
-            <HBox spacing="8" alignment="CENTER_LEFT">
-                <Label fx:id="detailXP"/>
-            </HBox>
 
-            <Region VBox.vgrow="ALWAYS"/>
-
-            <StackPane alignment="CENTER">
-                <Label fx:id="detailAction" text="Start chapter"/>
-            </StackPane>
+            <Region VBox.vgrow="ALWAYS" />
+            <Button fx:id="detailActionButton" text="Start Chapter" maxWidth="Infinity" prefHeight="45" />
         </VBox>
     </right>
-
 </BorderPane>
