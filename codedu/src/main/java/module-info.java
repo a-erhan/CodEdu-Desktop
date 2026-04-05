@@ -72,5 +72,5 @@ module com.codedu {
     opens com.codedu.services.implementations to spring.beans, spring.context, spring.core;
 
     exports com.codedu.seeders to spring.beans, spring.context, spring.core;
-    opens com.codedu.seeders to spring.beans, spring.context, spring.core;
+    opens com.codedu.seeders;
 }

@@ -88,6 +88,9 @@ public class MainShellController {
     private Button activeButton;
     private boolean darkTheme = true;
 
+    private long lastShellUserRefreshMs;
+    private static final long FOCUS_REFRESH_MIN_INTERVAL_MS = 900L;
+
     public void setUser(User user) {
         if (user == null) return;
 
@@ -107,6 +110,7 @@ public class MainShellController {
         );
 
         updateHeader();
+        lastShellUserRefreshMs = System.currentTimeMillis();
 
         chatWindowManager.connectUser(this.user);
 
@@ -171,7 +175,54 @@ public class MainShellController {
                 sidebarScroll.prefHeightProperty().bind(contentArea.heightProperty());
                 sidebarScroll.minHeightProperty().bind(contentArea.heightProperty());
             }
+            attachWindowFocusRefresh();
         });
+    }
+
+    private void attachWindowFocusRefresh() {
+        if (contentArea == null || contentArea.getScene() == null) {
+            return;
+        }
+        javafx.stage.Window w = contentArea.getScene().getWindow();
+        if (w == null) {
+            return;
+        }
+        if (Boolean.TRUE.equals(w.getProperties().get("codedu.shellFocusRefresh"))) {
+            return;
+        }
+        w.getProperties().put("codedu.shellFocusRefresh", true);
+        w.focusedProperty().addListener((obs, was, focused) -> {
+            if (Boolean.TRUE.equals(focused)) {
+                refreshShellUserFromDatabaseOnWindowFocus();
+            }
+        });
+    }
+
+    private void refreshShellUserFromDatabase() {
+        refreshShellUserFromDatabaseInternal(true);
+    }
+
+    private void refreshShellUserFromDatabaseOnWindowFocus() {
+        refreshShellUserFromDatabaseInternal(false);
+    }
+
+    private void refreshShellUserFromDatabaseInternal(boolean force) {
+        if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (!force && now - lastShellUserRefreshMs < FOCUS_REFRESH_MIN_INTERVAL_MS) {
+            return;
+        }
+        userService.getUserWithProfileData(user.getUsername()).ifPresent(fresh -> {
+            this.user = fresh;
+            if (initDemoModelsIfNeeded()) {
+                userService.saveUser(this.user);
+            }
+            this.gameState = user.getGameState();
+            updateHeader();
+        });
+        lastShellUserRefreshMs = System.currentTimeMillis();
     }
 
     private void setContentAndFill(Parent view) {
@@ -258,13 +309,7 @@ public class MainShellController {
     private void loadLearningPath() {
         if (this.user == null) return;
 
-        userService.getUserWithProfileData(this.user.getUsername()).ifPresent(freshUser -> {
-            this.user = freshUser;
-            if (initDemoModelsIfNeeded()) {
-                userService.saveUser(this.user);
-            }
-            Platform.runLater(this::updateHeader);
-        });
+        refreshShellUserFromDatabase();
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/LearningPath.fxml"));
@@ -285,6 +330,7 @@ public class MainShellController {
 
     // 🚀 Updated to accept ChapterDTO
     private void loadChapterView(ChapterDTO chapterDto) {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ChapterView.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -312,11 +358,7 @@ public class MainShellController {
             // 🚀 Pass both DTOs to the ChapterViewController
             controller.setChapter(chapterDto, progressDto);
 
-            controller.setOnProgressUpdated((updatedUser) -> {
-                this.user = updatedUser;
-                this.gameState = updatedUser.getGameState();
-                Platform.runLater(this::updateHeader);
-            });
+            controller.setOnProgressUpdated(ignored -> refreshShellUserFromDatabase());
 
             controller.setOnBack(() -> {
                 setActiveButton(btnLearningPath);
@@ -331,6 +373,7 @@ public class MainShellController {
     }
 
     private void loadDailyChallenge() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -348,6 +391,7 @@ public class MainShellController {
 
     // 🚀 Intercepts the raw Entity from Daily Challenge and turns it into a DTO
     private void openChallengePage(Question question) {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -383,16 +427,14 @@ public class MainShellController {
     }
 
     private void loadAchievements() {
+        refreshShellUserFromDatabase();
         try {
-            User freshUser = userService.getUserWithProfileData(user.getUsername())
-                    .orElse(this.user);
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Achievements.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             AchievementsController controller = loader.getController();
 
-            controller.setCurrentUser(freshUser);
+            controller.setCurrentUser(this.user);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -401,6 +443,7 @@ public class MainShellController {
     }
 
     private void loadForum() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Forum.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -418,6 +461,7 @@ public class MainShellController {
     }
 
     private void openForumPost(Integer postId) {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ForumPost.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -472,6 +516,7 @@ public class MainShellController {
     }
 
     private void loadMatchmaking() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -486,20 +531,20 @@ public class MainShellController {
     }
 
     private void loadStore() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Store.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             StoreController controller = loader.getController();
+
             controller.setUserModel(user);
-            controller.setOnUserUpdated(updated -> {
-                if (updated == null) {
-                    return;
-                }
-                this.user = updated;
-                this.gameState = updated.getGameState();
-                updateHeader();
+
+            controller.setOnUserUpdated(updatedUser -> {
+                if (updatedUser == null) return;
+                refreshShellUserFromDatabase();
             });
+
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -508,6 +553,7 @@ public class MainShellController {
     }
 
     private void loadInventory() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/InventoryItem.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -522,6 +568,7 @@ public class MainShellController {
     }
 
     private void loadAskAI() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/AskAI.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -536,6 +583,7 @@ public class MainShellController {
     }
 
     private void loadLeaderboard() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -573,6 +621,7 @@ public class MainShellController {
     }
 
     private void loadSettings() {
+        refreshShellUserFromDatabase();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Settings.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -595,13 +644,22 @@ public class MainShellController {
                         () -> openUserProfile(this.user));
     }
 
+    private UserGameState currentGameStateForHeader() {
+        if (user != null && user.getGameState() != null) {
+            return user.getGameState();
+        }
+        return gameState;
+    }
+
     private void updateHeader() {
         String username = (user.getUsername() != null && !user.getUsername().isEmpty()) ? user.getUsername() : "User";
-        int tokens = (gameState != null) ? gameState.getTokenBalance() : 0;
-        int level = (gameState != null) ? gameState.getLevel() : 1;
-        int xp = (gameState != null) ? gameState.getXp() : 0;
-        int hearts = (gameState != null) ? gameState.getHeartCount() : 0;
-        int streak = (gameState != null) ? gameState.getCurrentStreak() : 0;
+        UserGameState gs = currentGameStateForHeader();
+        this.gameState = gs;
+        int tokens = (gs != null) ? gs.getTokenBalance() : 0;
+        int level = (gs != null) ? gs.getLevel() : 1;
+        int xp = (gs != null) ? gs.getXp() : 0;
+        int hearts = (gs != null) ? gs.getHeartCount() : 0;
+        int streak = (gs != null) ? gs.getCurrentStreak() : 0;
 
         tokenLabel.setText("Tokens: " + tokens);
         badgeLabel.setText("Lvl " + level);

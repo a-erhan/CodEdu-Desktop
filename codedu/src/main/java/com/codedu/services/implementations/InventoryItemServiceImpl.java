@@ -28,10 +28,10 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public List<InventoryItemDTO> getItemsForUser(User user) {
-        if (user == null || user.getInventory() == null) {
-            return List.of();
-        }
+        if (user == null || user.getInventory() == null) return List.of();
+
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(ii -> !ii.isDeleted()) // Filter out deleted items
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -39,16 +39,16 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional(readOnly = true)
     public Optional<InventoryItem> getById(int id) {
-        return inventoryItemRepository.findById(id);
+        return inventoryItemRepository.findById(id).filter(ii -> !ii.isDeleted());
     }
 
     @Override
     @Transactional(readOnly = true)
     public Optional<InventoryItem> findByUserAndItem(User user, Item item) {
-        if (user == null || user.getInventory() == null || item == null) {
-            return Optional.empty();
-        }
-        return inventoryItemRepository.findByInventoryAndItem(user.getInventory(), item);
+        if (user == null || user.getInventory() == null || item == null) return Optional.empty();
+
+        return inventoryItemRepository.findByInventoryAndItem(user.getInventory(), item)
+                .filter(ii -> !ii.isDeleted());
     }
 
     @Override
@@ -67,8 +67,12 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Transactional(readOnly = true)
     public Optional<InventoryItem> getEquippedAvatar(User user) {
         if (user == null || user.getInventory() == null) return Optional.empty();
+
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
-                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AVATAR && i.isEquipped())
+                .filter(i -> !i.isDeleted() &&
+                        i.getItem() != null &&
+                        i.getItem().getType() == ItemType.AVATAR &&
+                        i.isEquipped())
                 .findFirst();
     }
 
@@ -76,8 +80,9 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Transactional(readOnly = true)
     public int getAiRequestBalance(User user) {
         if (user == null || user.getInventory() == null) return 0;
+
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
-                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AI_USAGE)
+                .filter(i -> !i.isDeleted() && i.getItem() != null && i.getItem().getType() == ItemType.AI_USAGE)
                 .mapToInt(InventoryItem::getQuantity)
                 .sum();
     }
@@ -86,14 +91,24 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Transactional
     public boolean consumeAiRequest(User user) {
         if (user == null || user.getInventory() == null) return false;
-        List<InventoryItem> aiItems = inventoryItemRepository.findByInventory(user.getInventory()).stream()
-                .filter(i -> i.getItem() != null && i.getItem().getType() == ItemType.AI_USAGE && i.getQuantity() > 0)
-                .collect(Collectors.toList());
-        if (aiItems.isEmpty()) return false;
-        InventoryItem target = aiItems.get(0);
-        InventoryItem managed = inventoryItemRepository.findById(target.getId()).orElse(null);
+
+        // Find the first available pack that has uses left
+        InventoryItem managed = inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(i -> !i.isDeleted() && i.getItem() != null &&
+                        i.getItem().getType() == ItemType.AI_USAGE &&
+                        i.getQuantity() > 0)
+                .findFirst()
+                .orElse(null);
+
         if (managed == null) return false;
+
         managed.setQuantity(managed.getQuantity() - 1);
+
+        // Optional: If you want to delete the item when it reaches 0
+        if (managed.getQuantity() <= 0) {
+            managed.setDeleted(true);
+        }
+
         inventoryItemRepository.update(managed);
         return true;
     }
@@ -101,36 +116,30 @@ public class InventoryItemServiceImpl implements InventoryItemService {
     @Override
     @Transactional
     public void setEquipped(InventoryItem inventoryItem, boolean equipped) {
-        if (inventoryItem == null || inventoryItem.getId() <= 0) {
-            return;
-        }
+        if (inventoryItem == null || inventoryItem.getId() <= 0) return;
 
         InventoryItem managed = inventoryItemRepository.findById(inventoryItem.getId()).orElse(null);
-        if (managed == null || managed.isDeleted() || managed.getItem() == null) {
+        if (managed == null || managed.isDeleted() || managed.getItem() == null) return;
+
+        // Only Avatars can be equipped
+        if (managed.getItem().getType() != ItemType.AVATAR) {
+            managed.setEquipped(false);
+            inventoryItemRepository.update(managed);
             return;
         }
 
-        ItemType type = managed.getItem().getType();
-
-        if (type != ItemType.AVATAR) {
-            if (managed.isEquipped()) {
-                managed.setEquipped(false);
-                inventoryItemRepository.update(managed);
-            }
-            return;
-        }
-
+        // Handle un-equipping
         if (!equipped) {
             managed.setEquipped(false);
             inventoryItemRepository.update(managed);
             return;
         }
 
-        if (managed.getInventory() == null || managed.getInventory().getId() <= 0) {
-            return;
-        }
-
+        // Logic for exclusive equipment:
+        // 1. Unequip all other avatars in this inventory
         inventoryItemRepository.unequipAllByInventoryAndType(managed.getInventory().getId(), ItemType.AVATAR);
+
+        // 2. Equip this one
         managed.setEquipped(true);
         inventoryItemRepository.update(managed);
     }
@@ -146,12 +155,14 @@ public class InventoryItemServiceImpl implements InventoryItemService {
                 .isEquipped(ii.isEquipped())
                 .build();
     }
+
     @Override
     @Transactional(readOnly = true)
     public List<InventoryItem> getItemEntitiesForUser(User user) {
-        if (user == null || user.getInventory() == null) {
-            return List.of();
-        }
-        return inventoryItemRepository.findByInventory(user.getInventory());
+        if (user == null || user.getInventory() == null) return List.of();
+
+        return inventoryItemRepository.findByInventory(user.getInventory()).stream()
+                .filter(ii -> !ii.isDeleted())
+                .collect(Collectors.toList());
     }
 }

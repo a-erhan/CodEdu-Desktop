@@ -188,6 +188,7 @@ public class UserServiceImpl implements UserService {
                 Hibernate.initialize(u.getGameState().getAchievements());
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
+                u.getGameState().getHeartCount();
             }
             try {
                 Hibernate.initialize(u.getCompetitor());
@@ -221,7 +222,7 @@ public class UserServiceImpl implements UserService {
 
             if (state == null) {
                 state = UserGameState.builder()
-                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                        .level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
 
@@ -284,7 +285,7 @@ public class UserServiceImpl implements UserService {
 
             if (state == null) {
                 state = UserGameState.builder()
-                        .user(user).level(1).xp(0).tokenBalance(0).heartCount(3).build();
+                        .level(1).xp(0).tokenBalance(0).heartCount(3).build();
                 user.setGameState(state);
             }
 

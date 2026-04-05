@@ -95,7 +95,7 @@ public class DailyChallengeServiceImpl implements DailyChallengeService {
 
         while (gameState.getXp() >= gameState.getXpToNextLevel()) {
             gameState.setLevel(gameState.getLevel() + 1);
-            gameState.setHeartCount(5);
+            gameState.setHeartCount(UserGameState.MAX_HEARTS);
         }
 
         if (correctAnswers == 3) {

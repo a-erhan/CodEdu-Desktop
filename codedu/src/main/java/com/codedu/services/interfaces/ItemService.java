@@ -12,6 +12,7 @@ public interface ItemService {
     Optional<ItemDTO> getItemDTOById(int id);
 
     Optional<Item> getItemById(int id);
+    void applyItemEffect(int userId, int itemId);
 
     List<ItemDTO> getAllItems();
 

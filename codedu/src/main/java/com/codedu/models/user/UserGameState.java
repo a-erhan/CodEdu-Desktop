@@ -21,6 +21,8 @@ import java.util.List;
 @Builder
 public class UserGameState extends BaseEntity {
 
+    public static final int MAX_HEARTS = 15;
+
     /**
      * Default progression row for a new account (matches shell bootstrap and seeder
      * expectations).
@@ -29,20 +31,14 @@ public class UserGameState extends BaseEntity {
         return UserGameState.builder()
                 .level(1)
                 .xp(0)
-                .heartCount(15)
+                .heartCount(3)
                 .tokenBalance(100)
                 .currentStreak(0)
                 .build();
     }
 
-    /**
-     * Owning side of the one-to-one: {@code user_game_states.user_id} references
-     * {@code users.id}.
-     */
     @Setter(AccessLevel.NONE)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true, nullable = false) // Changed nullable to
-                                                                                                // false
+    @OneToOne(mappedBy = "gameState", fetch = FetchType.LAZY)
     private User user;
 
     /**
@@ -89,7 +85,7 @@ public class UserGameState extends BaseEntity {
     }
 
     public void addHeart() {
-        if (this.heartCount < 5) {
+        if (this.heartCount < MAX_HEARTS) {
             this.heartCount++;
         }
     }

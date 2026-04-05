@@ -4,12 +4,15 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.ItemType;
 import com.codedu.models.user.User;
+import com.codedu.models.user.UserGameState;
 import com.codedu.services.interfaces.InventoryItemService;
+import com.codedu.services.interfaces.ItemService;
 import com.codedu.services.interfaces.StoreService;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -22,6 +25,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
@@ -35,6 +39,7 @@ import java.util.function.Consumer;
  * Displays purchasable items in a card grid, grouped by category.
  */
 @Controller
+@Scope("prototype")
 public class StoreController {
 
     @FXML
@@ -46,6 +51,8 @@ public class StoreController {
 
     @Autowired
     private StoreService storeService;
+    @Autowired
+    private ItemService itemService;
 
     @Autowired
     private InventoryItemService inventoryItemService;
@@ -57,11 +64,8 @@ public class StoreController {
     public void setUserModel(User user) {
         if (user == null)
             return;
-        // Keep Store and Inventory separate:
-        // Store shows a catalog (Store / Items), Inventory shows the user's owned items (InventoryItem).
-        // This method only marks catalog items as owned if the user has them in inventory.
         this.user = user;
-        allItems = storeService.getCatalogItemEntities();
+        allItems = itemService.getAllItemEntities();
         markOwnedItemsFromInventory();
         buildGrid();
     }
@@ -82,21 +86,16 @@ public class StoreController {
     private void buildGrid() {
         storeContent.getChildren().clear();
 
-        // Group items by type
         Map<ItemType, List<Item>> grouped = new LinkedHashMap<>();
-        grouped.put(ItemType.AVATAR, new ArrayList<>());
-        grouped.put(ItemType.BOOSTER, new ArrayList<>());
-        grouped.put(ItemType.AI_USAGE, new ArrayList<>());
+
         for (Item item : allItems) {
-            grouped.get(item.getType()).add(item);
+            grouped.computeIfAbsent(item.getType(), k -> new ArrayList<>()).add(item);
         }
 
         for (Map.Entry<ItemType, List<Item>> entry : grouped.entrySet()) {
-            if (entry.getValue().isEmpty())
-                continue;
-
             Label categoryLabel = new Label(categoryTitle(entry.getKey()));
             categoryLabel.getStyleClass().add(Styles.TITLE_3);
+            categoryLabel.setPadding(new Insets(20, 0, 10, 0));
             storeContent.getChildren().add(categoryLabel);
 
             FlowPane grid = new FlowPane(16, 16);
@@ -137,36 +136,67 @@ public class StoreController {
         priceLabel.getStyleClass().add(Styles.TEXT_SUBTLE);
         priceRow.getChildren().add(priceLabel);
 
-        Button buyBtn = new Button(item.isOwned() ? "Owned" : "Buy");
-        if (item.isOwned()) {
+        // --- LOGIC CHANGE START ---
+
+        // Determine if the item is a one-time purchase
+        boolean isOneTimeType = (item.getType() == ItemType.AVATAR);
+        boolean showAsOwned = isOneTimeType && item.isOwned();
+
+        Button buyBtn = new Button();
+
+        if (showAsOwned) {
+            buyBtn.setText("Owned");
             buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
+            buyBtn.setDisable(true); // Prevent clicking "Owned"
         } else {
+            buyBtn.setText("Buy");
             buyBtn.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
         }
         buyBtn.setMaxWidth(Double.MAX_VALUE);
 
-        if (!item.isOwned()) {
+        // Only allow clicking if it's not already an owned Avatar
+        if (!showAsOwned) {
             buyBtn.setOnAction(e -> {
                 if (user != null &&
                         user.getGameState() != null &&
                         user.getGameState().hasEnoughTokens(item.getPrice())) {
 
-                    // Do purchase inside a transaction (prevents LazyInitializationException)
                     User updated = storeService.purchaseItem(user.getId(), item.getId()).orElse(null);
                     if (updated != null) {
                         user = updated;
+                    } else {
+                        String nm = item.getName() != null ? item.getName().toLowerCase() : "";
+                        boolean heartSingle = nm.contains("heart") && !nm.contains("full");
+                        UserGameState gs = user.getGameState();
+                        boolean heartsFull = heartSingle && gs != null
+                                && gs.getHeartCount() >= UserGameState.MAX_HEARTS;
+                        Alert alert = new Alert(heartsFull ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
+                        alert.setTitle("Purchase did not complete");
+                        alert.setHeaderText(null);
+                        if (heartsFull) {
+                            alert.setContentText("You already have the maximum number of hearts ("
+                                    + UserGameState.MAX_HEARTS + "). Single refills are not available.");
+                        } else {
+                            alert.setContentText("Could not complete the purchase. Check that you have enough tokens.");
+                        }
+                        alert.showAndWait();
                     }
 
-                    item.setOwned(true);
-                    buyBtn.setText("Owned");
-                    buyBtn.getStyleClass().clear();
-                    buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
-                    buyBtn.setOnAction(null);
-                    if (onUserUpdated != null) {
+                    // If it's an avatar, mark as owned and lock the button
+                    if (isOneTimeType) {
+                        item.setOwned(true);
+                        buyBtn.setText("Owned");
+                        buyBtn.getStyleClass().clear();
+                        buyBtn.getStyleClass().addAll(Styles.SUCCESS, Styles.ROUNDED, Styles.FLAT);
+                        buyBtn.setOnAction(null);
+                        buyBtn.setDisable(true);
+                    }
+
+                    if (updated != null && onUserUpdated != null) {
                         onUserUpdated.accept(user);
                     }
 
-                    // Purchase animation
+                    // Success Animation
                     ScaleTransition st = new ScaleTransition(Duration.millis(200), card);
                     st.setToX(1.08);
                     st.setToY(1.08);
@@ -177,7 +207,8 @@ public class StoreController {
             });
         }
 
-        // Hover animation
+        // --- LOGIC CHANGE END ---
+
         card.setOnMouseEntered(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(150), card);
             st.setToX(1.04);
@@ -214,7 +245,6 @@ public class StoreController {
                 }
             } catch (Exception ignored) {}
         }
-        // Fallback: styled label
         String iconText = item.getType() == ItemType.AI_USAGE ? "🤖"
                 : item.getType() == ItemType.BOOSTER ? "⚡"
                 : item.getName().isEmpty() ? "?" : item.getName().substring(0, 1).toUpperCase();

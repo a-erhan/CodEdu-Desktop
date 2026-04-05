@@ -36,6 +36,7 @@ public abstract class GenericRepositoryImpl<T extends BaseEntity> implements Gen
     @Override
     public void update(T entity) {
         entityManager.merge(entity);
+        entityManager.flush();
     }
 
     @Override
