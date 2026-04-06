@@ -523,6 +523,7 @@ public class MainShellController {
             Parent view = loader.load();
             MatchmakingController controller = loader.getController();
             controller.setCurrentUser(user);
+            controller.setOnOpenProfile(username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();

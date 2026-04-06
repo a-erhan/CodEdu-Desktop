@@ -69,8 +69,9 @@
                     <Label text="Code Editor" style="-fx-font-weight: bold;"/>
                     <TextArea fx:id="codeArea" promptText="Write your solution here..." prefRowCount="12"/>
                     <HBox spacing="8">
-                        <Button fx:id="runButton" text="▶ Run Code"/>
                         <Button fx:id="submitButton" text="✓ Submit"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="resignButton" text="☠ Resign"/>
                     </HBox>
                     <Label text="Output" style="-fx-font-weight: bold;"/>
                     <TextArea fx:id="outputArea" editable="false" prefRowCount="4"/>
@@ -87,5 +88,41 @@
                 <Label fx:id="opponentAttempts" text="Opponent: 0"/>
             </VBox>
         </HBox>
+    </VBox>
+
+    <!-- ======== RESULTS STATE (hidden until match ends) ======== -->
+    <VBox fx:id="resultPane" alignment="CENTER" spacing="20" visible="false" style="-fx-background-color: -color-bg-default;">
+        <padding>
+            <Insets top="40" right="40" bottom="40" left="40"/>
+        </padding>
+        <Label fx:id="resultTitle" text="Match Complete!" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: -color-accent-emphasis;"/>
+        <Label fx:id="resultSubtitle" text="The results are in." style="-fx-font-size: 16px;"/>
+        
+        <HBox spacing="50" alignment="CENTER">
+            <!-- You -->
+            <VBox spacing="10" alignment="CENTER">
+                <Label fx:id="resultYouAvatar" text="Y" prefWidth="80" prefHeight="80" alignment="CENTER"
+                       style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-background-radius: 40; -fx-background-color: -color-accent-emphasis; -fx-text-fill: white; cursor: hand;" />
+                <Label text="You" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label fx:id="resultYouAttempts" text="0 Attempts" style="-fx-font-size: 14px;"/>
+            </VBox>
+            
+            <VBox spacing="10" alignment="CENTER">
+                <Label text="VS" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: -color-fg-muted;"/>
+                <Label fx:id="resultTime" text="Time: 00:00" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+            </VBox>
+
+            <!-- Opponent -->
+            <VBox spacing="10" alignment="CENTER">
+                <Label fx:id="resultOpponentAvatar" text="O" prefWidth="80" prefHeight="80" alignment="CENTER"
+                       style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-background-radius: 40; -fx-background-color: -color-danger-emphasis; -fx-text-fill: white; cursor: hand;" />
+                <Label fx:id="resultOpponentName" text="Opponent" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label fx:id="resultOpponentAttempts" text="0 Attempts" style="-fx-font-size: 14px;"/>
+            </VBox>
+        </HBox>
+        
+        <Region prefHeight="20"/>
+        <Label fx:id="resultRewardLabel" text="" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+        <Button fx:id="backToLobbyButton" text="Return to Lobby" prefWidth="200" prefHeight="45" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
     </VBox>
 </StackPane>

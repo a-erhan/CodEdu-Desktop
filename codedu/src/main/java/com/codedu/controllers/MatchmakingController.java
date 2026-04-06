@@ -69,9 +69,9 @@ public class MatchmakingController {
     @FXML
     private TextArea codeArea;
     @FXML
-    private Button runButton;
-    @FXML
     private Button submitButton;
+    @FXML
+    private Button resignButton;
     @FXML
     private TextArea outputArea;
     @FXML
@@ -85,11 +85,40 @@ public class MatchmakingController {
     @FXML
     private Label opponentAttempts;
 
+    // ── Result Pane ─────────────────────────────────────────────────────
+    @FXML
+    private VBox resultPane;
+    @FXML
+    private Label resultTitle;
+    @FXML
+    private Label resultSubtitle;
+    @FXML
+    private Label resultTime;
+    @FXML
+    private Label resultYouAvatar;
+    @FXML
+    private Label resultYouAttempts;
+    @FXML
+    private Label resultOpponentAvatar;
+    @FXML
+    private Label resultOpponentName;
+    @FXML
+    private Label resultOpponentAttempts;
+    @FXML
+    private Label resultRewardLabel;
+    @FXML
+    private Button backToLobbyButton;
+
     // ── State ───────────────────────────────────────────────────────────
     private User currentUser;
+    private GameRoom activeRoom;
+    private User activeOpponent;
     private CodeImplementationQuestion activeQuestion;
     private int elapsedSeconds = 0;
     private Timeline matchTimer;
+    private int localAttempts = 0;
+    private int opponentAttemptsCount = 0;
+    private java.util.function.Consumer<String> onOpenProfile;
 
     // ── Services ────────────────────────────────────────────────────────
     private final CodeExecutionService codeExecutionService;
@@ -127,6 +156,10 @@ public class MatchmakingController {
         this.currentUser = user;
     }
 
+    public void setOnOpenProfile(java.util.function.Consumer<String> onOpenProfile) {
+        this.onOpenProfile = onOpenProfile;
+    }
+
     // ====================================================================
     // Lobby → Find Match
     // ====================================================================
@@ -140,7 +173,7 @@ public class MatchmakingController {
         System.out.println("[MC] Find Match clicked. Connecting to matchmaking...");
 
         webSocketClientService.connectAndJoinMatchmaking(
-                currentUser.getId(), this::onMatchFound, this::onMatchResult);
+                currentUser.getId(), this::onMatchFound, this::onMatchResult, this::onAttemptReceived);
     }
 
     // ====================================================================
@@ -149,10 +182,14 @@ public class MatchmakingController {
 
     private void onMatchFound(GameRoom gameRoom) {
         System.out.println("[MC] >>> onMatchFound! Room: " + gameRoom.getRoomId());
+        
+        this.activeRoom = gameRoom;
 
         User opponent = (gameRoom.getPlayer1().getId() == currentUser.getId())
                 ? gameRoom.getPlayer2()
                 : gameRoom.getPlayer1();
+                
+        this.activeOpponent = opponent;
 
         // Reload full question from DB (testCases are @JsonIgnored on the wire).
         CodeImplementationQuestion fullQuestion = null;
@@ -180,24 +217,16 @@ public class MatchmakingController {
     private void onMatchResult(com.codedu.models.matchmaking.MatchResult result) {
         System.out.println("[MC] >>> onMatchResult! Winner: " + result.getWinnerId());
         Platform.runLater(() -> {
-            // Stop the match timer
-            if (matchTimer != null) {
-                matchTimer.stop();
-            }
-            // Disable answer input
-            if (codeArea != null) {
-                codeArea.setDisable(true);
-            }
-            if (submitButton != null) {
-                submitButton.setDisable(true);
-            }
-            // Show result
             boolean won = (currentUser != null && result.getWinnerId() == currentUser.getId());
-            if (subtitleLabel != null) {
-                subtitleLabel.setText(won ? "🏆 You Won!" : "😔 You Lost!");
-            }
-            if (timerLabel != null) {
-                timerLabel.setText(won ? "Winner!" : "Better luck next time");
+            showResultPane(won);
+        });
+    }
+
+    private void onAttemptReceived(com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+        Platform.runLater(() -> {
+            opponentAttemptsCount = update.getAttempts();
+            if (opponentAttempts != null) {
+                opponentAttempts.setText("Opponent: " + opponentAttemptsCount);
             }
         });
     }
@@ -252,8 +281,6 @@ public class MatchmakingController {
             outputArea.setText("");
 
         // Enable buttons
-        if (runButton != null)
-            runButton.setDisable(false);
         if (submitButton != null)
             submitButton.setDisable(false);
 
@@ -284,47 +311,6 @@ public class MatchmakingController {
     // ====================================================================
     // Code execution
     // ====================================================================
-
-    private void handleRunCode() {
-        if (activeQuestion == null || codeArea == null)
-            return;
-        String code = codeArea.getText();
-        if (code == null || code.trim().isEmpty()) {
-            if (outputArea != null)
-                outputArea.setText("Please write some code first!");
-            return;
-        }
-
-        String sampleInput = (activeQuestion.getTestCases() != null
-                && !activeQuestion.getTestCases().isEmpty())
-                        ? activeQuestion.getTestCases().get(0).getInput()
-                        : "";
-
-        if (outputArea != null)
-            outputArea.setText("Running with sample input: "
-                    + (sampleInput.isEmpty() ? "(none)" : sampleInput) + "\n");
-        runButton.setDisable(true);
-
-        final String finalInput = sampleInput;
-        Task<String> task = new Task<>() {
-            @Override
-            protected String call() {
-                return codeExecutionService.executeJavaCode(code, finalInput);
-            }
-        };
-        task.setOnSucceeded(e -> {
-            if (outputArea != null)
-                outputArea.setText("Output:\n" + task.getValue());
-            runButton.setDisable(false);
-        });
-        task.setOnFailed(e -> {
-            if (outputArea != null)
-                outputArea.setText("An error occurred during execution.");
-            runButton.setDisable(false);
-        });
-        new Thread(task).start();
-    }
-
     private void handleSubmitCode() {
         if (activeQuestion == null || codeArea == null)
             return;
@@ -338,7 +324,17 @@ public class MatchmakingController {
         if (outputArea != null)
             outputArea.setText("Evaluating all test cases...\n");
         submitButton.setDisable(true);
-        runButton.setDisable(true);
+
+        localAttempts++;
+        if (youAttempts != null) {
+            youAttempts.setText("You: " + localAttempts);
+        }
+        if (activeRoom != null && activeOpponent != null) {
+            com.codedu.models.matchmaking.MatchAttemptUpdate update = new com.codedu.models.matchmaking.MatchAttemptUpdate(
+                activeRoom.getRoomId(), currentUser.getId(), activeOpponent.getId(), localAttempts
+            );
+            webSocketClientService.sendAttemptUpdate(update);
+        }
 
         Task<Boolean> task = new Task<>() {
             @Override
@@ -351,25 +347,87 @@ public class MatchmakingController {
             if (passed) {
                 if (outputArea != null)
                     outputArea.setText("🎉 Congratulations! You passed all test cases!");
+                    
+                // End match by reporting win to server 
+                if (activeRoom != null && activeOpponent != null) {
+                    com.codedu.models.matchmaking.MatchResult result = new com.codedu.models.matchmaking.MatchResult(
+                        activeRoom.getRoomId(),
+                        currentUser.getId(),
+                        activeOpponent.getId(),
+                        currentUser.getUsername()
+                    );
+                    webSocketClientService.sendMatchResult(result);
+                }
             } else {
                 if (outputArea != null)
                     outputArea.setText("❌ Some test cases failed. Please try again.");
             }
             submitButton.setDisable(false);
-            runButton.setDisable(false);
         });
         task.setOnFailed(e -> {
             if (outputArea != null)
                 outputArea.setText("A system error occurred during evaluation.");
             submitButton.setDisable(false);
-            runButton.setDisable(false);
         });
         new Thread(task).start();
+    }
+
+    private void handleResign() {
+        if (activeRoom == null || activeOpponent == null) return;
+        
+        System.out.println("[MC] Resign clicked.");
+        if (resignButton != null) resignButton.setDisable(true);
+        if (submitButton != null) submitButton.setDisable(true);
+        if (codeArea != null) codeArea.setDisable(true);
+        
+        com.codedu.models.matchmaking.MatchResult result = new com.codedu.models.matchmaking.MatchResult(
+            activeRoom.getRoomId(),
+            activeOpponent.getId(),
+            currentUser.getId(),
+            activeOpponent.getUsername()
+        );
+        webSocketClientService.sendMatchResult(result);
     }
 
     // ====================================================================
     // Style / wiring helpers
     // ====================================================================
+
+    private void showResultPane(boolean won) {
+        if (matchTimer != null) matchTimer.stop();
+        if (matchPane != null) matchPane.setVisible(false);
+        if (resultPane != null) resultPane.setVisible(true);
+
+        if (resultTitle != null) {
+            resultTitle.setText(won ? "Match Won!" : "Match Lost!");
+            resultTitle.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: " + (won ? "-color-success-emphasis;" : "-color-danger-emphasis;"));
+        }
+        
+        int mins = elapsedSeconds / 60;
+        int secs = elapsedSeconds % 60;
+        if (resultTime != null) {
+            resultTime.setText(String.format("Time: %02d:%02d", mins, secs));
+        }
+
+        if (resultYouAttempts != null) resultYouAttempts.setText(localAttempts + " Attempts");
+        if (resultOpponentAttempts != null) resultOpponentAttempts.setText(opponentAttemptsCount + " Attempts");
+
+        if (resultYouAvatar != null && currentUser != null) {
+            resultYouAvatar.setText(currentUser.getUsername().substring(0, 1).toUpperCase());
+            resultYouAvatar.setOnMouseClicked(e -> { if (onOpenProfile != null) onOpenProfile.accept(currentUser.getUsername()); });
+        }
+        
+        if (resultOpponentAvatar != null && activeOpponent != null) {
+            resultOpponentAvatar.setText(activeOpponent.getUsername().substring(0, 1).toUpperCase());
+            resultOpponentName.setText(activeOpponent.getUsername());
+            resultOpponentAvatar.setOnMouseClicked(e -> { if (onOpenProfile != null) onOpenProfile.accept(activeOpponent.getUsername()); });
+        }
+
+        if (resultRewardLabel != null) {
+            resultRewardLabel.setText(won ? "+50 XP ✨  +50 Tokens 🪙" : "-50 XP 📉  -50 Tokens 💸");
+            resultRewardLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (won ? "-color-success-emphasis;" : "-color-danger-emphasis;"));
+        }
+    }
 
     private void applyLobbyStyles() {
         if (findMatchButton != null)
@@ -401,13 +459,20 @@ public class MatchmakingController {
     private void wireButtons() {
         if (findMatchButton != null)
             findMatchButton.setOnAction(e -> onFindMatchClicked());
-        if (runButton != null) {
-            runButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.ROUNDED);
-            runButton.setOnAction(e -> handleRunCode());
-        }
         if (submitButton != null) {
             submitButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
             submitButton.setOnAction(e -> handleSubmitCode());
+        }
+        if (resignButton != null) {
+            resignButton.getStyleClass().addAll(Styles.DANGER, Styles.ROUNDED);
+            resignButton.setOnAction(e -> handleResign());
+        }
+        if (backToLobbyButton != null) {
+            backToLobbyButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
+            backToLobbyButton.setOnAction(e -> {
+                if (resultPane != null) resultPane.setVisible(false);
+                showLobby();
+            });
         }
     }
 }

@@ -24,7 +24,7 @@ import java.util.Set;
 // Prevent Jackson from traversing Hibernate lazy-proxy fields during STOMP
 // serialisation.
 // 'hibernateLazyInitializer' and 'handler' are Hibernate proxy internals.
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory" })
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory", "sentFriendRequests", "receivedFriendRequests", "posts" })
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)

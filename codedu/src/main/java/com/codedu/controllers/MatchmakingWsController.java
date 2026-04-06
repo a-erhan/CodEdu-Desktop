@@ -40,4 +40,21 @@ public class MatchmakingWsController {
     public void handleLeave(@Payload Integer userId) {
         matchmakingService.leaveQueue(userId);
     }
+
+    /**
+     * Winning client sends the MatchResult to /app/match.win.
+     * We broadcast the result to both players so they know the match ended.
+     */
+    @MessageMapping("/match.win")
+    public void handleWin(@Payload com.codedu.models.matchmaking.MatchResult result) {
+        matchmakingService.reportWin(result);
+    }
+
+    /**
+     * Client sends their attempt count to /app/match.attempt.
+     */
+    @MessageMapping("/match.attempt")
+    public void handleAttempt(@Payload com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+        matchmakingService.broadcastAttempt(update);
+    }
 }

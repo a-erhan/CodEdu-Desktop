@@ -13,9 +13,11 @@ public interface WebSocketClientService {
     void sendMessage(ChatMessageDTO message);
 
     void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
-            Consumer<MatchResult> onMatchResult);
+            Consumer<MatchResult> onMatchResult, java.util.function.Consumer<com.codedu.models.matchmaking.MatchAttemptUpdate> onAttemptUpdate);
 
     void leaveMatchmaking(int userId);
 
     void sendMatchResult(MatchResult result);
+
+    void sendAttemptUpdate(com.codedu.models.matchmaking.MatchAttemptUpdate update);
 }
