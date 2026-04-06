@@ -141,7 +141,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
      *                     {@code Platform.runLater()}
      */
     public void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
-            Consumer<com.codedu.models.matchmaking.MatchResult> onMatchResult) {
+            Consumer<com.codedu.models.matchmaking.MatchResult> onMatchResult, Consumer<com.codedu.models.matchmaking.MatchAttemptUpdate> onAttemptUpdate) {
         // Clean up any previous matchmaking session
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.disconnect();
@@ -196,8 +196,14 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                                         System.out.println("[WS-Match] Identified as MatchResult.");
                                         com.codedu.models.matchmaking.MatchResult result = mapper.treeToValue(node,
                                                 com.codedu.models.matchmaking.MatchResult.class);
-                                        onMatchResult.accept(result);
+                                        if (onMatchResult != null) onMatchResult.accept(result);
                                         System.out.println("[WS-Match] onMatchResult callback completed.");
+                                    } else if (node.has("attempts")) {
+                                        System.out.println("[WS-Match] Identified as MatchAttemptUpdate.");
+                                        com.codedu.models.matchmaking.MatchAttemptUpdate update = mapper.treeToValue(node,
+                                                com.codedu.models.matchmaking.MatchAttemptUpdate.class);
+                                        if (onAttemptUpdate != null) onAttemptUpdate.accept(update);
+                                        System.out.println("[WS-Match] onAttemptUpdate callback completed.");
                                     } else {
                                         System.err.println("[WS-Match] Unknown message type: "
                                                 + json.substring(0, Math.min(200, json.length())));
@@ -246,6 +252,12 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                     "[WS-Match] Sent match.win for roomId=" + result.getRoomId() + ", winner=" + result.getWinnerId());
         } else {
             System.err.println("[WS-Match] Error: Cannot send MatchResult, session disconnected.");
+        }
+    }
+
+    public void sendAttemptUpdate(com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+        if (matchSession != null && matchSession.isConnected()) {
+            matchSession.send("/app/match.attempt", update);
         }
     }
 

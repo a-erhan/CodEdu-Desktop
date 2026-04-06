@@ -9,6 +9,7 @@ import com.codedu.repositories.interfaces.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Random;
@@ -32,12 +33,14 @@ public class MatchmakingServiceImpl implements MatchmakingService {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final QuestionRepository questionRepository;
+    private final com.codedu.repositories.interfaces.UserRepository userRepository;
 
     @Autowired
     public MatchmakingServiceImpl(SimpMessagingTemplate messagingTemplate,
-            QuestionRepository questionRepository) {
+            QuestionRepository questionRepository, com.codedu.repositories.interfaces.UserRepository userRepository) {
         this.messagingTemplate = messagingTemplate;
         this.questionRepository = questionRepository;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -70,6 +73,60 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     public synchronized void leaveQueue(int userId) {
         playerQueue.removeIf(u -> u.getId() == userId);
         System.out.println("[Matchmaking] Player " + userId + " left the queue.");
+    }
+
+    /**
+     * Broadcasts the match result to both players in the room, and applies rewards.
+     */
+    @Override
+    @Transactional
+    public void reportWin(com.codedu.models.matchmaking.MatchResult result) {
+        if (result == null) return;
+        
+        System.out.println("[Matchmaking] Match over! Winner ID: " + result.getWinnerId());
+        
+        // Gamification
+        try {
+            userRepository.findById(result.getWinnerId()).ifPresent(winner -> {
+                com.codedu.models.user.UserGameState state = winner.getGameState();
+                if (state != null) {
+                    state.setXp(state.getXp() + 50);
+                    state.setTokenBalance(state.getTokenBalance() + 50);
+                    userRepository.update(winner);
+                }
+            });
+            userRepository.findById(result.getLoserId()).ifPresent(loser -> {
+                com.codedu.models.user.UserGameState state = loser.getGameState();
+                if (state != null) {
+                    state.setXp(Math.max(0, state.getXp() - 50));
+                    state.setTokenBalance(Math.max(0, state.getTokenBalance() - 50));
+                    userRepository.update(loser);
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("[Matchmaking] ERROR updating gamification: " + e.getMessage());
+        }
+        
+        String dest1 = "/topic/match/" + result.getWinnerId();
+        String dest2 = "/topic/match/" + result.getLoserId();
+        
+        try {
+            messagingTemplate.convertAndSend(dest1, result);
+            messagingTemplate.convertAndSend(dest2, result);
+        } catch (Exception e) {
+            System.err.println("[Matchmaking] ERROR broadcasting match result: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void broadcastAttempt(com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+        if (update == null) return;
+        String dest = "/topic/match/" + update.getTargetId();
+        try {
+            messagingTemplate.convertAndSend(dest, update);
+        } catch (Exception e) {
+            System.err.println("[Matchmaking] ERROR broadcasting match attempt: " + e.getMessage());
+        }
     }
 
     // -------------------------------------------------------------------------
