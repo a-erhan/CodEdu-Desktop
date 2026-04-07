@@ -10,35 +10,36 @@
 
 <VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.ForumPostController"
-      spacing="20" style="-fx-background-color: #1A1F25;">
+      spacing="20" style="-fx-background-color: #2e3440;">
 
     <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
 
     <HBox alignment="CENTER_LEFT" spacing="15">
-        <Button fx:id="backButton" text="← Back to Forum" />
+        <Button fx:id="backButton" text="← BACK TO FORUM" />
     </HBox>
 
-    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0;" VBox.vgrow="ALWAYS">
         <VBox spacing="25">
-            <VBox fx:id="postCard" spacing="15">
+            <padding><Insets right="15"/></padding>
+            <VBox fx:id="postCard" spacing="15" style="-fx-padding: 20;">
                 <VBox spacing="5">
                     <Label fx:id="titleLabel" wrapText="true" />
                     <Label fx:id="metaLabel" />
                 </VBox>
                 <TextArea fx:id="contentArea" editable="false" wrapText="true" prefRowCount="8"
-                          style="-fx-background-color: transparent; -fx-control-inner-background: transparent; -fx-background-insets: 0;"/>
+                          style="-fx-font-size: 14px;"/>
             </VBox>
 
             <VBox spacing="15">
-                <Label text="REPLIES" style="-fx-text-fill: #00ADEF; -fx-font-weight: bold; -fx-font-size: 11px;"/>
-                <VBox fx:id="repliesList" spacing="12" />
+                <Label text="DISCUSSION REPLIES" style="-fx-text-fill: #4c566a; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                <VBox fx:id="repliesList" spacing="15" />
             </VBox>
 
-            <VBox spacing="10" style="-fx-background-color: #303846; -fx-padding: 20; -fx-background-radius: 20;">
-                <Label text="ADD A REPLY" style="-fx-text-fill: #D9822B; -fx-font-weight: bold; -fx-font-size: 11px;"/>
-                <TextArea fx:id="replyArea" promptText="Write your reply here..." prefRowCount="4" wrapText="true"/>
+            <VBox spacing="15" style="-fx-background-color: #3b4252; -fx-padding: 20; -fx-background-radius: 12; -fx-border-color: #4c566a; -fx-border-radius: 12;">
+                <Label text="ADD A REPLY" style="-fx-text-fill: #F7941D; -fx-font-weight: bold; -fx-font-size: 11px;"/>
+                <TextArea fx:id="replyArea" promptText="Contribute to the conversation..." prefRowCount="4" wrapText="true"/>
                 <HBox alignment="CENTER_RIGHT">
-                    <Button fx:id="replyButton" text="Post Reply" prefWidth="120" prefHeight="35"/>
+                    <Button fx:id="replyButton" text="POST REPLY" prefWidth="140" prefHeight="35"/>
                 </HBox>
             </VBox>
         </VBox>

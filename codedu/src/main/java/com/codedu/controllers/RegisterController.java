@@ -13,43 +13,47 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-/**
- * Simple registration screen that creates a User and opens the main shell.
- * In a real app, this would persist the user via a service/repository.
- */
 @Controller
 public class RegisterController {
 
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private TextField emailField;
-    @FXML
-    private PasswordField passwordField;
-    @FXML
-    private PasswordField confirmPasswordField;
-    @FXML
-    private Label errorLabel;
-    @FXML
-    private Button registerButton;
-    @Autowired
-    private AuthService authService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private StageNavigator navigator;
+    @FXML private Label titleLabel, errorLabel;
+    @FXML private TextField emailField;
+    @FXML private PasswordField passwordField, confirmPasswordField;
+    @FXML private Button registerButton, backButton;
+    @FXML private VBox registerCard;
+
+    @Autowired private AuthService authService;
+    @Autowired private UserService userService;
+    @Autowired private StageNavigator navigator;
 
     @FXML
     public void initialize() {
+        String LOGO_BLUE = "#00AEEF";
+        String LOGO_ORANGE = "#F7941D";
+
         if (titleLabel != null) {
-            titleLabel.getStyleClass().add(Styles.TITLE_3);
+            titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
         }
+
         if (registerButton != null) {
-            registerButton.getStyleClass().addAll(Styles.ACCENT, Styles.LARGE, Styles.ROUNDED);
+            registerButton.setStyle(
+                    "-fx-background-color: transparent; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-border-color: " + LOGO_BLUE + "; " +
+                            "-fx-border-width: 1.5; " +
+                            "-fx-border-radius: 5; " +
+                            "-fx-cursor: hand; " +
+                            "-fx-font-weight: bold;"
+            );
+        }
+
+        if (errorLabel != null) {
+            errorLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + ";");
         }
     }
 
@@ -70,16 +74,14 @@ public class RegisterController {
 
         String registrationResult = authService.register(new UserRegisterDTO(null, email, password));
 
-        // If registration fails (e.g., email already exists), show the error and stop
         if (!"SUCCESS".equals(registrationResult)) {
             errorLabel.setText(registrationResult);
             return;
         }
 
-        // Registration successful! Now let's automatically log them in to fetch the real User entity from DB
         UserDTO loggedInUser = authService.login(new UserLoginDTO(email, password));
         if (loggedInUser == null) {
-            errorLabel.setText("Account created, but automatic login failed. Please go to Login page.");
+            errorLabel.setText("Account created! Please go to Login page to sign in.");
             return;
         }
 
@@ -94,7 +96,7 @@ public class RegisterController {
                     c -> c.setUser(fullUser));
             stage.setMaximized(true);
         } catch (Exception e) {
-            errorLabel.setText("Failed to create account.");
+            errorLabel.setText("An error occurred during setup.");
             e.printStackTrace();
         }
     }
@@ -106,9 +108,8 @@ public class RegisterController {
             navigator.replaceSceneFixed(stage, "/com/codedu/views/Login.fxml", LoginController.class, null,
                     1200, 750);
         } catch (Exception e) {
-            errorLabel.setText("Failed to go back to login.");
+            errorLabel.setText("Failed to return to login.");
             e.printStackTrace();
         }
     }
 }
-

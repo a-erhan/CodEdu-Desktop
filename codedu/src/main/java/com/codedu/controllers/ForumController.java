@@ -47,22 +47,34 @@ public class ForumController {
 
     @Autowired
     private ForumService forumService;
+    
+    private final String LOGO_BLUE = "#00AEEF";
+    private final String LOGO_ORANGE = "#F7941D";
+    private final String DARK_BG = "#2e3440";
+    private final String CARD_BG = "#3b4252";
+    private final String BORDER_COLOR = "#4c566a";
 
     @FXML
     public void initialize() {
         if (titleLabel != null) {
             titleLabel.getStyleClass().add(Styles.TITLE_3);
-            titleLabel.setStyle("-fx-text-fill: white;");
+            titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
         }
 
         if (newPostCard != null) {
             newPostCard.setPadding(new Insets(20));
-            newPostCard.setStyle("-fx-background-color: #303846; -fx-background-radius: 20; -fx-border-color: #404856; -fx-border-radius: 20;");
+            newPostCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + BORDER_COLOR + "; -fx-border-radius: 12; -fx-border-width: 1;");
         }
+
+        if (newPostTitleField != null)
+            newPostTitleField.setStyle("-fx-control-inner-background: " + DARK_BG + "; -fx-text-fill: white;");
+
+        if (newPostBodyArea != null)
+            newPostBodyArea.setStyle("-fx-control-inner-background: " + DARK_BG + "; -fx-text-fill: white;");
 
         if (postButton != null) {
             postButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED);
-            postButton.setStyle("-fx-background-color: #00ADEF; -fx-text-fill: white; -fx-font-weight: bold;");
+            postButton.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: #2e3440; -fx-font-weight: bold;");
             postButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent e) {
@@ -158,8 +170,8 @@ public class ForumController {
             final VBox card = new VBox(8);
             card.setPadding(new Insets(20));
 
-            final String baseStyle = "-fx-background-color: #303846; -fx-background-radius: 20; -fx-border-color: #404856; -fx-border-width: 1; -fx-border-radius: 20;";
-            final String hoverStyle = "-fx-background-color: #3A4452; -fx-background-radius: 20; -fx-border-color: #00ADEF; -fx-border-width: 1; -fx-border-radius: 20;";
+            final String baseStyle = "-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + BORDER_COLOR + "; -fx-border-width: 1; -fx-border-radius: 12;";
+            final String hoverStyle = "-fx-background-color: #434c5e; -fx-background-radius: 12; -fx-border-color: " + LOGO_BLUE + "; -fx-border-width: 1; -fx-border-radius: 12;";
             card.setStyle(baseStyle);
             card.setAlignment(Pos.TOP_LEFT);
             card.getStyleClass().addAll(Styles.INTERACTIVE);
@@ -169,7 +181,7 @@ public class ForumController {
 
             String authorName = post.authorUsername() != null ? post.authorUsername() : "Anonymous";
             final Label meta = new Label("BY " + authorName.toUpperCase() + " • " + post.replyCount() + " REPLIES");
-            meta.setStyle("-fx-text-fill: #D9822B; -fx-font-size: 11px; -fx-font-weight: bold;");
+            meta.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-size: 11px; -fx-font-weight: bold;");
 
             if (post.authorUsername() != null) {
                 meta.setOnMouseClicked(new EventHandler<MouseEvent>() {
@@ -240,6 +252,7 @@ public class ForumController {
         if (postButton == null || newPostTitleField == null || newPostBodyArea == null) return;
         boolean disable = newPostTitleField.getText().trim().isEmpty() || newPostBodyArea.getText().trim().isEmpty();
         postButton.setDisable(disable);
+        postButton.setOpacity(disable ? 0.5 : 1.0);
     }
 
     public void setCurrentUser(User user) { this.currentUser = user; }

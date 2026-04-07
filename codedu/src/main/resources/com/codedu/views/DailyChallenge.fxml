@@ -11,33 +11,32 @@
 <VBox xmlns="http://javafx.com/javafx/25"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.codedu.controllers.DailyChallengeController"
-      alignment="TOP_CENTER" maxWidth="900"
-      style="-fx-background-color: #1A1F25;"> <padding>
-    <Insets top="30" right="20" bottom="30" left="20"/>
-</padding>
+      alignment="TOP_CENTER" maxWidth="1000"
+      style="-fx-background-color: #2e3440;">
 
-    <HBox alignment="CENTER_LEFT" spacing="15">
-        <padding>
-            <Insets bottom="20.0"/>
-        </padding>
-        <ImageView fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
+    <padding>
+        <Insets top="30" right="40" bottom="30" left="40"/>
+    </padding>
+
+    <HBox alignment="CENTER_LEFT" spacing="20">
+        <padding><Insets bottom="25.0"/></padding>
+        <ImageView fitHeight="45.0" fitWidth="45.0" pickOnBounds="true" preserveRatio="true">
             <image>
                 <Image url="@../images/app_logo.png"/>
             </image>
         </ImageView>
-        <VBox alignment="CENTER_LEFT" spacing="5">
-            <Label fx:id="titleLabel" text="Daily Challenges"/>
+        <VBox alignment="CENTER_LEFT" spacing="4">
+            <Label fx:id="titleLabel" text="DAILY MISSIONS"/>
             <Label fx:id="subtitleLabel"
-                   text="Tackle today’s challenges. Each card is a separate task with its own rewards."
-                   wrapText="true"/>
+                   text="Solve today's coding challenges to earn XP and strengthen your developer profile."
+                   style="-fx-text-fill: #bdc3c7; -fx-font-size: 13px;" wrapText="true"/>
         </VBox>
     </HBox>
 
-    <ScrollPane fitToWidth="true" styleClass="edge-to-edge" hbarPolicy="NEVER" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
-        <VBox fx:id="challengeList" spacing="16" fillWidth="true" alignment="TOP_CENTER">
-            <padding>
-                <Insets top="10" bottom="20"/>
-            </padding>
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0;">
+        <VBox fx:id="challengeList" spacing="20" fillWidth="true" alignment="TOP_CENTER">
+            <padding><Insets top="10" bottom="20" right="10"/></padding>
         </VBox>
     </ScrollPane>
 

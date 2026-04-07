@@ -10,7 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -24,16 +23,20 @@ import java.util.function.Consumer;
 @Controller
 public class DailyChallengeController {
 
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private Label subtitleLabel;
-    @FXML
-    private VBox challengeList;
+    @FXML private Label titleLabel;
+    @FXML private Label subtitleLabel;
+    @FXML private VBox challengeList;
+
     private final DailyChallengeService dailyChallengeService;
     private DailyChallenge todayChallenge;
     private Runnable onBack;
     private Consumer<Question> onStartQuestion;
+
+    private final String LOGO_BLUE = "#00AEEF";
+    private final String LOGO_ORANGE = "#F7941D";
+    private final String DARK_BG = "#2e3440";
+    private final String CARD_BG = "#3b4252";
+    private final String BORDER_COLOR = "#4c566a";
 
     public DailyChallengeController(DailyChallengeService dailyChallengeService) {
         this.dailyChallengeService = dailyChallengeService;
@@ -51,8 +54,8 @@ public class DailyChallengeController {
     @FXML
     public void initialize() {
         if (titleLabel != null) {
-            titleLabel.getStyleClass().add(Styles.TITLE_1);
-            titleLabel.setStyle("-fx-text-fill: white;");
+            titleLabel.getStyleClass().add(Styles.TITLE_3);
+            titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
         }
         if (subtitleLabel != null) {
             subtitleLabel.setStyle("-fx-text-fill: #A0AAB4;");
@@ -69,9 +72,7 @@ public class DailyChallengeController {
     }
 
     private void buildChallenges() {
-        if (challengeList == null) {
-            return;
-        }
+        if (challengeList == null) return;
         challengeList.getChildren().clear();
 
         if (todayChallenge == null) {
@@ -80,35 +81,29 @@ public class DailyChallengeController {
             return;
         }
 
-        if (titleLabel != null) titleLabel.setText(todayChallenge.getName());
+        if (titleLabel != null) titleLabel.setText(todayChallenge.getName().toUpperCase());
         if (subtitleLabel != null) subtitleLabel.setText(todayChallenge.getDescription());
-
-        // --- Theme Colors ---
-        final String main_blue = "#00ADEF";
-        final String main_dark = "#303846";
-        final String alt_dark = "#2A313C";
-        final String muted_orange = "#D9822B"; // The "Not bright" orange
 
         List<Question> questions = todayChallenge.getQuestions();
         int totalXp = todayChallenge.getReward() != null ? todayChallenge.getReward().getXp() : 0;
         int xpPerQuestion = questions.isEmpty() ? 0 : totalXp / questions.size();
 
-        // 1. Header Summary Card
+        // summarycard
         VBox summaryBox = new VBox(10);
         summaryBox.setAlignment(Pos.CENTER);
         summaryBox.setPadding(new Insets(20));
         summaryBox.setMaxWidth(850);
-        summaryBox.setStyle("-fx-background-color: " + alt_dark + "; -fx-border-color: " + main_blue + "; -fx-border-width: 0 0 0 4; -fx-background-radius: 10;");
+        summaryBox.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + LOGO_BLUE + "; -fx-border-width: 0 0 0 5; -fx-background-radius: 12;");
 
-        Label rewardSummary = new Label("DAILY REWARD: " + totalXp + " XP");
-        rewardSummary.setStyle("-fx-text-fill: " + muted_orange + "; -fx-font-weight: bold; -fx-font-size: 18px;");
-        Label rewardDetail = new Label("Tackle these tasks to sharpen your skills and earn rewards.");
-        rewardDetail.setStyle("-fx-text-fill: white;");
+        Label rewardSummary = new Label("DAILY REWARDS AVAILABLE: " + totalXp + " XP");
+        rewardSummary.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px;");
+        Label rewardDetail = new Label("Complete today's tasks to claim your progress rewards.");
+        rewardDetail.setStyle("-fx-text-fill: #A0AAB4;");
         summaryBox.getChildren().addAll(rewardSummary, rewardDetail);
 
         challengeList.getChildren().add(summaryBox);
 
-        // 2. Main Layout (Tasks + Sidebar)
+        // content
         HBox mainContent = new HBox(30);
         mainContent.setAlignment(Pos.TOP_CENTER);
         mainContent.setPadding(new Insets(20, 0, 0, 0));
@@ -123,27 +118,24 @@ public class DailyChallengeController {
             card.setAlignment(Pos.CENTER_LEFT);
             card.setPadding(new Insets(18, 25, 18, 25));
 
-            final String baseStyle = "-fx-background-color: " + (currentNum % 2 == 0 ? alt_dark : main_dark) + "; " +
-                    "-fx-border-color: #404856; -fx-border-width: 1px; " +
-                    "-fx-background-radius: 20; -fx-border-radius: 20;";
+            final String baseStyle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + BORDER_COLOR + "; -fx-border-width: 1px; -fx-background-radius: 12; -fx-border-radius: 12;";
             card.setStyle(baseStyle);
 
             VBox textContainer = new VBox(5);
             textContainer.setAlignment(Pos.CENTER_LEFT);
 
-            // Muted Orange Task Label
-            final Label chTitle = new Label("Task " + currentNum);
+            final Label chTitle = new Label("TASK 0" + currentNum);
             chTitle.getStyleClass().add(Styles.TEXT_BOLD);
-            chTitle.setStyle("-fx-text-fill: " + muted_orange + "; -fx-font-size: 16px;");
+            chTitle.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-size: 14px;");
 
             final Label typeBadge = new Label(String.valueOf(q.getQuestionType()).toUpperCase());
-            typeBadge.setStyle("-fx-background-color: " + main_blue + "; -fx-text-fill: white; -fx-padding: 3 10; -fx-background-radius: 12; -fx-font-size: 10px;");
+            typeBadge.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: " + DARK_BG + "; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;");
 
             HBox titleRow = new HBox(12, chTitle, typeBadge);
             titleRow.setAlignment(Pos.CENTER_LEFT);
 
-            final Label chBody = new Label("Difficulty: " + q.getQuestionDifficulty());
-            chBody.setStyle("-fx-text-fill: #A0AAB4; -fx-font-size: 12px;");
+            final Label chBody = new Label(q.getTitle());
+            chBody.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;");
 
             textContainer.getChildren().addAll(titleRow, chBody);
 
@@ -151,63 +143,56 @@ public class DailyChallengeController {
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             final Label xpLabel = new Label("+" + xpPerQuestion + " XP");
-            xpLabel.setStyle("-fx-text-fill: " + main_blue + "; -fx-font-weight: bold; -fx-font-size: 15px;");
+            xpLabel.setStyle("-fx-text-fill: " + LOGO_BLUE + "; -fx-font-weight: bold; -fx-font-size: 15px;");
 
             card.getChildren().addAll(textContainer, spacer, xpLabel);
 
             if (onStartQuestion != null) {
-                card.setOnMouseEntered(new EventHandler<MouseEvent>() {
-                    @Override public void handle(MouseEvent e) {
-                        card.setStyle("-fx-background-color: " + main_blue + "; -fx-border-color: white; -fx-background-radius: 20; -fx-border-radius: 20;");
-                        card.setCursor(Cursor.HAND);
-                        card.setScaleX(1.03); card.setScaleY(1.03);
-                        // Shift text to white on hover for better contrast
-                        chTitle.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
-                        chBody.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
-                        xpLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px;");
-                    }
+                card.setOnMouseEntered(e -> {
+                    card.setStyle("-fx-background-color: #434c5e; -fx-border-color: " + LOGO_BLUE + "; -fx-background-radius: 12; -fx-border-radius: 12;");
+                    card.setCursor(Cursor.HAND);
+                    card.setScaleX(1.02); card.setScaleY(1.02);
                 });
-                card.setOnMouseExited(new EventHandler<MouseEvent>() {
-                    @Override public void handle(MouseEvent e) {
-                        card.setStyle(baseStyle);
-                        card.setScaleX(1.0); card.setScaleY(1.0);
-                        // Revert to original colors
-                        chTitle.setStyle("-fx-text-fill: " + muted_orange + "; -fx-font-size: 16px;");
-                        chBody.setStyle("-fx-text-fill: #A0AAB4; -fx-font-size: 12px;");
-                        xpLabel.setStyle("-fx-text-fill: " + main_blue + "; -fx-font-weight: bold; -fx-font-size: 15px;");
-                    }
+                card.setOnMouseExited(e -> {
+                    card.setStyle(baseStyle);
+                    card.setScaleX(1.0); card.setScaleY(1.0);
                 });
-                card.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override public void handle(MouseEvent e) { onStartQuestion.accept(q); }
-                });
+                card.setOnMouseClicked(e -> onStartQuestion.accept(q));
             }
             taskContainer.getChildren().add(card);
             questionNumber++;
         }
 
-        // Sidebar
+        // sidebar
         VBox sidebar = new VBox(20);
         sidebar.setPrefWidth(270);
 
         VBox mascotCard = new VBox(15);
         mascotCard.setAlignment(Pos.CENTER);
         mascotCard.setPadding(new Insets(25));
-        mascotCard.setStyle("-fx-background-color: " + main_dark + "; -fx-background-radius: 25;");
+        mascotCard.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #3b4252, " + LOGO_BLUE + "44);" +
+                        "-fx-background-radius: 25;" +
+                        "-fx-border-color: " + LOGO_BLUE + "88;" +
+                        "-fx-border-radius: 25;" +
+                        "-fx-border-width: 1.5;" +
+                        "-fx-effect: dropshadow(three-pass-box, " + LOGO_BLUE + "22, 10, 0, 0, 0);"
+        );
 
         Label mascotIcon = new Label("🛡️");
-        mascotIcon.setStyle("-fx-font-size: 50px;");
-        Label mascotText = new Label("New challenges await!");
-        mascotText.setStyle("-fx-text-fill: white; -fx-font-style: italic; -fx-text-alignment: center;");
+        mascotIcon.setStyle("-fx-font-size: 50px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.5, 0, 2);");
+        Label mascotText = new Label("Challenge\nyourself!");
+        mascotText.setStyle(
+                "-fx-text-fill: white;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-text-alignment: center;" +
+                        "-fx-line-spacing: 2;"
+        );
+        mascotText.setStyle("-fx-text-fill: #eceff4; -fx-font-style: italic; -fx-text-alignment: center; -fx-font-size: 12px;");
         mascotCard.getChildren().addAll(mascotIcon, mascotText);
 
-        VBox statsCard = new VBox(10);
-        statsCard.setPadding(new Insets(20));
-        statsCard.setStyle("-fx-border-color: " + main_blue + "; -fx-border-radius: 20; -fx-border-width: 1px;");
-        Label statsTitle = new Label("DAILY STATUS");
-        statsTitle.setStyle("-fx-text-fill: " + main_blue + "; -fx-font-weight: bold; -fx-font-size: 11px;");
-        statsCard.getChildren().addAll(statsTitle, new Separator(), new Label("Active streak: 1 day"));
-
-        sidebar.getChildren().addAll(mascotCard, statsCard);
+        sidebar.getChildren().add(mascotCard);
         mainContent.getChildren().addAll(taskContainer, sidebar);
         challengeList.getChildren().add(mainContent);
     }
