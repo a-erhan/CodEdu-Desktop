@@ -302,8 +302,8 @@ public class LeaderboardController {
                 pos.setStyle("-fx-text-fill: #CD7F32;");
             }
 
-            String nameText = c.getUser() != null && c.getUser().getUsername() != null
-                    ? c.getUser().getUsername()
+            String nameText = c.getUser() != null
+                    ? c.getUser().getDisplayName()
                     : "Player " + (i + 1);
             Label name = new Label(nameText);
             name.setStyle("-fx-font-weight: bold;");

@@ -52,8 +52,25 @@ public class AuthServiceImpl implements AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    private static String usernameFromEmail(String normalizedEmail) {
-        return normalizedEmail.replace("@", "_at_").replace(".", "_");
+    /** Local part of the email (before {@code @}); used as the basis for the stored username. */
+    private static String localPartFromEmail(String normalizedEmail) {
+        int at = normalizedEmail.indexOf('@');
+        if (at <= 0) {
+            return "user";
+        }
+        String local = normalizedEmail.substring(0, at);
+        return local.isBlank() ? "user" : local;
+    }
+
+    private String uniqueUsernameFromEmail(String normalizedEmail) {
+        String base = localPartFromEmail(normalizedEmail);
+        String candidate = base;
+        int n = 1;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + "_" + n;
+            n++;
+        }
+        return candidate;
     }
 
     private String verificationLinkForToken(String token) {
@@ -81,10 +98,7 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(normalizedEmail)) {
             return "ERROR: This email is already registered.";
         }
-        String finalUsername = usernameFromEmail(normalizedEmail);
-        if (userRepository.existsByUsername(finalUsername)) {
-            return "ERROR: This username is already taken.";
-        }
+        String finalUsername = uniqueUsernameFromEmail(normalizedEmail);
 
         User newUser = User.builder()
                 .username(finalUsername)

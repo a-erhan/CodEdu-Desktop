@@ -205,7 +205,7 @@ public class MatchmakingController {
         }
 
         final CodeImplementationQuestion question = fullQuestion;
-        final String opponentName = opponent != null ? opponent.getUsername() : "Opponent";
+        final String opponentName = opponent != null ? opponent.getDisplayName() : "Opponent";
 
         Platform.runLater(() -> showMatch(opponentName, question));
     }
@@ -413,13 +413,15 @@ public class MatchmakingController {
         if (resultOpponentAttempts != null) resultOpponentAttempts.setText(opponentAttemptsCount + " Attempts");
 
         if (resultYouAvatar != null && currentUser != null) {
-            resultYouAvatar.setText(currentUser.getUsername().substring(0, 1).toUpperCase());
+            String you = currentUser.getDisplayName();
+            resultYouAvatar.setText(you.isEmpty() ? "?" : you.substring(0, 1).toUpperCase());
             resultYouAvatar.setOnMouseClicked(e -> { if (onOpenProfile != null) onOpenProfile.accept(currentUser.getUsername()); });
         }
         
         if (resultOpponentAvatar != null && activeOpponent != null) {
-            resultOpponentAvatar.setText(activeOpponent.getUsername().substring(0, 1).toUpperCase());
-            resultOpponentName.setText(activeOpponent.getUsername());
+            String opp = activeOpponent.getDisplayName();
+            resultOpponentAvatar.setText(opp.isEmpty() ? "?" : opp.substring(0, 1).toUpperCase());
+            resultOpponentName.setText(opp);
             resultOpponentAvatar.setOnMouseClicked(e -> { if (onOpenProfile != null) onOpenProfile.accept(activeOpponent.getUsername()); });
         }
 

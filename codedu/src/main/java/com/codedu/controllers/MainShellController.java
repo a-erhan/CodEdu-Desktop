@@ -669,7 +669,7 @@ public class MainShellController {
 
     private void updateHeader() {
         UserGameState gs = currentGameStateForHeader();
-        String username = (user.getUsername() != null && !user.getUsername().isEmpty()) ? user.getUsername() : "User";
+        String username = user.getDisplayName();
 
         int tokens = (gs != null) ? gs.getTokenBalance() : 0;
         int level = (gs != null) ? gs.getLevel() : 1;
@@ -696,7 +696,7 @@ public class MainShellController {
         }
 
         if (profileIconLabel != null) {
-            profileIconLabel.setText(username.substring(0, 1).toUpperCase());
+            profileIconLabel.setText(username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase());
             profileIconLabel.setAlignment(Pos.CENTER);
         }
 

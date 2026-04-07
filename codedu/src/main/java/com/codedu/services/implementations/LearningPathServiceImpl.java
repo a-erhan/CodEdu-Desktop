@@ -85,7 +85,7 @@ public class LearningPathServiceImpl implements LearningPathService {
             boolean locked = !previousChapterCompleted;
 
             //God mode for testing
-            if (user.getUsername() != null && user.getUsername().equalsIgnoreCase("tester")) {
+            if (user.isTesterAccount()) {
                 locked = false;
             }
 

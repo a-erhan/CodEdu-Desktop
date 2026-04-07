@@ -55,7 +55,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         }
 
         playerQueue.offer(user);
-        System.out.println("[Matchmaking] " + user.getUsername() + " joined queue. Queue size: " + playerQueue.size());
+        System.out.println("[Matchmaking] " + user.getDisplayName() + " joined queue. Queue size: " + playerQueue.size());
 
         if (playerQueue.size() >= 2) {
             User player1 = playerQueue.poll();
@@ -159,7 +159,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         }
 
         System.out.println("[Matchmaking] Match created — "
-                + player1.getUsername() + " vs " + player2.getUsername()
+                + player1.getDisplayName() + " vs " + player2.getDisplayName()
                 + " | Room: " + roomId);
     }
 

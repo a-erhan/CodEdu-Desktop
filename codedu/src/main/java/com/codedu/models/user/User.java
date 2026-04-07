@@ -111,4 +111,26 @@ public class User extends BaseEntity {
                 && this.password.equals(password)
                 && isActive;
     }
+
+    /**
+     * Shown in the UI (profile, nav, leaderboards, etc.): the part of the email before {@code @}.
+     * Falls back to {@link #username} when email is missing. Internal lookups still use {@code username}.
+     */
+    public String getDisplayName() {
+        if (email != null && !email.isBlank()) {
+            int at = email.indexOf('@');
+            if (at > 0) {
+                return email.substring(0, at);
+            }
+        }
+        if (username != null && !username.isBlank()) {
+            return username;
+        }
+        return "User";
+    }
+
+    /** God-mode / dev tester flag (matches legacy {@code username} or email local {@code tester}). */
+    public boolean isTesterAccount() {
+        return "tester".equalsIgnoreCase(username) || "tester".equalsIgnoreCase(getDisplayName());
+    }
 }

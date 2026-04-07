@@ -88,7 +88,7 @@ public class ProfileController {
     private void bindUI() {
         if (profileUser == null) return;
 
-        String username = (profileUser.getUsername() != null) ? profileUser.getUsername() : "User";
+        String username = profileUser.getDisplayName();
         String initial = username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase();
 
         avatarDisplay.setAlignment(Pos.CENTER);

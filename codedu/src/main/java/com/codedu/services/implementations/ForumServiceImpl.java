@@ -27,7 +27,7 @@ public class ForumServiceImpl implements ForumService {
     public List<ForumPostListDTO> getAllMainPosts() {
         return forumPostRepository.findAllMainPosts().stream()
                 .map(post -> {
-                    String username = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
+                    String username = (post.getAuthor() != null) ? post.getAuthor().getDisplayName() : "Anonymous";
                     User authorObj = post.getAuthor();
 
                     return new ForumPostListDTO(
@@ -48,11 +48,11 @@ public class ForumServiceImpl implements ForumService {
         ForumPost post = forumPostRepository.findByIdWithReplies(id);
         if (post == null) return null;
 
-        String mainAuthorName = (post.getAuthor() != null) ? post.getAuthor().getUsername() : "Anonymous";
+        String mainAuthorName = (post.getAuthor() != null) ? post.getAuthor().getDisplayName() : "Anonymous";
 
         List<ForumReplyDTO> replyDtos = post.getReplies().stream()
                 .map(reply -> {
-                    String replyAuthorName = (reply.getAuthor() != null) ? reply.getAuthor().getUsername() : "Anonymous";
+                    String replyAuthorName = (reply.getAuthor() != null) ? reply.getAuthor().getDisplayName() : "Anonymous";
                     return new ForumReplyDTO(
                             reply.getId(),
                             reply.getContent(),

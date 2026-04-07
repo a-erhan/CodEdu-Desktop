@@ -55,7 +55,7 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
             return;
 
         Stage chatStage = new Stage();
-        chatStage.setTitle("Chat: " + friend.getUsername());
+        chatStage.setTitle("Chat: " + friend.getDisplayName());
 
         VBox messageContainer = new VBox(10);
         messageContainer.setPadding(new Insets(10));

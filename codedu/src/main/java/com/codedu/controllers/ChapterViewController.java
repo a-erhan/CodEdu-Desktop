@@ -286,7 +286,7 @@ public class ChapterViewController {
                 .filter(q -> q.questionType() != QuestionType.CODE_IMPLEMENTATION)
                 .count();
 
-        boolean isGodMode = currentUser != null && "tester".equalsIgnoreCase(currentUser.getUsername());
+        boolean isGodMode = currentUser != null && currentUser.isTesterAccount();
 
         // 1. Check if the section should be locked
         if (currentLessonCount < quizCount && !isChapterFinished && !isGodMode) {

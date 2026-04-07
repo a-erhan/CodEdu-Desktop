@@ -169,7 +169,7 @@ public class UserServiceImpl implements UserService {
 
         return UserProfileDTO.builder()
                 .userId((long) targetUser.getId())
-                .username(targetUser.getUsername())
+                .username(targetUser.getDisplayName())
                 .level(level)
                 .xp(xp)
                 .xpToNextLevel(xpToNext)

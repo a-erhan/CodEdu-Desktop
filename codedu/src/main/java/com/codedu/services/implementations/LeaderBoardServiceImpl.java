@@ -43,7 +43,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
                 ? lb.getCompetitors().stream()
                         .map(c -> LeaderBoardDTO.LeaderBoardEntryDTO.builder()
                                 .rank(c.getUserRank())
-                                .username(c.getUser() != null ? c.getUser().getUsername() : "Unknown")
+                                .username(c.getUser() != null ? c.getUser().getDisplayName() : "Unknown")
                                 .rankingPoint(c.getRankingPoint())
                                 .totalWins(c.getTotalWins())
                                 .totalMatches(c.getTotalMatches())

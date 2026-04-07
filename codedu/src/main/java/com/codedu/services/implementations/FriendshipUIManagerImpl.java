@@ -164,7 +164,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         row.setPadding(new Insets(8, 12, 8, 12));
         row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-        String name = requester.getUsername() != null ? requester.getUsername() : "?";
+        String name = requester.getDisplayName();
         String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
 
         Label avatarLabel = new Label(initial);
@@ -212,7 +212,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         row.setPadding(new Insets(8, 12, 8, 12));
         row.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.BG_SUBTLE);
 
-        String name = friend.getUsername() != null ? friend.getUsername() : "?";
+        String name = friend.getDisplayName();
         String initial = name.isEmpty() ? "?" : name.substring(0, 1).toUpperCase();
 
         Label avatarLabel = new Label(initial);
