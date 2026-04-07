@@ -1,6 +1,7 @@
 package com.codedu.services.implementations;
 
 import com.codedu.services.interfaces.CodeExecutionService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,11 +15,14 @@ import java.util.Map;
 @Service
 public class CodeExecutionServiceImpl implements CodeExecutionService {
 
-    private static final String JDOODLE_URL = "https://api.jdoodle.com/v1/execute";
+    @Value("${app.jdoodle.url}")
+    private String jdoodleUrl;
 
-    private static final String CLIENT_ID = "7da6169882cd9ffe322f57e4bc8ad9d6";
-    private static final String CLIENT_SECRET = "380c588ef361353aec4cb3839e8c9a4a4cfd477ff58b0e0a545aacb2dd16f858";
+    @Value("${app.jdoodle.client-id}")
+    private String clientId;
 
+    @Value("${app.jdoodle.client-secret}")
+    private String clientSecret;
     private final RestTemplate restTemplate;
 
     public CodeExecutionServiceImpl() {
@@ -30,8 +34,8 @@ public class CodeExecutionServiceImpl implements CodeExecutionService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("clientId", CLIENT_ID);
-        requestBody.put("clientSecret", CLIENT_SECRET);
+        requestBody.put("clientId", clientId);
+        requestBody.put("clientSecret", clientSecret);
         requestBody.put("script", sourceCode);
         requestBody.put("language", "java");
         requestBody.put("versionIndex", "4");
@@ -43,7 +47,7 @@ public class CodeExecutionServiceImpl implements CodeExecutionService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(JDOODLE_URL, entity, Map.class);
+            ResponseEntity<Map> response = restTemplate.postForEntity(jdoodleUrl, entity, Map.class);
             Map<String, Object> responseBody = response.getBody();
 
             if (responseBody != null) {
