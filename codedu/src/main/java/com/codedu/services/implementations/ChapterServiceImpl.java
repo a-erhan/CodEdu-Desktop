@@ -44,7 +44,7 @@ public class ChapterServiceImpl implements ChapterService {
         return chapterRepository.findByIdWithQuestions(id);
     }
 
-    // 🚀 IMPLEMENT THE NEW METHOD
+
     @Override
     @Transactional(readOnly = true)
     public Optional<ChapterDTO> getChapterDtoWithQuestions(Long id) {
@@ -90,14 +90,14 @@ public class ChapterServiceImpl implements ChapterService {
                 .description(ch.getDescription())
                 .iconEmoji(ch.getIconEmoji())
                 .iconImage(ch.getIconImage())
-                .learnText(learnText)          // 🚀 Added
+                .learnText(learnText)
                 .difficulty(ch.getDifficulty())
                 .totalLessons(ch.getTotalLessons())
                 .xpReward(ch.getXpReward())
                 .tokenReward(ch.getTokenReward())
                 .orderIndex(ch.getOrderIndex())
                 .topicName(ch.getTopicName())
-                .questions(questionDTOs)       // 🚀 Added
+                .questions(questionDTOs)
                 .build();
     }
 

@@ -2,6 +2,7 @@ package com.codedu.services.implementations;
 
 import com.codedu.dtos.user.ItemDTO;
 import com.codedu.models.user.Item;
+import com.codedu.models.user.ItemType;
 import com.codedu.models.user.Store;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
@@ -20,6 +21,7 @@ import jakarta.persistence.PersistenceContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -40,8 +42,7 @@ public class StoreServiceImpl implements StoreService {
             ItemService itemService,
             UserRepository userRepository,
             InventoryItemService inventoryItemService,
-            UserGameStateRepository userGameStateRepository
-    ) {
+            UserGameStateRepository userGameStateRepository) {
         this.storeRepository = storeRepository;
         this.itemService = itemService;
         this.userRepository = userRepository;
@@ -73,27 +74,42 @@ public class StoreServiceImpl implements StoreService {
     @Override
     @Transactional
     public Optional<User> purchaseItem(int userId, int itemId) {
-        if (userId <= 0 || itemId <= 0) return Optional.empty();
+        if (userId <= 0 || itemId <= 0)
+            return Optional.empty();
 
         // 1. Fetch User and Item
         User user = userRepository.findByIdWithInventoryAndGameState(userId).orElse(null);
-        if (user == null || user.getGameState() == null) return Optional.empty();
+        if (user == null || user.getGameState() == null) {
+            return Optional.empty();
+        }
 
         Item item = itemService.getItemById(itemId).orElse(null);
-        if (item == null || item.isDeleted()) return Optional.empty();
+        if (item == null || item.isDeleted())
+            return Optional.empty();
 
         // 2. Validate Price & Redundancy
         int price = Math.max(0, item.getPrice());
-        UserGameState gs = user.getGameState();
+        com.codedu.models.user.UserGameState gs = user.getGameState();
+        if (!gs.hasEnoughTokens(price))
+            return Optional.empty();
 
-        if (!gs.hasEnoughTokens(price)) return Optional.empty();
-        if (itemService.isEffectRedundant(user, item)) return Optional.empty();
+        String name = item.getName() != null ? item.getName().toLowerCase(Locale.ROOT) : "";
+        boolean heartByName = name.contains("heart");
 
-        // 3. Grant Item to Inventory
-        int quantity = itemService.getGrantedQuantity(item);
-        inventoryItemService.addOrIncrementItemQuantity(user, item, quantity);
+        if (heartByName && gs.getHeartCount() >= UserGameState.MAX_HEARTS) {
+            return Optional.empty();
+        }
 
-        // 4. Deduct Tokens
+        inventoryItemService.addOrIncrementItemQuantity(user, item, itemService.getGrantedQuantity(item));
+
+        if (item.getType() == ItemType.BOOSTER && name.contains("xp")) {
+            if (name.contains("mega")) {
+                gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
+            } else if (name.contains("double")) {
+                gs.extendDoubleXpMinutes(30);
+            }
+        }
+
         gs.setTokenBalance(gs.getTokenBalance() - price);
         userGameStateRepository.update(gs);
         userRepository.update(user);

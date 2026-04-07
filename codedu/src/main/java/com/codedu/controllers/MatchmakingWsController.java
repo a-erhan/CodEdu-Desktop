@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Controller;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.context.event.EventListener;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 /**
  * Spring STOMP message handler for matchmaking events.
@@ -29,8 +32,15 @@ public class MatchmakingWsController {
      * We look up the full User and add them to the matchmaking queue.
      */
     @MessageMapping("/match.join")
-    public void handleJoin(@Payload Integer userId) {
-        userRepository.findById(userId).ifPresent(matchmakingService::joinQueue);
+    public void handleJoin(@Payload Integer userId, SimpMessageHeaderAccessor headerAccessor) {
+        String sessionId = headerAccessor.getSessionId();
+        userRepository.findById(userId).ifPresent(user -> matchmakingService.joinQueue(user, sessionId));
+    }
+
+    @EventListener
+    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+        String sessionId = event.getSessionId();
+        matchmakingService.handleDisconnect(sessionId);
     }
 
     /**

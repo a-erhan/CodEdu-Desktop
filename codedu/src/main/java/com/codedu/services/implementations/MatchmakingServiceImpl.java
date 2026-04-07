@@ -4,6 +4,7 @@ import com.codedu.models.learning.CodeImplementationQuestion;
 import com.codedu.services.interfaces.MatchmakingService;
 import com.codedu.models.learning.Question;
 import com.codedu.models.matchmaking.GameRoom;
+import com.codedu.models.matchmaking.MatchAttemptUpdate;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import com.codedu.models.matchmaking.MatchResult;
 
 /**
  * Thread-safe matchmaking service.
@@ -30,10 +33,16 @@ import java.util.stream.Collectors;
 public class MatchmakingServiceImpl implements MatchmakingService {
 
     private final ConcurrentLinkedQueue<User> playerQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentHashMap<String, Integer> sessionToUser = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, GameRoom> activeRooms = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, String> userToRoom = new ConcurrentHashMap<>();
 
     private final SimpMessagingTemplate messagingTemplate;
     private final QuestionRepository questionRepository;
     private final com.codedu.repositories.interfaces.UserRepository userRepository;
+    
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     @Autowired
     public MatchmakingServiceImpl(SimpMessagingTemplate messagingTemplate,
@@ -48,12 +57,13 @@ public class MatchmakingServiceImpl implements MatchmakingService {
      * If a second player is already waiting, immediately pairs them and
      * broadcasts a {@link GameRoom} to both players' private STOMP channels.
      */
-    public synchronized void joinQueue(User user) {
+    public synchronized void joinQueue(User user, String sessionId) {
         boolean alreadyWaiting = playerQueue.stream().anyMatch(u -> u.getId() == user.getId());
         if (alreadyWaiting) {
             return;
         }
 
+        sessionToUser.put(sessionId, user.getId());
         playerQueue.offer(user);
         System.out.println("[Matchmaking] " + user.getDisplayName() + " joined queue. Queue size: " + playerQueue.size());
 
@@ -73,6 +83,24 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     public synchronized void leaveQueue(int userId) {
         playerQueue.removeIf(u -> u.getId() == userId);
         System.out.println("[Matchmaking] Player " + userId + " left the queue.");
+        
+        String roomId = userToRoom.get(userId);
+        if (roomId != null) {
+            GameRoom room = activeRooms.get(roomId);
+            if (room != null) {
+                User opponent = (room.getPlayer1().getId() == userId) ? room.getPlayer2() : room.getPlayer1();
+                MatchResult result = new MatchResult(roomId, opponent.getId(), userId, opponent.getUsername());
+                reportWin(result);
+            }
+        }
+    }
+
+    @Override
+    public synchronized void handleDisconnect(String sessionId) {
+        Integer userId = sessionToUser.remove(sessionId);
+        if (userId != null) {
+            leaveQueue(userId);
+        }
     }
 
     /**
@@ -83,25 +111,44 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     public void reportWin(com.codedu.models.matchmaking.MatchResult result) {
         if (result == null) return;
         
+        GameRoom room = activeRooms.remove(result.getRoomId());
+        if (room == null) return;
+        
+        userToRoom.remove(room.getPlayer1().getId());
+        userToRoom.remove(room.getPlayer2().getId());
+        
         System.out.println("[Matchmaking] Match over! Winner ID: " + result.getWinnerId());
         
         // Gamification
         try {
-            userRepository.findById(result.getWinnerId()).ifPresent(winner -> {
-                com.codedu.models.user.UserGameState state = winner.getGameState();
-                if (state != null) {
-                    state.setXp(state.getXp() + 50);
-                    state.setTokenBalance(state.getTokenBalance() + 50);
+            transactionTemplate.executeWithoutResult(status -> {
+                userRepository.findById(result.getWinnerId()).ifPresent(winner -> {
+                    com.codedu.models.user.UserGameState state = winner.getGameState();
+                    if (state != null) {
+                        state.setXp(state.getXp() + 50);
+                        state.setTokenBalance(state.getTokenBalance() + 50);
+                    }
+                    com.codedu.models.matchmaking.Competitor comp = winner.getCompetitor();
+                    if (comp != null) {
+                        comp.setTotalWins(comp.getTotalWins() + 1);
+                        comp.setTotalMatches(comp.getTotalMatches() + 1);
+                    }
                     userRepository.update(winner);
-                }
-            });
-            userRepository.findById(result.getLoserId()).ifPresent(loser -> {
-                com.codedu.models.user.UserGameState state = loser.getGameState();
-                if (state != null) {
-                    state.setXp(Math.max(0, state.getXp() - 50));
-                    state.setTokenBalance(Math.max(0, state.getTokenBalance() - 50));
+                });
+                
+                userRepository.findById(result.getLoserId()).ifPresent(loser -> {
+                    com.codedu.models.user.UserGameState state = loser.getGameState();
+                    if (state != null) {
+                        state.setXp(Math.max(0, state.getXp() - 50));
+                        state.setTokenBalance(Math.max(0, state.getTokenBalance() - 50));
+                    }
+                    com.codedu.models.matchmaking.Competitor comp = loser.getCompetitor();
+                    if (comp != null) {
+                        comp.setTotalLosses(comp.getTotalLosses() + 1);
+                        comp.setTotalMatches(comp.getTotalMatches() + 1);
+                    }
                     userRepository.update(loser);
-                }
+                });
             });
         } catch (Exception e) {
             System.err.println("[Matchmaking] ERROR updating gamification: " + e.getMessage());
@@ -119,7 +166,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     }
 
     @Override
-    public void broadcastAttempt(com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+    public void broadcastAttempt(MatchAttemptUpdate update) {
         if (update == null) return;
         String dest = "/topic/match/" + update.getTargetId();
         try {
@@ -157,6 +204,10 @@ public class MatchmakingServiceImpl implements MatchmakingService {
             System.err.println("[Matchmaking] ERROR sending to " + dest2 + ": " + e.getMessage());
             e.printStackTrace();
         }
+
+        activeRooms.put(roomId, gameRoom);
+        userToRoom.put(player1.getId(), roomId);
+        userToRoom.put(player2.getId(), roomId);
 
         System.out.println("[Matchmaking] Match created — "
                 + player1.getDisplayName() + " vs " + player2.getDisplayName()
