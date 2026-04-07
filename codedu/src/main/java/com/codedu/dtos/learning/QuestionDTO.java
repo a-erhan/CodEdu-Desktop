@@ -11,11 +11,11 @@ public record QuestionDTO(
         String title,
         String content,
         String hint,
-        String solution, // 🚀 Added so the Give Up logic works
+        String solution,
         QuestionType questionType,
         QuestionDifficulty questionDifficulty,
-        int rewardXp,    // 🚀 Flattened from Reward entity
-        int rewardToken, // 🚀 Flattened from Reward entity
+        int rewardXp,
+        int rewardToken,
         String boilerplateCode,
         List<TestCaseDTO> testCases,
         List<String> choices

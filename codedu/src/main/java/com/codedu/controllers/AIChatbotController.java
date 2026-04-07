@@ -159,7 +159,17 @@ public class AIChatbotController {
         };
 
         aiTask.setOnSucceeded(event -> {
-            aiBody.setText(aiTask.getValue());
+            String aiResponse = aiTask.getValue();
+            String extractedCode = extractCode(aiResponse);
+            
+            if (extractedCode != null) {
+                codeArea.setText(extractedCode);
+                String textOnly = aiResponse.replaceAll("(?s)```(?:java)?\\n?(.*?)```", "").trim();
+                aiBody.setText(textOnly.isEmpty() ? "Here is the code snippet:" : textOnly);
+            } else {
+                aiBody.setText(aiResponse);
+            }
+
             if (currentUser != null) {
                 inventoryItemService.consumeAiRequest(currentUser);
                 remainingRequests = inventoryItemService.getAiRequestBalance(currentUser);

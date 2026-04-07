@@ -11,12 +11,12 @@ public record ChapterDTO(
         String description,
         String iconEmoji,
         String iconImage,
-        String learnText, // 🚀 Added for the Learn Tab
+        String learnText,
         Chapter.Difficulty difficulty,
         int totalLessons,
         int xpReward,
         int tokenReward,
         int orderIndex,
         String topicName,
-        List<QuestionDTO> questions // 🚀 Added so ChapterView can build the UI
+        List<QuestionDTO> questions
 ) {}

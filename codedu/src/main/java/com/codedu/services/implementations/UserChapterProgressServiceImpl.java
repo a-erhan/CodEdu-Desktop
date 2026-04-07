@@ -19,7 +19,7 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
     private final UserRepository userRepository;
     private final ChapterRepository chapterRepository;
 
-    // 🚀 Added User and Chapter repositories to translate DTOs back to Entities
+
     @Autowired
     public UserChapterProgressServiceImpl(UserChapterProgressRepository progressRepository,
                                           UserRepository userRepository,
@@ -57,7 +57,7 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
                 .orElseThrow(() -> new RuntimeException("Chapter progress not found for User: " + userId));
     }
 
-    // 🚀 THE MISSING METHOD FOR DTOs
+
     @Override
     @Transactional
     public void saveProgressDto(ChapterProgressDTO dto, String username) {

@@ -313,7 +313,7 @@ public class UserServiceImpl implements UserService {
                 xpRequired = state.getLevel() * 100;
             }
 
-            // 🚀 3. STREAK LOGIC (This was missing from the Entity method!)
+
             java.time.LocalDate today = java.time.LocalDate.now();
             java.time.LocalDate lastDate = state.getLastActiveDate(); // Or getLastStreakDate() depending on what you named it
 

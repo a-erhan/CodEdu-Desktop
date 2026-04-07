@@ -89,10 +89,12 @@ public class MainShellController {
     private boolean darkTheme = true;
 
     private long lastShellUserRefreshMs;
+    private int lastLevel = -1;
     private static final long FOCUS_REFRESH_MIN_INTERVAL_MS = 900L;
 
     public void setUser(User user) {
-        if (user == null) return;
+        if (user == null)
+            return;
 
         userService.getUserWithProfileData(user.getUsername()).ifPresentOrElse(
                 freshUser -> {
@@ -106,8 +108,7 @@ public class MainShellController {
                     if (initDemoModelsIfNeeded()) {
                         userService.saveUser(this.user);
                     }
-                }
-        );
+                });
 
         updateHeader();
         lastShellUserRefreshMs = System.currentTimeMillis();
@@ -120,7 +121,6 @@ public class MainShellController {
         });
     }
 
-
     @FXML
     public void initialize() {
         initSidebarAndHeaderStyles();
@@ -128,12 +128,15 @@ public class MainShellController {
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
 
-        if (streakLabel == null) streakLabel = new Label("\uD83D\uDD25 0");
-        if (heartLabel == null) heartLabel = new Label("\u2764\uFE0F 0");
+        if (streakLabel == null)
+            streakLabel = new Label("\uD83D\uDD25 0");
+        if (heartLabel == null)
+            heartLabel = new Label("\u2764\uFE0F 0");
 
         if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.HBox parentBox) {
             if (!parentBox.getChildren().contains(streakLabel)) {
-                if (xpProgressBar != null && xpProgressBar.getParent() instanceof javafx.scene.layout.VBox xpContainer) {
+                if (xpProgressBar != null
+                        && xpProgressBar.getParent() instanceof javafx.scene.layout.VBox xpContainer) {
                     parentBox.getChildren().remove(xpContainer);
                     int badgeIndex = parentBox.getChildren().indexOf(badgeLabel);
                     parentBox.getChildren().add(badgeIndex + 1, xpContainer);
@@ -224,7 +227,8 @@ public class MainShellController {
     private void initSidebarAndHeaderStyles() {
         String LOGO_BLUE = "#00AEEF";
 
-        if (taglineLabel != null) taglineLabel.getStyleClass().add(Styles.TITLE_2);
+        if (taglineLabel != null)
+            taglineLabel.getStyleClass().add(Styles.TITLE_2);
 
         if (profileIconLabel != null) {
             profileIconLabel.setMinWidth(40);
@@ -242,8 +246,7 @@ public class MainShellController {
                             "-fx-border-radius: 50; " +
                             "-fx-font-weight: bold; " +
                             "-fx-font-size: 16px; " +
-                            "-fx-cursor: hand;"
-            );
+                            "-fx-cursor: hand;");
 
             profileIconLabel.setPickOnBounds(true);
             profileIconLabel.setOnMouseClicked(e -> {
@@ -259,22 +262,24 @@ public class MainShellController {
                     "-fx-accent: " + LOGO_BLUE + "; " +
                             "-fx-control-inner-background: #3b4252; " +
                             "-fx-background-radius: 20; " +
-                            "-fx-border-radius: 20;"
-            );
+                            "-fx-border-radius: 20;");
 
             xpProgressBar.skinProperty().addListener((obs, oldSkin, newSkin) -> {
                 if (newSkin != null) {
                     Region track = (Region) xpProgressBar.lookup(".track");
                     Region bar = (Region) xpProgressBar.lookup(".bar");
-                    if (track != null) track.setStyle("-fx-background-radius: 20; -fx-background-color: #3b4252;");
-                    if (bar != null) bar.setStyle("-fx-background-radius: 20; -fx-background-color: " + LOGO_BLUE + ";");
+                    if (track != null)
+                        track.setStyle("-fx-background-radius: 20; -fx-background-color: #3b4252;");
+                    if (bar != null)
+                        bar.setStyle("-fx-background-radius: 20; -fx-background-color: " + LOGO_BLUE + ";");
                 }
             });
         }
 
         if (badgeLabel != null) {
             badgeLabel.setPadding(new javafx.geometry.Insets(4, 12, 4, 12));
-            badgeLabel.setStyle("-fx-background-color: #3b4252; -fx-border-color: " + LOGO_BLUE + "; -fx-border-radius: 15; -fx-background-radius: 15; -fx-font-weight: bold; -fx-text-fill: white;");
+            badgeLabel.setStyle("-fx-background-color: #3b4252; -fx-border-color: " + LOGO_BLUE
+                    + "; -fx-border-radius: 15; -fx-background-radius: 15; -fx-font-weight: bold; -fx-text-fill: white;");
         }
     }
 
@@ -329,7 +334,8 @@ public class MainShellController {
     }
 
     private void loadLearningPath() {
-        if (this.user == null) return;
+        if (this.user == null)
+            return;
 
         refreshShellUserFromDatabase();
 
@@ -339,7 +345,7 @@ public class MainShellController {
             Parent view = loader.load();
 
             LearningPathController lpController = loader.getController();
-            // 🚀 Learning Path now emits a ChapterDTO, which we pass to loadChapterView
+
             lpController.setOnStartChapter(this::loadChapterView);
 
             lpController.loadUserData(this.user);
@@ -362,8 +368,8 @@ public class MainShellController {
             Chapter searchKey = new Chapter();
             searchKey.setId(chapterDto.id());
 
-            com.codedu.models.learning.UserChapterProgress dbProgress =
-                    progressService.getProgress(this.user, searchKey);
+            com.codedu.models.learning.UserChapterProgress dbProgress = progressService.getProgress(this.user,
+                    searchKey);
 
             ChapterProgressDTO progressDto = new ChapterProgressDTO();
             progressDto.setChapter(chapterDto);
@@ -404,7 +410,6 @@ public class MainShellController {
             showSectionPlaceholder("Daily challenges", "Error loading daily challenges module.");
         }
     }
-
 
     private void openChallengePage(Question question) {
         refreshShellUserFromDatabase();
@@ -498,36 +503,45 @@ public class MainShellController {
     }
 
     private void openUserProfile(User profileUser) {
-        if (profileUser == null)
+        if (profileUser == null || profileUser.getUsername() == null)
             return;
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent profileView = loader.load();
-            ProfileController controller = loader.getController();
-            boolean isSelf = (user != null && user.getId() > 0 && profileUser.getId() == user.getId());
-            UserGameState state = profileUser.getGameState();
-            if (state == null) {
-                state = UserGameState.newDefault();
-                profileUser.setGameState(state);
-                userService.saveUser(profileUser);
-            }
-            controller.setCurrentUser(user);
-            controller.setViewingSelf(isSelf);
-            controller.setOnProfileClick(this::openUserProfile);
-            if (isSelf) {
-                controller.setOnNavigateToInventory(() -> {
-                    setActiveButton(btnInventory);
-                    loadInventory();
-                });
-            }
-            controller.setUserModel(profileUser);
-            controller.setGameState(state);
-            setContentAndFill(profileView);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            showSectionPlaceholder("Profile", "Error loading profile view.");
-        }
+
+        // Fetch full data (gameState, achievements, inventory) for the target user to
+        // avoid LazyInitializationException
+        userService.getUserWithProfileData(profileUser.getUsername()).ifPresent(fullUser -> {
+            Platform.runLater(() -> {
+                try {
+                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
+                    loader.setControllerFactory(applicationContext::getBean);
+                    Parent profileView = loader.load();
+                    ProfileController controller = loader.getController();
+
+                    boolean isSelf = (user != null && user.getId() > 0 && fullUser.getId() == user.getId());
+                    UserGameState state = fullUser.getGameState();
+                    if (state == null) {
+                        state = UserGameState.newDefault();
+                        fullUser.setGameState(state);
+                        userService.saveUser(fullUser);
+                    }
+
+                    controller.setCurrentUser(user);
+                    controller.setViewingSelf(isSelf);
+                    controller.setOnProfileClick(this::openUserProfile);
+                    if (isSelf) {
+                        controller.setOnNavigateToInventory(() -> {
+                            setActiveButton(btnInventory);
+                            loadInventory();
+                        });
+                    }
+                    controller.setUserModel(fullUser);
+                    controller.setGameState(state);
+                    setContentAndFill(profileView);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    showSectionPlaceholder("Profile", "Error loading profile view.");
+                }
+            });
+        });
     }
 
     private void loadMatchmaking() {
@@ -538,7 +552,8 @@ public class MainShellController {
             Parent view = loader.load();
             MatchmakingController controller = loader.getController();
             controller.setCurrentUser(user);
-            controller.setOnOpenProfile(username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
+            controller.setOnOpenProfile(
+                    username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -557,7 +572,8 @@ public class MainShellController {
             controller.setUserModel(user);
 
             controller.setOnUserUpdated(updatedUser -> {
-                if (updatedUser == null) return;
+                if (updatedUser == null)
+                    return;
                 refreshShellUserFromDatabase();
             });
 
@@ -673,6 +689,17 @@ public class MainShellController {
 
         int tokens = (gs != null) ? gs.getTokenBalance() : 0;
         int level = (gs != null) ? gs.getLevel() : 1;
+
+        if (lastLevel != -1 && level > lastLevel) {
+            javafx.application.Platform.runLater(() -> {
+                if (contentArea != null && contentArea.getScene() != null
+                        && contentArea.getScene().getRoot() instanceof javafx.scene.layout.Pane rootPane) {
+                    com.codedu.ui.UIUtils.fireConfetti(rootPane);
+                }
+            });
+        }
+        lastLevel = level;
+
         int xp = (gs != null) ? gs.getXp() : 0;
         int hearts = (gs != null) ? gs.getHeartCount() : 0;
         int streak = (gs != null) ? gs.getCurrentStreak() : 0;
@@ -699,7 +726,6 @@ public class MainShellController {
             profileIconLabel.setText(username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase());
             profileIconLabel.setAlignment(Pos.CENTER);
         }
-
 
         int levelCap = Math.max(1, level * 100);
         xpProgressBar.setProgress(Math.min(1.0, (double) xp / levelCap));

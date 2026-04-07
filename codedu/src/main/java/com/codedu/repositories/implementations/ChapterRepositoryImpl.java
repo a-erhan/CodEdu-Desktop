@@ -4,12 +4,12 @@ import com.codedu.models.learning.Chapter;
 import com.codedu.repositories.interfaces.ChapterRepository;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException; // 🚀 Add this import
+import jakarta.persistence.NoResultException;
 import org.springframework.stereotype.Repository;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
-import java.util.Optional; // 🚀 Add this import
+import java.util.Optional;
 
 @Repository
 @Transactional
@@ -22,7 +22,7 @@ public class ChapterRepositoryImpl extends GenericRepositoryImpl<Chapter> implem
         super(Chapter.class);
     }
 
-    // 🚀 THE MISSING METHOD: Implementing the Fetch Join manually
+
     @Override
     public Optional<Chapter> findByIdWithQuestions(Long id) {
         try {

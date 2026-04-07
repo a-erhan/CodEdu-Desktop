@@ -1,6 +1,7 @@
 package com.codedu.models.learning;
 
 import com.codedu.models.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
@@ -20,6 +21,7 @@ import lombok.*;
         @JsonSubTypes.Type(value = FillInBlankQuestion.class, name = "FILL_IN_THE_BLANKS")
 })
 public abstract class Question extends BaseEntity {
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_content_id")
     private ChapterContent chapterContent;

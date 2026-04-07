@@ -23,7 +23,7 @@ public class QuestionEvaluationServiceImpl implements QuestionEvaluationService 
         this.questionRepository = questionRepository;
     }
 
-    // 🚀 METHOD 1: Handles the new QuestionDTO (Used by Learning Path)
+
     @Override
     @Transactional
     public boolean evaluate(QuestionDTO questionDto, String userAnswer) {
@@ -36,7 +36,7 @@ public class QuestionEvaluationServiceImpl implements QuestionEvaluationService 
         return evaluate(loadedQuestion, userAnswer);
     }
 
-    // 🚀 METHOD 2: Handles the raw Entity (Used by Matchmaking)
+
     @Override
     @Transactional
     public boolean evaluate(Question question, String userAnswer) {
