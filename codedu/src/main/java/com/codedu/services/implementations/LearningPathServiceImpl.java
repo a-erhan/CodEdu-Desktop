@@ -89,13 +89,13 @@ public class LearningPathServiceImpl implements LearningPathService {
                 locked = false;
             }
 
-            // 🚀 1. Calculate dynamic lessons directly from the DB Entity
+
             int dynamicLessons = 0;
             if (chapter.getContent() != null && chapter.getContent().getQuestions() != null) {
                 dynamicLessons = chapter.getContent().getQuestions().size();
             }
 
-            // 🚀 2. Map the Database Entity to the new ChapterDTO
+
             ChapterDTO chapterDTO = ChapterDTO.builder()
                     .id(chapter.getId())
                     .title(chapter.getTitle())
@@ -110,7 +110,7 @@ public class LearningPathServiceImpl implements LearningPathService {
                     .topicName(chapter.getTopicName())
                     .build();
 
-            // 🚀 3. Build the Progress DTO
+
             dtos.add(ChapterProgressDTO.builder()
                     .chapter(chapterDTO)
                     .completedLessons(completed)

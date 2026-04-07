@@ -3,6 +3,8 @@ package com.codedu.services.implementations;
 import com.codedu.dtos.ChatMessageDTO;
 import com.codedu.services.interfaces.WebSocketClientService;
 import com.codedu.models.matchmaking.GameRoom;
+import com.codedu.models.matchmaking.MatchResult;
+import com.codedu.models.matchmaking.MatchAttemptUpdate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -141,7 +143,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
      *                     {@code Platform.runLater()}
      */
     public void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
-            Consumer<com.codedu.models.matchmaking.MatchResult> onMatchResult, Consumer<com.codedu.models.matchmaking.MatchAttemptUpdate> onAttemptUpdate) {
+            Consumer<MatchResult> onMatchResult, Consumer<MatchAttemptUpdate> onAttemptUpdate) {
         // Clean up any previous matchmaking session
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.disconnect();
@@ -245,7 +247,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
     /**
      * Sends the match result (win) to the server.
      */
-    public void sendMatchResult(com.codedu.models.matchmaking.MatchResult result) {
+    public void sendMatchResult(MatchResult result) {
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.send("/app/match.win", result);
             System.out.println(
@@ -255,7 +257,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
         }
     }
 
-    public void sendAttemptUpdate(com.codedu.models.matchmaking.MatchAttemptUpdate update) {
+    public void sendAttemptUpdate(MatchAttemptUpdate update) {
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.send("/app/match.attempt", update);
         }

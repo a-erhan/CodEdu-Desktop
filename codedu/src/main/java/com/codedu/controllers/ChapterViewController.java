@@ -389,7 +389,7 @@ public class ChapterViewController {
                     });
 
                     VBox codeCardWrapper = createQuestionContainer();
-                    codeCardWrapper.setUserData(task.id()); // 🚀 THE KEY: Tag the node with the ID
+                    codeCardWrapper.setUserData(task.id());
                     codeCardWrapper.setFocusTraversable(true);
                     codeCardWrapper.getChildren().addAll(buildMetadataHeader(task), solverUI, hintLabel);
                     VBox.setMargin(codeCardWrapper, new Insets(0, 0, 30, 0));
@@ -426,6 +426,9 @@ public class ChapterViewController {
                     if (isChapterFinished && !alreadyFinishedBefore && chapter != null) {
                         xpReward += chapter.xpReward();
                         tokenReward += 50;
+                        if (btnBack != null && btnBack.getScene() != null && btnBack.getScene().getRoot() instanceof javafx.scene.layout.Pane rootPane) {
+                            com.codedu.ui.UIUtils.fireConfetti(rootPane);
+                        }
                     }
 
                     if (xpReward > 0 || tokenReward > 0) {

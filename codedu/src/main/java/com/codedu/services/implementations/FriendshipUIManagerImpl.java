@@ -227,12 +227,17 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         Label nameLabel = new Label(name);
         nameLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
-        // Click on avatar or name -> navigate to friend's profile
+        // Click on avatar, name, or the whole row -> navigate to friend's profile
         if (onProfileClick != null) {
+            row.setCursor(Cursor.HAND);
+            row.setOnMouseClicked(e -> {
+                // If the user didn't click the Chat button specifically
+                if (!(e.getTarget() instanceof Button)) {
+                    onProfileClick.accept(friend);
+                }
+            });
             avatarLabel.setCursor(Cursor.HAND);
             nameLabel.setCursor(Cursor.HAND);
-            avatarLabel.setOnMouseClicked(e -> onProfileClick.accept(friend));
-            nameLabel.setOnMouseClicked(e -> onProfileClick.accept(friend));
         }
 
         Region spacer = new Region();

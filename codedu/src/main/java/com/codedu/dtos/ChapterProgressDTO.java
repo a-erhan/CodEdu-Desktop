@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChapterProgressDTO {
-    // 🚀 Changed from Chapter (Entity) to ChapterDTO
+
     private ChapterDTO chapter;
     private int completedLessons;
     private boolean isLocked;

@@ -65,7 +65,7 @@ public class LearningPathController {
         public void initialize() {
                 if (detailActionButton != null) {
                         detailActionButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED);
-                        // 🚀 Force the button interaction color to Blue
+
                         detailActionButton.setStyle("-fx-text-fill: " + LOGO_BLUE + "; -fx-border-color: " + LOGO_BLUE + ";");
                 }
                 renderIfReady();

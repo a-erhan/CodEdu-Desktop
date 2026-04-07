@@ -146,6 +146,28 @@ public class MatchmakingController {
         showLobby();
         applyLobbyStyles();
         wireButtons();
+
+        Platform.runLater(() -> {
+            if (lobbyPane != null && lobbyPane.getParent() != null) {
+                lobbyPane.getParent().sceneProperty().addListener((obs, oldScene, newScene) -> {
+                    if (newScene == null) {
+                        System.out.println("[MC] View removed from scene. Cleaning up matchmaking state.");
+                        cleanupMatchmaking();
+                    }
+                });
+            }
+        });
+    }
+
+    private boolean matchEnded = false;
+
+    private void cleanupMatchmaking() {
+        if (currentUser == null) return;
+        if (activeRoom != null && !matchEnded) {
+            System.out.println("[MC] Navigated away during active match. Auto-resigning.");
+            handleResign();
+        }
+        webSocketClientService.leaveMatchmaking(currentUser.getId());
     }
 
     /**
@@ -217,6 +239,7 @@ public class MatchmakingController {
     private void onMatchResult(com.codedu.models.matchmaking.MatchResult result) {
         System.out.println("[MC] >>> onMatchResult! Winner: " + result.getWinnerId());
         Platform.runLater(() -> {
+            matchEnded = true;
             boolean won = (currentUser != null && result.getWinnerId() == currentUser.getId());
             showResultPane(won);
         });
@@ -280,9 +303,20 @@ public class MatchmakingController {
         if (outputArea != null)
             outputArea.setText("");
 
-        // Enable buttons
+        // Enable interaction
+        matchEnded = false;
         if (submitButton != null)
             submitButton.setDisable(false);
+        if (resignButton != null)
+            resignButton.setDisable(false);
+        if (codeArea != null)
+            codeArea.setDisable(false);
+
+        // Reset counters
+        localAttempts = 0;
+        opponentAttemptsCount = 0;
+        if (youAttempts != null) youAttempts.setText("You: 0");
+        if (opponentAttempts != null) opponentAttempts.setText("Opponent: 0");
 
         // Start timer
         startTimer();
@@ -373,9 +407,10 @@ public class MatchmakingController {
     }
 
     private void handleResign() {
-        if (activeRoom == null || activeOpponent == null) return;
+        if (activeRoom == null || activeOpponent == null || matchEnded) return;
         
-        System.out.println("[MC] Resign clicked.");
+        System.out.println("[MC] Resign clicked/triggered.");
+        matchEnded = true;
         if (resignButton != null) resignButton.setDisable(true);
         if (submitButton != null) submitButton.setDisable(true);
         if (codeArea != null) codeArea.setDisable(true);
@@ -427,7 +462,13 @@ public class MatchmakingController {
             resultRewardLabel.setText(won ? "+50 XP ✨  +50 Tokens 🪙" : "-50 XP 📉  -50 Tokens 💸");
             resultRewardLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + (won ? "-color-success-emphasis;" : "-color-danger-emphasis;"));
         }
+
+        if (won) {
+            com.codedu.ui.UIUtils.fireConfetti((javafx.scene.layout.Pane) resultPane.getParent());
+        }
     }
+
+
 
     private void applyLobbyStyles() {
         if (findMatchButton != null)

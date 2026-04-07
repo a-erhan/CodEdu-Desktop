@@ -4,6 +4,7 @@ import com.codedu.models.BaseEntity;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.social.ForumPost;
 import com.codedu.models.social.Friendship;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,7 +26,7 @@ import java.util.Set;
 // Prevent Jackson from traversing Hibernate lazy-proxy fields during STOMP
 // serialisation.
 // 'hibernateLazyInitializer' and 'handler' are Hibernate proxy internals.
-@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory", "sentFriendRequests", "receivedFriendRequests", "posts" })
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "competitor", "gameState", "inventory" })
 public class User extends BaseEntity {
 
     @Column(unique = true, nullable = false)
@@ -75,18 +76,22 @@ public class User extends BaseEntity {
         }
     }
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "requester", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Friendship> sentFriendRequests = new HashSet<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Friendship> receivedFriendRequests = new HashSet<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ForumPost> posts = new ArrayList<>();
 
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserInventory inventory;
 

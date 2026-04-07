@@ -23,8 +23,8 @@ module com.codedu {
     requires spring.tx;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
-    requires spring.websocket;
-    requires spring.messaging;
+    requires transitive spring.websocket;
+    requires transitive spring.messaging;
     requires spring.context.support;
     requires jakarta.mail;
     requires org.slf4j;

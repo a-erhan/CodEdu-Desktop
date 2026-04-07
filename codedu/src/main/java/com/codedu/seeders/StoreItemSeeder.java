@@ -41,12 +41,21 @@ public class StoreItemSeeder implements CommandLineRunner {
 
     private void seedBoosterItems() {
         List<Item> existing = itemRepository.findByType(ItemType.BOOSTER);
-        if (!existing.isEmpty()) return;
+        if (!existing.isEmpty()) {
+            for (Item i : existing) {
+                if ("Full Heart Pack".equals(i.getName()) || "Full Heart Recharge".equals(i.getName())) {
+                    i.setName("Full Heart Recharge");
+                    i.setDescription("Sets hearts to the maximum (15). Use from Inventory after purchase.");
+                    itemRepository.update(i);
+                }
+            }
+            return;
+        }
 
         System.out.println(">>> [StoreSeeder] Seeding booster items...");
         // Heart Refills
         itemRepository.save(new Item("Heart Refill", "Instantly restores 1 heart.", null, 30, ItemType.BOOSTER));
-        itemRepository.save(new Item("Full Heart Pack", "Restores all hearts to maximum.", null, 100, ItemType.BOOSTER));
+        itemRepository.save(new Item("Full Heart Recharge", "Sets hearts to the maximum (15). Use from Inventory after purchase.", null, 100, ItemType.BOOSTER));
 
         // XP Boosters
         itemRepository.save(new Item("Double XP (30m)", "Earn 2x XP for the next 30 minutes.", null, 150, ItemType.BOOSTER));

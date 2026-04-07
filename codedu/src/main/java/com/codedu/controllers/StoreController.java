@@ -150,9 +150,8 @@ public class StoreController {
                         user = updated;
                     } else {
                         String nm = item.getName() != null ? item.getName().toLowerCase() : "";
-                        boolean heartSingle = nm.contains("heart") && !nm.contains("full");
                         UserGameState gs = user.getGameState();
-                        boolean heartsFull = heartSingle && gs != null && gs.getHeartCount() >= UserGameState.MAX_HEARTS;
+                        boolean heartsFull = nm.contains("heart") && gs != null && gs.getHeartCount() >= UserGameState.MAX_HEARTS;
                         Alert alert = new Alert(heartsFull ? Alert.AlertType.INFORMATION : Alert.AlertType.WARNING);
                         alert.setTitle("Store Notice");
                         alert.setHeaderText(null);

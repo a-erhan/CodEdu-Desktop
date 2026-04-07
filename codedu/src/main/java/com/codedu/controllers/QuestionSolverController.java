@@ -37,7 +37,7 @@ public class QuestionSolverController {
     @Autowired
     private QuestionEvaluationService questionEvaluationService;
 
-    // 🚀 Changed from Question to QuestionDTO
+
     private QuestionDTO currentQuestion;
     private Runnable onBack;
     private Consumer<Boolean> onSuccessCallback;
@@ -75,7 +75,7 @@ public class QuestionSolverController {
         }
     }
 
-    // 🚀 Accepts QuestionDTO now
+
     public void setQuestion(QuestionDTO question) {
         this.currentQuestion = question;
         if (questionTitleLabel != null) {
@@ -88,7 +88,7 @@ public class QuestionSolverController {
             resultMessageLabel.setText("");
         }
         if (codeEditorArea != null) {
-            // 🚀 Simplified: No more 'instanceof' check since DTO holds the boilerplate!
+
             if (question.boilerplateCode() != null && !question.boilerplateCode().isEmpty()) {
                 codeEditorArea.setText(question.boilerplateCode());
             } else {
@@ -142,7 +142,7 @@ public class QuestionSolverController {
 
         java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             try {
-                // ⚠️ NOTE: Ensure your QuestionEvaluationService.evaluate()
+
                 // is updated to accept a QuestionDTO instead of a Question entity!
                 return questionEvaluationService.evaluate(currentQuestion, userCode);
             } catch (Exception e) {
@@ -155,6 +155,11 @@ public class QuestionSolverController {
                 if (isCorrect) {
                     showResult("Correct! Well done! All test cases passed.", true);
                     setLocked(true);
+
+                    if (submitButton.getScene() != null && submitButton.getScene().getRoot() instanceof javafx.scene.layout.Pane rootPane) {
+                        com.codedu.ui.UIUtils.fireConfetti(rootPane);
+                    }
+
                     if (onSuccessCallback != null) {
                         onSuccessCallback.accept(true);
                     }
