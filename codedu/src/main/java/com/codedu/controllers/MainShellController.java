@@ -128,36 +128,24 @@ public class MainShellController {
         ensureShellFillsScene();
         setActiveButton(btnLearningPath);
 
-        // 1. Create Streak Label if it doesn't exist yet
-        if (streakLabel == null) {
-            streakLabel = new Label("🔥 0");
-            streakLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #95a5a6; -fx-font-weight: bold;");
-        }
+        if (streakLabel == null) streakLabel = new Label("\uD83D\uDD25 0");
+        if (heartLabel == null) heartLabel = new Label("\u2764\uFE0F 0");
 
-        // 2. Create Heart Label if it doesn't exist yet
-        if (heartLabel == null) {
-            heartLabel = new Label("❤️ 0");
-            heartLabel.setStyle("-fx-font-size: 15px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-        }
-
-        // 3. Inject both into the Top Bar layout
-        if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.Pane parentBox) {
-
-            // Safety check to prevent adding duplicates if initialize() runs twice
+        if (tokenLabel != null && tokenLabel.getParent() instanceof javafx.scene.layout.HBox parentBox) {
             if (!parentBox.getChildren().contains(streakLabel)) {
+                if (xpProgressBar != null && xpProgressBar.getParent() instanceof javafx.scene.layout.VBox xpContainer) {
+                    parentBox.getChildren().remove(xpContainer);
+                    int badgeIndex = parentBox.getChildren().indexOf(badgeLabel);
+                    parentBox.getChildren().add(badgeIndex + 1, xpContainer);
+                    javafx.scene.layout.HBox.setMargin(xpContainer, new javafx.geometry.Insets(0, 0, 0, 15));
+                }
+
                 int tokenIndex = parentBox.getChildren().indexOf(tokenLabel);
-
-                // Insert Streak at Token's position (pushes Token to the right)
                 parentBox.getChildren().add(tokenIndex, streakLabel);
-
-                // Insert Heart right after Streak (pushes Token to the right again)
                 parentBox.getChildren().add(tokenIndex + 1, heartLabel);
 
-                // Add nice spacing between them
-                if (parentBox instanceof javafx.scene.layout.HBox) {
-                    javafx.scene.layout.HBox.setMargin(streakLabel, new javafx.geometry.Insets(0, 15, 0, 0));
-                    javafx.scene.layout.HBox.setMargin(heartLabel, new javafx.geometry.Insets(0, 15, 0, 0));
-                }
+                javafx.scene.layout.HBox.setMargin(streakLabel, new javafx.geometry.Insets(0, 15, 0, 0));
+                javafx.scene.layout.HBox.setMargin(heartLabel, new javafx.geometry.Insets(0, 15, 0, 0));
             }
         }
     }
@@ -234,25 +222,59 @@ public class MainShellController {
     }
 
     private void initSidebarAndHeaderStyles() {
-        if (taglineLabel != null)
-            taglineLabel.getStyleClass().add(Styles.TITLE_2);
-        if (sidebar != null) {
-            sidebar.setSpacing(16);
-            sidebar.getStyleClass().addAll(Styles.BG_SUBTLE, Styles.ELEVATED_1, Styles.ROUNDED);
-            if (sidebarScroll != null)
-                sidebar.minHeightProperty().bind(sidebarScroll.heightProperty());
-        }
+        String LOGO_BLUE = "#00AEEF";
+
+        if (taglineLabel != null) taglineLabel.getStyleClass().add(Styles.TITLE_2);
+
         if (profileIconLabel != null) {
-            profileIconLabel.setShape(new Circle(16));
-            profileIconLabel.getStyleClass().addAll(Styles.BORDERED, Styles.ROUNDED, Styles.INTERACTIVE);
-            profileIconLabel.setOnMouseClicked(e -> loadProfile());
+            profileIconLabel.setMinWidth(40);
+            profileIconLabel.setMaxWidth(40);
+            profileIconLabel.setMinHeight(40);
+            profileIconLabel.setMaxHeight(40);
+
+            profileIconLabel.setPadding(javafx.geometry.Insets.EMPTY);
+            profileIconLabel.setAlignment(Pos.CENTER);
+
+            profileIconLabel.setStyle(
+                    "-fx-background-color: " + LOGO_BLUE + "; " +
+                            "-fx-text-fill: white; " +
+                            "-fx-background-radius: 50; " +
+                            "-fx-border-radius: 50; " +
+                            "-fx-font-weight: bold; " +
+                            "-fx-font-size: 16px; " +
+                            "-fx-cursor: hand;"
+            );
+
+            profileIconLabel.setPickOnBounds(true);
+            profileIconLabel.setOnMouseClicked(e -> {
+                loadProfile();
+            });
         }
-        if (welcomeNavLabel != null) {
-            welcomeNavLabel.getStyleClass().add(Styles.INTERACTIVE);
-            welcomeNavLabel.setOnMouseClicked(e -> loadProfile());
-        }
+
         if (xpProgressBar != null) {
-            xpProgressBar.getStyleClass().addAll(Styles.MEDIUM, Styles.ROUNDED);
+            xpProgressBar.setPrefHeight(14);
+            xpProgressBar.setMinHeight(14);
+
+            xpProgressBar.setStyle(
+                    "-fx-accent: " + LOGO_BLUE + "; " +
+                            "-fx-control-inner-background: #3b4252; " +
+                            "-fx-background-radius: 20; " +
+                            "-fx-border-radius: 20;"
+            );
+
+            xpProgressBar.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+                if (newSkin != null) {
+                    Region track = (Region) xpProgressBar.lookup(".track");
+                    Region bar = (Region) xpProgressBar.lookup(".bar");
+                    if (track != null) track.setStyle("-fx-background-radius: 20; -fx-background-color: #3b4252;");
+                    if (bar != null) bar.setStyle("-fx-background-radius: 20; -fx-background-color: " + LOGO_BLUE + ";");
+                }
+            });
+        }
+
+        if (badgeLabel != null) {
+            badgeLabel.setPadding(new javafx.geometry.Insets(4, 12, 4, 12));
+            badgeLabel.setStyle("-fx-background-color: #3b4252; -fx-border-color: " + LOGO_BLUE + "; -fx-border-radius: 15; -fx-background-radius: 15; -fx-font-weight: bold; -fx-text-fill: white;");
         }
     }
 
@@ -328,7 +350,6 @@ public class MainShellController {
         }
     }
 
-    // 🚀 Updated to accept ChapterDTO
     private void loadChapterView(ChapterDTO chapterDto) {
         refreshShellUserFromDatabase();
         try {
@@ -338,15 +359,12 @@ public class MainShellController {
 
             ChapterViewController controller = loader.getController();
 
-            // 1. Create a dummy Chapter entity just to use as a search key for the repository
             Chapter searchKey = new Chapter();
             searchKey.setId(chapterDto.id());
 
-            // 2. See if the user has database progress
             com.codedu.models.learning.UserChapterProgress dbProgress =
                     progressService.getProgress(this.user, searchKey);
 
-            // 3. Map it to the ChapterProgressDTO the UI expects
             ChapterProgressDTO progressDto = new ChapterProgressDTO();
             progressDto.setChapter(chapterDto);
             progressDto.setCompletedLessons(dbProgress != null ? dbProgress.getCompletedLessons() : 0);
@@ -355,7 +373,6 @@ public class MainShellController {
 
             controller.setCurrentUser(this.user);
 
-            // 🚀 Pass both DTOs to the ChapterViewController
             controller.setChapter(chapterDto, progressDto);
 
             controller.setOnProgressUpdated(ignored -> refreshShellUserFromDatabase());
@@ -379,7 +396,6 @@ public class MainShellController {
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             DailyChallengeController controller = loader.getController();
-            // 🚀 Receives standard Question entity, maps it internally
             controller.setOnStartQuestion(this::openChallengePage);
             controller.setOnBack(this::loadLearningPath);
             setContentAndFill(view);
@@ -389,7 +405,7 @@ public class MainShellController {
         }
     }
 
-    // 🚀 Intercepts the raw Entity from Daily Challenge and turns it into a DTO
+
     private void openChallengePage(Question question) {
         refreshShellUserFromDatabase();
         try {
@@ -398,7 +414,6 @@ public class MainShellController {
             Parent view = loader.load();
             QuestionSolverController controller = loader.getController();
 
-            // 🚀 Map the raw Question entity to the QuestionDTO expected by the Solver
             QuestionDTO questionDto = QuestionDTO.builder()
                     .id(question.getId())
                     .title(question.getTitle())
@@ -653,43 +668,42 @@ public class MainShellController {
     }
 
     private void updateHeader() {
-        String username = (user.getUsername() != null && !user.getUsername().isEmpty()) ? user.getUsername() : "User";
         UserGameState gs = currentGameStateForHeader();
-        this.gameState = gs;
+        String username = (user.getUsername() != null && !user.getUsername().isEmpty()) ? user.getUsername() : "User";
+
         int tokens = (gs != null) ? gs.getTokenBalance() : 0;
         int level = (gs != null) ? gs.getLevel() : 1;
         int xp = (gs != null) ? gs.getXp() : 0;
         int hearts = (gs != null) ? gs.getHeartCount() : 0;
         int streak = (gs != null) ? gs.getCurrentStreak() : 0;
 
-        tokenLabel.setText("Tokens: " + tokens);
-        badgeLabel.setText("Lvl " + level);
+        tokenLabel.setText("\uD83E\uDE99 " + tokens); // 🪙
+        tokenLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-fg-default; -fx-font-size: 14px;");
+
+        badgeLabel.setText("\uD83C\uDFC6 LVL " + level); // 🏆
+
         welcomeNavLabel.setText("@" + username);
 
         if (heartLabel != null) {
-            heartLabel.setText("\u2764 " + hearts);
-        }
-
-        int levelCap = Math.max(1, level * 100);
-        double progress = (double) xp / levelCap;
-        xpProgressBar.setProgress(Math.min(1.0, progress));
-        xpLabel.setText("XP: " + xp + " / " + levelCap);
-
-        if (profileIconLabel != null) {
-            profileIconLabel.setText(username.substring(0, 1).toUpperCase());
-            profileIconLabel.setStyle("-fx-background-color: -color-accent-emphasis; -fx-text-fill: white;");
+            heartLabel.setText("\u2764\uFE0F " + hearts); // ❤️
+            heartLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
         }
 
         if (streakLabel != null) {
-
-            streakLabel.setText("🔥 " + streak);
-
-            if (streak > 0) {
-                streakLabel.setStyle("-fx-text-fill: #e67e22; -fx-font-weight: bold;");
-            } else {
-                streakLabel.setStyle("-fx-text-fill: #95a5a6;"); // Gray if starting out
-            }
+            streakLabel.setText("\uD83D\uDD25 " + streak); // 🔥
+            String streakColor = (streak > 0) ? "#e67e22" : "#95a5a6";
+            streakLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + streakColor + "; -fx-font-weight: bold;");
         }
+
+        if (profileIconLabel != null) {
+            profileIconLabel.setText(username.substring(0, 1).toUpperCase());
+            profileIconLabel.setAlignment(Pos.CENTER);
+        }
+
+
+        int levelCap = Math.max(1, level * 100);
+        xpProgressBar.setProgress(Math.min(1.0, (double) xp / levelCap));
+        xpLabel.setText(xp + " / " + levelCap + " XP");
     }
 
     private void toggleTheme() {
