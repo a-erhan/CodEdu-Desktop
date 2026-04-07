@@ -32,7 +32,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Controller
 @Scope("prototype")
@@ -66,11 +68,19 @@ public class StoreController {
     }
 
     private void markOwnedItemsFromInventory() {
-        if (user == null || user.getId() <= 0) return;
+        if (user == null || user.getId() <= 0) {
+            return;
+        }
+        // One inventory query + one user resolve — avoid N× findByUserAndItem (each used to reload full user).
+        Set<Integer> ownedItemIds = inventoryItemService.getItemEntitiesForUser(user).stream()
+                .filter(ii -> ii.getItem() != null)
+                .map(ii -> ii.getItem().getId())
+                .collect(Collectors.toSet());
         for (Item storeItem : allItems) {
-            if (storeItem == null || storeItem.getId() <= 0) continue;
-            boolean owned = inventoryItemService.findByUserAndItem(user, storeItem).isPresent();
-            storeItem.setOwned(owned);
+            if (storeItem == null || storeItem.getId() <= 0) {
+                continue;
+            }
+            storeItem.setOwned(ownedItemIds.contains(storeItem.getId()));
         }
     }
 
@@ -206,7 +216,8 @@ public class StoreController {
             try {
                 var url = getClass().getResource("/com/codedu/images/avatars/" + file);
                 if (url != null) {
-                    Image img = new Image(url.toExternalForm());
+                    // width, height, preserveRatio, smooth, backgroundLoading — avoids blocking UI on decode
+                    Image img = new Image(url.toExternalForm(), 80, 80, true, true, true);
                     ImageView iv = new ImageView(img);
                     iv.setFitWidth(80); iv.setFitHeight(80); iv.setPreserveRatio(true);
                     iv.setClip(new Circle(40, 40, 40));

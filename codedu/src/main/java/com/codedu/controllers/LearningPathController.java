@@ -27,6 +27,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Controller
@@ -72,13 +73,20 @@ public class LearningPathController {
         }
 
         public void loadUserData(User currentUser) {
-                if (currentUser == null || currentUser.getId() == 0) return;
-                User attachedUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
-                this.chapters = learningPathService.getOrCreateLearningPath(attachedUser);
-                Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                                renderIfReady();
+                if (currentUser == null || currentUser.getId() == 0) {
+                        return;
+                }
+                final int userId = currentUser.getId();
+                CompletableFuture.runAsync(() -> {
+                        try {
+                                User attachedUser = userRepository.findById(userId).orElse(currentUser);
+                                List<ChapterProgressDTO> path = learningPathService.getOrCreateLearningPath(attachedUser);
+                                Platform.runLater(() -> {
+                                        this.chapters = path;
+                                        renderIfReady();
+                                });
+                        } catch (Exception e) {
+                                e.printStackTrace();
                         }
                 });
         }

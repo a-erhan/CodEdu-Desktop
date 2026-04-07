@@ -35,6 +35,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Controller
 public class MainShellController {
@@ -89,7 +92,15 @@ public class MainShellController {
     private boolean darkTheme = true;
 
     private long lastShellUserRefreshMs;
-    private static final long FOCUS_REFRESH_MIN_INTERVAL_MS = 900L;
+    /** Throttle background refreshes so navigation does not queue many identical DB calls. */
+    private long lastShellUserRefreshScheduleMs;
+    private static final long SHELL_REFRESH_SCHEDULE_MIN_INTERVAL_MS = 1_500L;
+
+    private final ExecutorService shellUserRefreshExecutor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "codedu-shell-user-refresh");
+        t.setDaemon(true);
+        return t;
+    });
 
     public void setUser(User user) {
         if (user == null) return;
@@ -181,36 +192,52 @@ public class MainShellController {
         w.getProperties().put("codedu.shellFocusRefresh", true);
         w.focusedProperty().addListener((obs, was, focused) -> {
             if (Boolean.TRUE.equals(focused)) {
-                refreshShellUserFromDatabaseOnWindowFocus();
+                scheduleShellUserRefresh();
             }
         });
     }
 
-    private void refreshShellUserFromDatabase() {
-        refreshShellUserFromDatabaseInternal(true);
+    /**
+     * Applies an already-loaded user (e.g. after XP award or store purchase) without a blocking DB round-trip.
+     */
+    private void applyShellUserFromRefresh(User fresh) {
+        if (fresh == null) {
+            return;
+        }
+        this.user = fresh;
+        if (initDemoModelsIfNeeded()) {
+            userService.saveUser(this.user);
+        }
+        this.gameState = user.getGameState();
+        updateHeader();
+        lastShellUserRefreshMs = System.currentTimeMillis();
     }
 
-    private void refreshShellUserFromDatabaseOnWindowFocus() {
-        refreshShellUserFromDatabaseInternal(false);
-    }
-
-    private void refreshShellUserFromDatabaseInternal(boolean force) {
+    /**
+     * Refreshes shell user from DB on a background thread so FXML navigation stays responsive.
+     */
+    private void scheduleShellUserRefresh() {
         if (user == null || user.getUsername() == null || user.getUsername().isBlank()) {
             return;
         }
         long now = System.currentTimeMillis();
-        if (!force && now - lastShellUserRefreshMs < FOCUS_REFRESH_MIN_INTERVAL_MS) {
+        if (now - lastShellUserRefreshScheduleMs < SHELL_REFRESH_SCHEDULE_MIN_INTERVAL_MS) {
             return;
         }
-        userService.getUserWithProfileData(user.getUsername()).ifPresent(fresh -> {
-            this.user = fresh;
-            if (initDemoModelsIfNeeded()) {
-                userService.saveUser(this.user);
+        lastShellUserRefreshScheduleMs = now;
+        final String username = user.getUsername();
+        shellUserRefreshExecutor.execute(() -> {
+            try {
+                Optional<User> opt = userService.getUserWithProfileData(username);
+                Platform.runLater(() -> opt.ifPresent(fresh -> {
+                    if (user == null || user.getUsername() == null || !username.equals(user.getUsername())) {
+                        return;
+                    }
+                    applyShellUserFromRefresh(fresh);
+                }));
+            } catch (Exception ignored) {
             }
-            this.gameState = user.getGameState();
-            updateHeader();
         });
-        lastShellUserRefreshMs = System.currentTimeMillis();
     }
 
     private void setContentAndFill(Parent view) {
@@ -331,7 +358,7 @@ public class MainShellController {
     private void loadLearningPath() {
         if (this.user == null) return;
 
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
 
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/LearningPath.fxml"));
@@ -351,7 +378,7 @@ public class MainShellController {
     }
 
     private void loadChapterView(ChapterDTO chapterDto) {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ChapterView.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -375,7 +402,7 @@ public class MainShellController {
 
             controller.setChapter(chapterDto, progressDto);
 
-            controller.setOnProgressUpdated(ignored -> refreshShellUserFromDatabase());
+            controller.setOnProgressUpdated(this::applyShellUserFromRefresh);
 
             controller.setOnBack(() -> {
                 setActiveButton(btnLearningPath);
@@ -390,7 +417,7 @@ public class MainShellController {
     }
 
     private void loadDailyChallenge() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/DailyChallenge.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -407,7 +434,7 @@ public class MainShellController {
 
 
     private void openChallengePage(Question question) {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/QuestionSolver.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -442,7 +469,7 @@ public class MainShellController {
     }
 
     private void loadAchievements() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Achievements.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -458,7 +485,7 @@ public class MainShellController {
     }
 
     private void loadForum() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Forum.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -466,8 +493,7 @@ public class MainShellController {
             ForumController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setOnOpenPost(this::openForumPost);
-            controller.setOnOpenProfile(
-                    username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
+            controller.setOnOpenProfile(this::openUserProfileFromUsername);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -476,7 +502,7 @@ public class MainShellController {
     }
 
     private void openForumPost(Integer postId) {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/ForumPost.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -484,8 +510,7 @@ public class MainShellController {
             ForumPostController controller = loader.getController();
             controller.setCurrentUser(user);
             controller.setPostId(postId);
-            controller.setOnOpenProfile(
-                    username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
+            controller.setOnOpenProfile(this::openUserProfileFromUsername);
             controller.setOnBack(() -> {
                 setActiveButton(btnForum);
                 loadForum();
@@ -501,8 +526,21 @@ public class MainShellController {
         if (profileUser == null || profileUser.getUsername() == null || profileUser.getUsername().isBlank()) {
             return;
         }
-        // Always load full profile (achievements + badge metadata) from the DB
-        userService.getUserWithProfileData(profileUser.getUsername()).ifPresent(this::openUserProfileWithHydratedUser);
+        openUserProfileFromUsername(profileUser.getUsername());
+    }
+
+    private void openUserProfileFromUsername(String username) {
+        if (username == null || username.isBlank()) {
+            return;
+        }
+        final String uname = username.trim();
+        shellUserRefreshExecutor.execute(() -> {
+            try {
+                userService.getUserWithProfileData(uname)
+                        .ifPresent(f -> Platform.runLater(() -> openUserProfileWithHydratedUser(f)));
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     private void openUserProfileWithHydratedUser(User profileUser) {
@@ -537,14 +575,14 @@ public class MainShellController {
     }
 
     private void loadMatchmaking() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Matchmaking.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
             Parent view = loader.load();
             MatchmakingController controller = loader.getController();
             controller.setCurrentUser(user);
-            controller.setOnOpenProfile(username -> userService.getUserWithProfileData(username).ifPresent(this::openUserProfile));
+            controller.setOnOpenProfile(this::openUserProfileFromUsername);
             setContentAndFill(view);
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -553,7 +591,7 @@ public class MainShellController {
     }
 
     private void loadStore() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Store.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -562,10 +600,7 @@ public class MainShellController {
 
             controller.setUserModel(user);
 
-            controller.setOnUserUpdated(updatedUser -> {
-                if (updatedUser == null) return;
-                refreshShellUserFromDatabase();
-            });
+            controller.setOnUserUpdated(this::applyShellUserFromRefresh);
 
             setContentAndFill(view);
         } catch (IOException ex) {
@@ -575,7 +610,7 @@ public class MainShellController {
     }
 
     private void loadInventory() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/InventoryItem.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -590,7 +625,7 @@ public class MainShellController {
     }
 
     private void loadAskAI() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/AskAI.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -605,7 +640,7 @@ public class MainShellController {
     }
 
     private void loadLeaderboard() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Leaderboard.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -624,26 +659,34 @@ public class MainShellController {
         if (competitor == null || competitor.getUser() == null) {
             return;
         }
-        try {
-            User hydrated = userService.loadUserForPublicProfile(competitor.getUser().getId())
-                    .orElse(competitor.getUser());
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
-            loader.setControllerFactory(applicationContext::getBean);
-            Parent profileView = loader.load();
-            ProfileController controller = loader.getController();
-            controller.setCurrentUser(user);
-            controller.setViewingSelf(false);
-            controller.setOnProfileClick(this::openUserProfile);
-            controller.setCompetitor(competitor, competitorOrder, hydrated);
-            setContentAndFill(profileView);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            showSectionPlaceholder("Profile", "Error loading competitor profile.");
-        }
+        final int userId = competitor.getUser().getId();
+        final User fallback = competitor.getUser();
+        shellUserRefreshExecutor.execute(() -> {
+            try {
+                User hydrated = userService.loadUserForPublicProfile(userId).orElse(fallback);
+                Platform.runLater(() -> {
+                    try {
+                        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
+                        loader.setControllerFactory(applicationContext::getBean);
+                        Parent profileView = loader.load();
+                        ProfileController controller = loader.getController();
+                        controller.setCurrentUser(user);
+                        controller.setViewingSelf(false);
+                        controller.setOnProfileClick(this::openUserProfile);
+                        controller.setCompetitor(competitor, competitorOrder, hydrated);
+                        setContentAndFill(profileView);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                        showSectionPlaceholder("Profile", "Error loading competitor profile.");
+                    }
+                });
+            } catch (Exception ignored) {
+            }
+        });
     }
 
     private void loadSettings() {
-        refreshShellUserFromDatabase();
+        scheduleShellUserRefresh();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Settings.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -663,10 +706,7 @@ public class MainShellController {
         if (user == null) {
             return;
         }
-        userService.getUserWithProfileData(user.getUsername())
-                .ifPresentOrElse(
-                        this::openUserProfileWithHydratedUser,
-                        () -> openUserProfile(user));
+        openUserProfile(user);
     }
 
     private UserGameState currentGameStateForHeader() {
