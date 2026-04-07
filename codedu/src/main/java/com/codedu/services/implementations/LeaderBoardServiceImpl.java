@@ -5,10 +5,8 @@ import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
-import com.codedu.repositories.interfaces.CompetitorRepository;
 import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.LeaderBoardService;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,12 +20,9 @@ import java.util.stream.Collectors;
 public class LeaderBoardServiceImpl implements LeaderBoardService {
 
     private final UserRepository userRepository;
-    private final CompetitorRepository competitorRepository;
 
-    public LeaderBoardServiceImpl(UserRepository userRepository,
-            CompetitorRepository competitorRepository) {
+    public LeaderBoardServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.competitorRepository = competitorRepository;
     }
 
     @Override
@@ -67,8 +62,7 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         List<User> scoped = filterByScope(users, name);
         List<Competitor> rows = new ArrayList<>();
         for (User u : scoped) {
-            ensureCompetitor(u);
-            Competitor c = u.getCompetitor();
+            Competitor c = competitorForRanking(u);
             c.setRankingPoint(progressionScore(u));
             c.setUserRank(0);
             rows.add(c);
@@ -76,14 +70,6 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         rows.sort(Comparator.comparingInt(Competitor::getRankingPoint).reversed());
         for (int i = 0; i < rows.size(); i++) {
             rows.get(i).setUserRank(i + 1);
-        }
-        for (Competitor c : rows) {
-            if (c.getUser() != null) {
-                Hibernate.initialize(c.getUser());
-                if (c.getUser().getGameState() != null) {
-                    Hibernate.initialize(c.getUser().getGameState());
-                }
-            }
         }
         return LeaderBoard.builder()
                 .name(name != null && !name.isBlank() ? name : "All-Time")
@@ -125,19 +111,20 @@ public class LeaderBoardServiceImpl implements LeaderBoardService {
         return gs.getLevel() * 1_000_000 + gs.getXp();
     }
 
-    private void ensureCompetitor(User u) {
+    /**
+     * Uses the persisted {@link Competitor} when present; otherwise builds an in-memory row for ranking only.
+     * Avoids writing to the DB on every leaderboard view (that was a major source of slowness).
+     */
+    private Competitor competitorForRanking(User u) {
         if (u.getCompetitor() != null) {
-            return;
+            return u.getCompetitor();
         }
-        Competitor c = Competitor.builder()
+        return Competitor.builder()
                 .user(u)
                 .rankingPoint(progressionScore(u))
                 .totalWins(0)
                 .totalLosses(0)
                 .totalMatches(0)
                 .build();
-        competitorRepository.save(c);
-        u.setCompetitor(c);
-        userRepository.update(u);
     }
 }

@@ -5,6 +5,7 @@ import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import com.codedu.services.interfaces.LeaderBoardService;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -19,14 +20,17 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
 @Controller
+@Scope("prototype")
 public class LeaderboardController {
 
     @FXML
@@ -52,10 +56,11 @@ public class LeaderboardController {
     private LeaderBoardService leaderboardService;
     private User currentUser;
     private BiConsumer<Competitor, List<Competitor>> onOpenProfile;
+    private boolean shellReady;
 
     public void setCurrentUser(User user) {
         this.currentUser = user;
-        buildLeaderboard();
+        tryScheduleInitialLoad();
     }
 
     public void setLeaderboard(LeaderBoard leaderboard) {
@@ -65,7 +70,8 @@ public class LeaderboardController {
 
     public void setOnOpenProfile(BiConsumer<Competitor, List<Competitor>> onOpenProfile) {
         this.onOpenProfile = onOpenProfile;
-        buildLeaderboard();
+        this.shellReady = true;
+        tryScheduleInitialLoad();
     }
 
     @FXML
@@ -84,18 +90,52 @@ public class LeaderboardController {
                 @Override
                 public void handle(ActionEvent event) {
                     String selectedScope = scopeComboBox.getValue();
-                    fetchLeaderboardData(selectedScope);
+                    fetchLeaderboardDataAsync(selectedScope);
                 }
             });
         }
-        fetchLeaderboardData("Weekly");
+        showLoadingPlaceholder();
     }
 
-    private void fetchLeaderboardData(String scope) {
-        System.out.println("Fetching Leaderboard: " + scope);
-        this.leaderboard = leaderboardService.getLeaderboardEntityByName(scope);
-        updateSubtitle(scope);
-        buildLeaderboard();
+    private void tryScheduleInitialLoad() {
+        if (!shellReady || currentUser == null || scopeComboBox == null) {
+            return;
+        }
+        fetchLeaderboardDataAsync(scopeComboBox.getValue());
+    }
+
+    private void showLoadingPlaceholder() {
+        if (boardList == null) {
+            return;
+        }
+        boardList.getChildren().clear();
+        Label loading = new Label("Loading leaderboard…");
+        loading.setStyle("-fx-text-fill: #88c0d0; -fx-font-size: 14px;");
+        boardList.getChildren().add(loading);
+    }
+
+    private void fetchLeaderboardDataAsync(String scope) {
+        if (scope == null || scope.isBlank()) {
+            scope = "Weekly";
+        }
+        final String scopeFinal = scope;
+        showLoadingPlaceholder();
+        CompletableFuture.supplyAsync(() -> leaderboardService.getLeaderboardEntityByName(scopeFinal))
+                .whenComplete((lb, ex) -> Platform.runLater(() -> {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                        if (boardList != null) {
+                            boardList.getChildren().clear();
+                            Label err = new Label("Could not load leaderboard.");
+                            err.setStyle("-fx-text-fill: #bf616a;");
+                            boardList.getChildren().add(err);
+                        }
+                        return;
+                    }
+                    this.leaderboard = lb;
+                    updateSubtitle(scopeFinal);
+                    buildLeaderboard();
+                }));
     }
 
     private void updateSubtitle(String scope) {

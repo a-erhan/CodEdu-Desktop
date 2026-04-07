@@ -1,20 +1,57 @@
 package com.codedu.services.implementations;
 
+import com.codedu.dtos.gamification.AchievementProgressSnapshot;
 import com.codedu.models.gamification.Achievement;
+import com.codedu.repositories.interfaces.AchievementRepository;
+import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.AchievementEvaluationService;
 import com.codedu.services.interfaces.UserService;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class AchievementEvaluationServiceImpl implements AchievementEvaluationService {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final AchievementRepository achievementRepository;
 
-    public AchievementEvaluationServiceImpl(UserService userService) {
+    public AchievementEvaluationServiceImpl(UserService userService,
+            UserRepository userRepository,
+            AchievementRepository achievementRepository) {
         this.userService = userService;
+        this.userRepository = userRepository;
+        this.achievementRepository = achievementRepository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AchievementProgressSnapshot> loadAllProgressSnapshots(int userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        if (user.getGameState() != null) {
+            Hibernate.initialize(user.getGameState());
+            if (user.getGameState().getAchievements() != null) {
+                Hibernate.initialize(user.getGameState().getAchievements());
+            }
+        }
+        if (user.getCompetitor() != null) {
+            Hibernate.initialize(user.getCompetitor());
+        }
+        List<Achievement> all = achievementRepository.getAll();
+        List<AchievementProgressSnapshot> out = new ArrayList<>(all.size());
+        for (Achievement a : all) {
+            double p = getProgressPercentage(a, user);
+            String t = getProgressText(a, user);
+            out.add(new AchievementProgressSnapshot(a, p, t));
+        }
+        return out;
     }
 
     public double getProgressPercentage(Achievement achievement, User user) {

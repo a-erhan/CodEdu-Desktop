@@ -46,6 +46,7 @@ module com.codedu {
     exports com.codedu.controllers;
     exports com.codedu.repositories.interfaces;
     exports com.codedu.dtos;
+    exports com.codedu.dtos.gamification;
     exports com.codedu.config;
     exports com.codedu.dtos.forumpost;
 

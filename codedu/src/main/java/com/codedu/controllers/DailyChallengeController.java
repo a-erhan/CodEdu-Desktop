@@ -4,6 +4,7 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.learning.DailyChallenge;
 import com.codedu.models.learning.Question;
 import com.codedu.services.interfaces.DailyChallengeService;
+import javafx.application.Platform;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -15,12 +16,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Controller
+@Scope("prototype")
 public class DailyChallengeController {
 
     @FXML private Label titleLabel;
@@ -44,7 +48,9 @@ public class DailyChallengeController {
 
     public void setOnStartQuestion(Consumer<Question> onStartQuestion) {
         this.onStartQuestion = onStartQuestion;
-        buildChallenges();
+        if (todayChallenge != null) {
+            buildChallenges();
+        }
     }
 
     public void setOnBack(Runnable onBack) {
@@ -62,13 +68,26 @@ public class DailyChallengeController {
         }
         if (challengeList != null) {
             challengeList.setAlignment(Pos.TOP_CENTER);
+            challengeList.getChildren().clear();
+            Label loading = new Label("Loading daily challenge…");
+            loading.setStyle("-fx-text-fill: #88c0d0; -fx-font-size: 14px;");
+            challengeList.getChildren().add(loading);
         }
-        try {
-            this.todayChallenge = dailyChallengeService.getTodaysChallengeEntity();
-            buildChallenges();
-        } catch (Exception e) {
-            System.err.println("Günün görevi yüklenirken hata oluştu: " + e.getMessage());
-        }
+        CompletableFuture.supplyAsync(dailyChallengeService::getTodaysChallengeEntity)
+                .whenComplete((ch, ex) -> Platform.runLater(() -> {
+                    if (ex != null) {
+                        ex.printStackTrace();
+                        if (challengeList != null) {
+                            challengeList.getChildren().clear();
+                            Label err = new Label("Could not load daily challenge.");
+                            err.setStyle("-fx-text-fill: #bf616a;");
+                            challengeList.getChildren().add(err);
+                        }
+                        return;
+                    }
+                    this.todayChallenge = ch;
+                    buildChallenges();
+                }));
     }
 
     private void buildChallenges() {
