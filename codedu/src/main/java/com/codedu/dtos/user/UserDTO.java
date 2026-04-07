@@ -9,5 +9,6 @@ public record UserDTO(
     String username,
     String email,
     Role role,
-    boolean isActive
+    boolean isActive,
+    boolean emailVerified
 ) {}

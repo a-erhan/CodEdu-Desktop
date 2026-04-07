@@ -14,12 +14,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
+import com.codedu.config.AppMailProperties;
+import com.codedu.config.AuthProperties;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import java.io.InputStream;
 import java.util.Properties;
 
 @SpringBootApplication
+@EnableConfigurationProperties({ AppMailProperties.class, AuthProperties.class })
 public class Main extends Application {
 
     private volatile ConfigurableApplicationContext springContext;

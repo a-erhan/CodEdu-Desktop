@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
-    private UserGameStateRepository userGameStateRepository; // 🚀 Add this!
+    private UserGameStateRepository userGameStateRepository;
 
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
@@ -264,6 +264,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .isActive(user.isActive())
+                .emailVerified(user.isEmailVerified())
                 .build();
     }
 
@@ -346,7 +347,8 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByUsername(username).map(user -> {
             if (user.getGameState() != null && user.getGameState().getHeartCount() > 0) {
                 user.getGameState().setHeartCount(user.getGameState().getHeartCount() - 1);
-                return userRepository.save(user);
+                userRepository.update(user);
+                return user;
             }
             return user;
         }).orElse(null);

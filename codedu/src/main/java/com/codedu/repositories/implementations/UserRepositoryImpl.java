@@ -56,6 +56,24 @@ public class UserRepositoryImpl extends GenericRepositoryImpl<User> implements U
     }
 
     @Override
+    public Optional<User> findByEmailVerificationToken(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            User user = entityManager
+                    .createQuery(
+                            "SELECT u FROM User u WHERE u.emailVerificationToken = :token AND u.isDeleted = false",
+                            User.class)
+                    .setParameter("token", token.trim())
+                    .getSingleResult();
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public Optional<User> findByUsername(String username) {
         try {
             User user = entityManager

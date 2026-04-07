@@ -3,6 +3,7 @@ package com.codedu.services.interfaces;
 import com.codedu.dtos.user.ItemDTO;
 import com.codedu.models.user.Item;
 import com.codedu.models.user.ItemType;
+import com.codedu.models.user.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,10 @@ public interface ItemService {
     void applyItemEffect(int userId, int itemId);
 
     List<ItemDTO> getAllItems();
+    boolean isEffectRedundant(User user, Item item);
+    void applyItemEffect(User user, Item item);
+
+    int getGrantedQuantity(Item item);
 
     /** Entity version for controllers still using entity classes */
     List<Item> getAllItemEntities();

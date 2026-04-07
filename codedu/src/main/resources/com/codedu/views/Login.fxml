@@ -32,6 +32,9 @@
 
         <Label fx:id="errorLabel" wrapText="true" alignment="CENTER" style="-fx-text-fill: #D35400; -fx-font-size: 12px;"/>
 
+        <Hyperlink fx:id="resendVerificationLink" onAction="#handleResendVerification"
+                   text="Resend verification email" style="-fx-text-fill: #00AEEF;"/>
+
         <VBox spacing="10">
             <Button fx:id="loginButton" maxWidth="Infinity" onAction="#handleLogin" prefHeight="42" text="SIGN IN"
                     style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #00AEEF; -fx-border-width: 1.5; -fx-border-radius: 5; -fx-cursor: hand; -fx-font-weight: bold;"/>

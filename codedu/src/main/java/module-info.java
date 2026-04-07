@@ -25,9 +25,13 @@ module com.codedu {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires spring.websocket;
     requires spring.messaging;
+    requires spring.context.support;
+    requires jakarta.mail;
+    requires org.slf4j;
 
     opens com.codedu.views to javafx.fxml;
     opens com.codedu.controllers to javafx.fxml, spring.core, spring.beans, spring.context;
+    opens com.codedu.controllers.api to spring.core, spring.beans, spring.context, spring.web;
     opens com.codedu.models to org.hibernate.orm.core, spring.core, spring.beans;
     opens com.codedu to spring.core, spring.beans, spring.context;
     opens com.codedu.repositories.interfaces to spring.core, spring.beans, spring.context;

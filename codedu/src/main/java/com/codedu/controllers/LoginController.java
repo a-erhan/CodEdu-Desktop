@@ -1,11 +1,13 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
+import com.codedu.dtos.user.LoginResult;
 import com.codedu.dtos.user.UserDTO;
 import com.codedu.dtos.user.UserLoginDTO;
 import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -29,6 +31,8 @@ public class LoginController {
     private PasswordField passwordField;
     @FXML
     private Label errorLabel;
+    @FXML
+    private Hyperlink resendVerificationLink;
     @FXML
     private Label titleLabel;
     @FXML
@@ -67,6 +71,10 @@ public class LoginController {
                         "-fx-cursor: hand;"
         );
         titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
+        titleLabel.getStyleClass().add(Styles.TITLE_3);
+        if (resendVerificationLink != null) {
+            resendVerificationLink.setVisited(false);
+        }
     }
 
     @FXML
@@ -80,11 +88,15 @@ public class LoginController {
             return;
         }
 
-        UserDTO loggedInUser = authService.login(new UserLoginDTO(email, password));
-        if (loggedInUser == null) {
-            errorLabel.setText("Invalid email or password. Please try again or create an account.");
+        errorLabel.setStyle("");
+        LoginResult loginResult = authService.login(new UserLoginDTO(email, password));
+        if (!loginResult.success()) {
+            errorLabel.setText(loginResult.message() != null ? loginResult.message()
+                    : "Invalid email or password. Please try again or create an account.");
             return;
         }
+
+        UserDTO loggedInUser = loginResult.user();
 
         try {
             // Fetch the full User entity for MainShellController
@@ -102,6 +114,35 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
+    @FXML
+    private void handleResendVerification() {
+        String email = emailField.getText().trim();
+        errorLabel.setStyle("");
+        if (email.isEmpty()) {
+            errorLabel.setText("Enter your email above, then click resend.");
+            return;
+        }
+        try {
+            String result = authService.resendVerificationEmail(email);
+            if ("SUCCESS".equals(result)) {
+                errorLabel.setStyle("-fx-text-fill: #a3be8c;");
+                errorLabel.setText("Verification email sent. Check your inbox.");
+            } else {
+                errorLabel.setText(result.startsWith("ERROR: ") ? result.substring("ERROR: ".length()) : result);
+            }
+        } catch (Exception e) {
+            Throwable root = e;
+            while (root.getCause() != null) {
+                root = root.getCause();
+            }
+            errorLabel.setText("Could not send email: " + root.getMessage());
+        }
+        if (resendVerificationLink != null) {
+            resendVerificationLink.setVisited(false);
+        }
+    }
+
     @FXML
     private void handleOpenRegister() {
         try {
