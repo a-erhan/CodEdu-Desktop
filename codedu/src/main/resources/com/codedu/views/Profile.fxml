@@ -18,59 +18,59 @@
             style="-fx-background-color: transparent; -fx-background: transparent;">
 
     <VBox spacing="40" alignment="TOP_CENTER" maxWidth="1000">
-        <padding><Insets top="40" right="50" bottom="40" left="50"/></padding>
+        <padding><Insets top="30" right="50" bottom="40" left="50"/></padding>
 
         <HBox alignment="CENTER_RIGHT">
             <Region HBox.hgrow="ALWAYS"/>
-            <Button fx:id="addFriendButton" text="Add Friend"/>
+            <Button fx:id="addFriendButton" text="+ Add Friend"
+                    style="-fx-background-radius: 20; -fx-font-weight: bold;"/>
         </HBox>
 
-        <VBox fx:id="avatarCard" spacing="15" alignment="CENTER">
+        <VBox fx:id="avatarCard" spacing="15" alignment="CENTER" maxWidth="500">
             <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
             <Label fx:id="avatarDisplay"/>
-            <Label fx:id="usernameDisplay"/>
-            <Label fx:id="badgeDisplay"/>
+            <VBox alignment="CENTER" spacing="5">
+                <Label fx:id="usernameDisplay"/>
+                <Label fx:id="badgeDisplay"/>
+            </VBox>
         </VBox>
 
-        <VBox spacing="25">
-            
-            <Label text="Progress &amp; Inventory" styleClass="dashboard-label, title-3, text-bold"/>
+        <VBox spacing="30" maxWidth="850">
+            <Label text="Overview" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: -color-fg-muted;"/>
 
             <HBox spacing="20" alignment="CENTER">
-                <VBox fx:id="xpCard" spacing="12" alignment="CENTER" HBox.hgrow="ALWAYS">
+                <VBox fx:id="xpCard" spacing="15" alignment="CENTER" HBox.hgrow="ALWAYS">
                     <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-                    <Label text="Experience" styleClass="text-bold"/>
-                    <ProgressBar fx:id="profileXpBar" maxWidth="400" prefHeight="22" progress="0.0"/>
-                    <Label fx:id="profileXpLabel" styleClass="text-small, text-muted"/>
+                    <Label text="Experience Level" style="-fx-font-weight: bold;"/>
+                    <ProgressBar fx:id="profileXpBar" maxWidth="1.7976931348623157E308" prefHeight="20" progress="0.0"/>
+                    <Label fx:id="profileXpLabel" style="-fx-font-size: 12px; -fx-text-fill: -color-fg-muted;"/>
                 </VBox>
-                
-                <VBox fx:id="itemsCard" spacing="8" alignment="CENTER" minWidth="150">
+
+                <VBox fx:id="itemsCard" spacing="5" alignment="CENTER" minWidth="180">
                     <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-                    <Label text="Items" styleClass="text-caption"/>
-                    <Label fx:id="profileItemsLabel" styleClass="title-2, text-bold"/>
+                    <Label text="Inventory" style="-fx-text-fill: -color-fg-muted;"/>
+                    <Label fx:id="profileItemsLabel" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #00AEEF;"/>
+                    <Label text="Total Items" style="-fx-font-size: 11px; -fx-text-fill: -color-fg-muted;"/>
                 </VBox>
             </HBox>
 
-            <Region minHeight="20"/>
-
             <VBox fx:id="badgesSection" spacing="15">
-                <Label text="Trophy Showcase" fx:id="badgesSectionTitle" styleClass="dashboard-label, title-3, text-bold"/>
-                <Label fx:id="noBadgesLabel" wrapText="true" text="No badges earned yet." styleClass="text-italic, text-muted"/>
-                <FlowPane fx:id="badgesContainer" hgap="20" vgap="20"/>
+                <Label text="Trophy Showcase" fx:id="badgesSectionTitle" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label fx:id="noBadgesLabel" text="Complete challenges to earn trophies." style="-fx-font-style: italic; -fx-text-fill: -color-fg-muted;"/>
+                <FlowPane fx:id="badgesContainer" hgap="15" vgap="15"/>
             </VBox>
 
             <VBox fx:id="friendsSection" spacing="15">
-                <Label text="My Friends" fx:id="friendsSectionTitle" styleClass="dashboard-label, title-3, text-bold"/>
-                <Label fx:id="noFriendsLabel" text="Connect with others to see them here!" styleClass="text-italic, text-muted"/>
-                <VBox fx:id="friendsList" spacing="12"/>
+                <Label text="My Network" fx:id="friendsSectionTitle" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label fx:id="noFriendsLabel" text="No friends added yet." style="-fx-font-style: italic; -fx-text-fill: -color-fg-muted;"/>
+                <VBox fx:id="friendsList" spacing="10"/>
             </VBox>
 
             <VBox fx:id="avatarsSection" spacing="15">
-                <Label text="My Avatar Collection" styleClass="dashboard-label, title-3, text-bold"/>
-                <Label fx:id="noAvatarsLabel" text="No custom avatars owned." styleClass="text-italic, text-muted"/>
-                <FlowPane fx:id="avatarGrid" hgap="18" vgap="18"/>
+                <Label text="Avatar Collection" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Label fx:id="noAvatarsLabel" text="Standard avatar in use." style="-fx-font-style: italic; -fx-text-fill: -color-fg-muted;"/>
+                <FlowPane fx:id="avatarGrid" hgap="15" vgap="15"/>
             </VBox>
-
         </VBox>
 
         <Region VBox.vgrow="ALWAYS"/>

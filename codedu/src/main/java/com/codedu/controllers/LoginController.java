@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -38,18 +39,34 @@ public class LoginController {
     private UserService userService;
     @Autowired
     private StageNavigator navigator;
-
+    @FXML
+    private VBox loginCard;
 
     @FXML
     public void initialize() {
-        // Apply Nord typography to the login title
-        if (titleLabel != null) {
-            titleLabel.getStyleClass().add(Styles.TITLE_3);
-        }
-        // Make login button a primary, rounded CTA
-        if (loginButton != null) {
-            loginButton.getStyleClass().addAll(Styles.ACCENT, Styles.LARGE, Styles.ROUNDED);
-        }
+        String LOGO_BLUE = "#00AEEF";
+        String LOGO_ORANGE = "#F7941D";
+        String CARD_BG = "#242B33";
+        String BORDER_BLUE = "#00AEEF";
+
+        loginCard.setStyle(
+                "-fx-background-color: " + CARD_BG + "; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-border-color: " + BORDER_BLUE + "; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 12; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);"
+        );
+
+        loginButton.setStyle(
+                "-fx-background-color: transparent; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: " + LOGO_BLUE + "; " +
+                        "-fx-border-width: 1.5; " +
+                        "-fx-border-radius: 5; " +
+                        "-fx-cursor: hand;"
+        );
+        titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
     }
 
     @FXML

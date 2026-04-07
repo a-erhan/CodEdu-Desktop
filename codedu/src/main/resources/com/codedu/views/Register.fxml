@@ -1,42 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<StackPane xmlns="http://javafx.com/javafx/25"
-           xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.codedu.controllers.RegisterController">
+<StackPane style="-fx-background-color: #34404f;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.codedu.controllers.RegisterController">
 
-    <VBox alignment="CENTER" spacing="12" maxWidth="420">
-        <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+    <VBox fx:id="registerCard" alignment="CENTER" spacing="20" maxWidth="420" maxHeight="620"
+          style="-fx-background-color: #242B33; -fx-background-radius: 12; -fx-border-color: #00AEEF; -fx-border-width: 2; -fx-border-radius: 12;">
+        <padding><Insets top="45" right="45" bottom="45" left="45"/></padding>
 
-        <!-- Title -->
-        <Label fx:id="titleLabel" text="Create your CodEdu account"/>
+        <VBox alignment="CENTER" spacing="5">
+            <Label fx:id="titleLabel" text="Join CodEdu" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #D35400;"/>
+            <Label text="Start your coding adventure." style="-fx-text-fill: #8E96A0;" />
+        </VBox>
 
-        <!-- Email -->
-        <TextField fx:id="emailField" promptText="Email"/>
+        <VBox spacing="12">
+            <TextField fx:id="emailField" prefHeight="42" promptText="Email Address"
+                       style="-fx-background-color: #2D343B; -fx-text-fill: white; -fx-background-radius: 5; -fx-border-color: #3D454D; -fx-border-radius: 5;"/>
 
-        <!-- Password -->
-        <PasswordField fx:id="passwordField" promptText="Password"/>
+            <PasswordField fx:id="passwordField" prefHeight="42" promptText="Password"
+                           style="-fx-background-color: #2D343B; -fx-text-fill: white; -fx-background-radius: 5; -fx-border-color: #3D454D; -fx-border-radius: 5;"/>
 
-        <!-- Confirm Password -->
-        <PasswordField fx:id="confirmPasswordField" promptText="Confirm password"/>
+            <PasswordField fx:id="confirmPasswordField" prefHeight="42" promptText="Confirm Password"
+                           style="-fx-background-color: #2D343B; -fx-text-fill: white; -fx-background-radius: 5; -fx-border-color: #3D454D; -fx-border-radius: 5;"/>
+        </VBox>
 
-        <!-- Error label -->
-        <Label fx:id="errorLabel" text="" wrapText="true"/>
+        <Label fx:id="errorLabel" wrapText="true" alignment="CENTER" style="-fx-text-fill: #D35400;"/>
 
-        <!-- Actions -->
-        <Button fx:id="registerButton" text="Create account" maxWidth="Infinity"
-                onAction="#handleRegister"/>
+        <VBox spacing="10">
+            <Button fx:id="registerButton" text="CREATE ACCOUNT" maxWidth="Infinity" prefHeight="42" onAction="#handleRegister"
+                    style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #00AEEF; -fx-border-width: 1.5; -fx-border-radius: 5; -fx-cursor: hand; -fx-font-weight: bold;"/>
 
-        <Button text="Back to login" maxWidth="Infinity"
-                onAction="#handleBackToLogin"/>
-
+            <Button fx:id="backButton" text="Back to Login" maxWidth="Infinity" onAction="#handleBackToLogin"
+                    style="-fx-background-color: transparent; -fx-text-fill: #8E96A0; -fx-cursor: hand; -fx-font-size: 12px;"/>
+        </VBox>
     </VBox>
 </StackPane>
-
