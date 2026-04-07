@@ -20,8 +20,6 @@ public class LeaderBoard extends BaseEntity {
 
     private LocalDateTime lastUpdatedAt;
 
-    private int userRank;
-
     @ManyToMany
     @JoinTable(
             name = "leaderboard_competitors",
@@ -37,5 +35,9 @@ public class LeaderBoard extends BaseEntity {
         if (!this.competitors.contains(competitor)) {
             this.competitors.add(competitor);
         }
+    }
+
+    public void removeCompetitor(Competitor competitor) {
+        this.competitors.remove(competitor);
     }
 }

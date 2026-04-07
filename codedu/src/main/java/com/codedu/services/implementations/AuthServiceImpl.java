@@ -6,9 +6,11 @@ import com.codedu.dtos.user.LoginResult;
 import com.codedu.dtos.user.UserDTO;
 import com.codedu.dtos.user.UserLoginDTO;
 import com.codedu.dtos.user.UserRegisterDTO;
+import com.codedu.models.matchmaking.Competitor;
+import com.codedu.models.user.Role;
 import com.codedu.models.user.User;
 import com.codedu.models.user.UserGameState;
-import com.codedu.models.user.Role;
+import com.codedu.models.user.UserInventory;
 import com.codedu.repositories.interfaces.UserRepository;
 import com.codedu.services.interfaces.AuthService;
 import com.codedu.services.interfaces.VerificationEmailService;
@@ -81,6 +83,26 @@ public class AuthServiceImpl implements AuthService {
         return base + "/api/auth/verify-email?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
 
+    /**
+     * Wires default one-to-one rows (game state, competitor, inventory) so FKs on {@code users}
+     * and {@code user_inventories} are populated on first persist.
+     */
+    private static void attachDefaultRelatedEntities(User user) {
+        user.setGameState(UserGameState.newDefault());
+
+        Competitor competitor = Competitor.builder()
+                .rankingPoint(0)
+                .userRank(0)
+                .totalWins(0)
+                .totalLosses(0)
+                .totalMatches(0)
+                .build();
+        user.setCompetitor(competitor);
+        competitor.setUser(user);
+
+        user.setInventory(new UserInventory());
+    }
+
     private void assignVerificationToken(User user) {
         String token = UUID.randomUUID().toString();
         user.setEmailVerificationToken(token);
@@ -109,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
                 .emailVerified(false)
                 .build();
 
-        newUser.setGameState(UserGameState.newDefault());
+        attachDefaultRelatedEntities(newUser);
 
         if (appMailProperties.isSkipSend()) {
             newUser.setEmailVerified(true);

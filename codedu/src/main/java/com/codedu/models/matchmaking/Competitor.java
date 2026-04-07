@@ -12,9 +12,12 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "user")
+@EqualsAndHashCode(callSuper = true, exclude = "user")
 public class Competitor extends BaseEntity {
 
-    @OneToOne(mappedBy = "competitor")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
 
     private int rankingPoint;
@@ -24,8 +27,7 @@ public class Competitor extends BaseEntity {
     private int totalMatches;
 
     public double getWinRate() {
-        if (totalMatches == 0)
-            return 0.0;
+        if (totalMatches == 0) return 0.0;
         return (double) totalWins / totalMatches * 100;
     }
 }

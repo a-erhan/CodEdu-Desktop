@@ -5,6 +5,7 @@ import com.codedu.dtos.user.UserDTO;
 import com.codedu.models.user.UserGameState;
 import com.codedu.repositories.interfaces.UserGameStateRepository;
 import com.codedu.services.interfaces.UserService;
+import com.codedu.models.gamification.Achievement;
 import com.codedu.models.social.Friendship;
 import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.FriendshipRepository;
@@ -180,12 +181,31 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    /**
+     * Loads {@link com.codedu.models.gamification.Badge} data for earned achievements (LAZY) so the profile can show titles/icons.
+     */
+    private static void initializeEarnedBadgeEntities(User u) {
+        if (u.getGameState() == null || u.getGameState().getAchievements() == null) {
+            return;
+        }
+        for (Achievement ach : u.getGameState().getAchievements()) {
+            if (ach == null) {
+                continue;
+            }
+            Hibernate.initialize(ach);
+            if (ach.getBadge() != null) {
+                Hibernate.initialize(ach.getBadge());
+            }
+        }
+    }
+
     @Transactional(readOnly = true)
     public Optional<User> getUserWithProfileData(String username) {
         return userRepository.findByUsernameWithInventoryAndGameState(username).map(u -> {
             if (u.getGameState() != null) {
                 Hibernate.initialize(u.getGameState());
                 Hibernate.initialize(u.getGameState().getAchievements());
+                initializeEarnedBadgeEntities(u);
                 u.getGameState().getTokenBalance();
                 u.getGameState().getXp();
                 u.getGameState().getHeartCount();
@@ -220,6 +240,7 @@ public class UserServiceImpl implements UserService {
                 if (u.getGameState().getAchievements() != null) {
                     Hibernate.initialize(u.getGameState().getAchievements());
                 }
+                initializeEarnedBadgeEntities(u);
             }
             return u;
         });

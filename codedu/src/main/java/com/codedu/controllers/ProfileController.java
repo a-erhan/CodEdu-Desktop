@@ -2,6 +2,7 @@ package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
 import com.codedu.models.gamification.Achievement;
+import com.codedu.models.gamification.Badge;
 import com.codedu.models.matchmaking.Competitor;
 import com.codedu.models.user.InventoryItem;
 import com.codedu.models.user.User;
@@ -16,6 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.Node;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -23,6 +25,7 @@ import javafx.scene.shape.Circle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -167,33 +170,131 @@ public class ProfileController {
     }
 
     private void bindBadgesSection() {
-        if (badgesContainer == null) return;
+        if (badgesContainer == null) {
+            return;
+        }
         badgesContainer.getChildren().clear();
         List<Achievement> earned = (gameState != null) ? gameState.getAchievements() : null;
 
         if (earned == null || earned.isEmpty()) {
             noBadgesLabel.setManaged(true);
             noBadgesLabel.setVisible(true);
+            return;
+        }
+        noBadgesLabel.setManaged(false);
+        noBadgesLabel.setVisible(false);
+
+        earned.stream()
+                .sorted(Comparator.comparing(Achievement::getName, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .forEach(a -> badgesContainer.getChildren().add(buildEarnedBadgeCard(a)));
+    }
+
+    private VBox buildEarnedBadgeCard(Achievement achievement) {
+        VBox badgePod = new VBox(6);
+        badgePod.setAlignment(Pos.TOP_CENTER);
+        badgePod.setPrefWidth(120);
+        badgePod.setMaxWidth(120);
+        badgePod.setStyle("-fx-background-color: #242B33; -fx-background-radius: 15; -fx-border-color: " + LOGO_BLUE
+                + "44; -fx-border-radius: 15; -fx-padding: 10;");
+
+        Node graphic = createBadgeGraphic(achievement);
+        badgePod.getChildren().add(graphic);
+
+        String title = badgeTitle(achievement);
+        Label name = new Label(title);
+        name.setStyle("-fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold;");
+        name.setWrapText(true);
+        name.setAlignment(Pos.CENTER);
+        name.setMaxWidth(110);
+
+        String desc = badgeDescription(achievement);
+        if (!desc.isBlank()) {
+            Label body = new Label(desc);
+            body.setWrapText(true);
+            body.setAlignment(Pos.CENTER);
+            body.setMaxWidth(110);
+            body.setStyle("-fx-text-fill: #8E96A0; -fx-font-size: 9px;");
+            badgePod.getChildren().addAll(name, body);
         } else {
-            noBadgesLabel.setManaged(false);
-            noBadgesLabel.setVisible(false);
-            for (Achievement a : earned) {
-                VBox badgePod = new VBox(8);
-                badgePod.setAlignment(Pos.CENTER);
-                badgePod.setPrefSize(100, 120);
-                badgePod.setStyle("-fx-background-color: #242B33; -fx-background-radius: 15; -fx-border-color: " + LOGO_BLUE + "44; -fx-border-radius: 15;");
+            badgePod.getChildren().add(name);
+        }
+        return badgePod;
+    }
 
-                Label icon = new Label("\uD83C\uDFC6");
-                icon.setStyle("-fx-font-size: 28px;");
-                Label name = new Label(a.getName());
-                name.setStyle("-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;");
-                name.setWrapText(true);
-                name.setAlignment(Pos.CENTER);
+    private static String badgeTitle(Achievement a) {
+        Badge b = a.getBadge();
+        if (b != null && b.getTitle() != null && !b.getTitle().isBlank()) {
+            return b.getTitle();
+        }
+        return a.getName() != null ? a.getName() : "Achievement";
+    }
 
-                badgePod.getChildren().addAll(icon, name);
-                badgesContainer.getChildren().add(badgePod);
+    private static String badgeDescription(Achievement a) {
+        Badge b = a.getBadge();
+        if (b != null && b.getDescription() != null && !b.getDescription().isBlank()) {
+            return b.getDescription();
+        }
+        return a.getCriteria() != null ? a.getCriteria() : "";
+    }
+
+    private Node createBadgeGraphic(Achievement achievement) {
+        final int size = 56;
+        Image img = loadBadgeImage(achievement, size);
+        if (img != null && !img.isError()) {
+            ImageView iv = new ImageView(img);
+            iv.setFitWidth(size);
+            iv.setFitHeight(size);
+            iv.setPreserveRatio(true);
+            iv.setSmooth(true);
+            return iv;
+        }
+        Label fallback = new Label(emojiForAchievement(achievement.getName()));
+        fallback.setStyle("-fx-font-size: 28px;");
+        fallback.setAlignment(Pos.CENTER);
+        fallback.setMinSize(size, size);
+        return fallback;
+    }
+
+    private Image loadBadgeImage(Achievement achievement, int size) {
+        Badge b = achievement.getBadge();
+        if (b == null || b.getIconURL() == null || b.getIconURL().isBlank()) {
+            return null;
+        }
+        String raw = b.getIconURL().trim();
+        java.net.URL url = getClass().getResource(raw);
+        if (url == null && raw.startsWith("/assets/badges/")) {
+            String file = raw.substring(raw.lastIndexOf('/') + 1);
+            url = getClass().getResource("/com/codedu/images/badges/" + file);
+        }
+        if (url == null && raw.startsWith("/assets/")) {
+            int slash = raw.lastIndexOf('/');
+            if (slash >= 0 && slash < raw.length() - 1) {
+                url = getClass().getResource("/com/codedu/images/badges/" + raw.substring(slash + 1));
             }
         }
+        if (url == null) {
+            return null;
+        }
+        return new Image(url.toExternalForm(), size, size, true, true, false);
+    }
+
+    private static String emojiForAchievement(String achievementName) {
+        if (achievementName == null) {
+            return "\uD83C\uDFC6";
+        }
+        return switch (achievementName) {
+            case "First Blood" -> "\u2694\uFE0F";
+            case "Veteran" -> "\uD83C\uDF96\uFE0F";
+            case "Gladiator" -> "\uD83D\uDEE1\uFE0F";
+            case "Scholar" -> "\uD83D\uDCDA";
+            case "Professor" -> "\uD83C\uDF93";
+            case "Rich" -> "\uD83D\uDCB0";
+            case "Tycoon" -> "\uD83D\uDCB5";
+            case "Dedicated" -> "\u2B50";
+            case "Master" -> "\uD83C\uDFC6";
+            case "Social Butterfly" -> "\uD83E\uDD1D";
+            default -> "\uD83C\uDFC6";
+        };
     }
 
     private void applyCardStyles() {

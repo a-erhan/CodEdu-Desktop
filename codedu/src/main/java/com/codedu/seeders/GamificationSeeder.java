@@ -59,7 +59,8 @@ public class GamificationSeeder implements CommandLineRunner {
         Badge badge = new Badge();
         badge.setTitle(name);
         badge.setDescription(criteria);
-        badge.setIconURL("/assets/badges/" + icon); // Placeholders
+        // Classpath under src/main/resources/com/codedu/images/badges/ (optional PNGs); profile falls back to emoji if missing
+        badge.setIconURL("/com/codedu/images/badges/" + icon);
 
         achievement.setBadge(badge);
         badge.setAchievement(achievement);

@@ -498,8 +498,14 @@ public class MainShellController {
     }
 
     private void openUserProfile(User profileUser) {
-        if (profileUser == null)
+        if (profileUser == null || profileUser.getUsername() == null || profileUser.getUsername().isBlank()) {
             return;
+        }
+        // Always load full profile (achievements + badge metadata) from the DB
+        userService.getUserWithProfileData(profileUser.getUsername()).ifPresent(this::openUserProfileWithHydratedUser);
+    }
+
+    private void openUserProfileWithHydratedUser(User profileUser) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/codedu/views/Profile.fxml"));
             loader.setControllerFactory(applicationContext::getBean);
@@ -654,10 +660,13 @@ public class MainShellController {
     }
 
     private void loadProfile() {
+        if (user == null) {
+            return;
+        }
         userService.getUserWithProfileData(user.getUsername())
                 .ifPresentOrElse(
-                        this::openUserProfile,
-                        () -> openUserProfile(this.user));
+                        this::openUserProfileWithHydratedUser,
+                        () -> openUserProfile(user));
     }
 
     private UserGameState currentGameStateForHeader() {

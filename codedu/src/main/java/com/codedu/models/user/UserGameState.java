@@ -3,7 +3,6 @@ package com.codedu.models.user;
 import com.codedu.models.BaseEntity;
 import com.codedu.models.gamification.Achievement;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -19,14 +18,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"user", "achievements"})
+@EqualsAndHashCode(callSuper = true, exclude = {"user", "achievements"})
 public class UserGameState extends BaseEntity {
 
     public static final int MAX_HEARTS = 15;
 
-    /**
-     * Default progression row for a new account (matches shell bootstrap and seeder
-     * expectations).
-     */
     public static UserGameState newDefault() {
         return UserGameState.builder()
                 .level(1)
@@ -38,13 +35,10 @@ public class UserGameState extends BaseEntity {
     }
 
     @Setter(AccessLevel.NONE)
-    @OneToOne(mappedBy = "gameState", fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true)
     private User user;
 
-    /**
-     * Maintains bidirectional consistency with
-     * {@link User#setGameState(UserGameState)}; do not set {@link #user} directly.
-     */
     void internalSetUser(User user) {
         this.user = user;
     }
@@ -54,6 +48,7 @@ public class UserGameState extends BaseEntity {
     private int xp;
     private int tokenBalance;
 
+    @Builder.Default
     @Column(name = "current_streak")
     private int currentStreak = 0;
 
@@ -63,8 +58,16 @@ public class UserGameState extends BaseEntity {
     @Column(name = "double_xp_active_until")
     private LocalDateTime doubleXpActiveUntil;
 
+    @UpdateTimestamp
+    @Column(name = "last_activity_date")
+    private LocalDateTime lastActivityDate;
+
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_game_state_id"), inverseJoinColumns = @JoinColumn(name = "achievement_id"))
+    @JoinTable(
+            name = "user_achievements",
+            joinColumns = @JoinColumn(name = "user_game_state_id"),
+            inverseJoinColumns = @JoinColumn(name = "achievement_id")
+    )
     @Builder.Default
     private List<Achievement> achievements = new ArrayList<>();
 
@@ -73,9 +76,7 @@ public class UserGameState extends BaseEntity {
     }
 
     public void addXpAndResolveLevelUps(int xpDelta) {
-        if (xpDelta <= 0) {
-            return;
-        }
+        if (xpDelta <= 0) return;
         this.xp += xpDelta;
         while (this.xp >= (this.level * 1000)) {
             this.xp -= (this.level * 1000);
@@ -88,9 +89,7 @@ public class UserGameState extends BaseEntity {
     }
 
     public void addHeart() {
-        if (this.heartCount < MAX_HEARTS) {
-            this.heartCount++;
-        }
+        if (this.heartCount < MAX_HEARTS) this.heartCount++;
     }
 
     public boolean isDoubleXpActive() {
@@ -98,9 +97,7 @@ public class UserGameState extends BaseEntity {
     }
 
     public void extendDoubleXpMinutes(int minutes) {
-        if (minutes <= 0) {
-            return;
-        }
+        if (minutes <= 0) return;
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime base = doubleXpActiveUntil != null && now.isBefore(doubleXpActiveUntil)
                 ? doubleXpActiveUntil
@@ -109,13 +106,7 @@ public class UserGameState extends BaseEntity {
     }
 
     public int withDoubleXpApplied(int baseXp) {
-        if (baseXp <= 0) {
-            return baseXp;
-        }
+        if (baseXp <= 0) return baseXp;
         return isDoubleXpActive() ? baseXp * 2 : baseXp;
     }
-
-    @UpdateTimestamp
-    @Column(name = "last_activity_date")
-    private LocalDateTime lastActivityDate;
 }
