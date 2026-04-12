@@ -181,9 +181,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    /**
-     * Loads {@link com.codedu.models.gamification.Badge} data for earned achievements (LAZY) so the profile can show titles/icons.
-     */
     private static void initializeEarnedBadgeEntities(User u) {
         if (u.getGameState() == null || u.getGameState().getAchievements() == null) {
             return;
@@ -334,26 +331,23 @@ public class UserServiceImpl implements UserService {
                 xpRequired = state.getLevel() * 100;
             }
 
-
             java.time.LocalDate today = java.time.LocalDate.now();
-            java.time.LocalDate lastDate = state.getLastActiveDate(); // Or getLastStreakDate() depending on what you named it
+            java.time.LocalDate lastDate = state.getLastActiveDate();
 
             if (lastDate == null) {
-                // First time ever getting XP
+
                 state.setCurrentStreak(1);
             } else if (lastDate.equals(today.minusDays(1))) {
-                // They played yesterday! Increment the streak
+
                 state.setCurrentStreak(state.getCurrentStreak() + 1);
             } else if (lastDate.isBefore(today.minusDays(1))) {
-                // They missed a day. Reset the streak to 1
+
                 state.setCurrentStreak(1);
             }
 
-            // Always update the last active date to today
             state.setLastActiveDate(today);
 
-            // 4. Save to Database
-            userGameStateRepository.update(state); // (Or .save(state) if using standard Spring Data)
+            userGameStateRepository.update(state);
             userRepository.update(user);
 
             org.hibernate.Hibernate.initialize(user.getGameState());

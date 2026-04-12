@@ -61,13 +61,12 @@ public class LearningPathServiceImpl implements LearningPathService {
 
     @Transactional(readOnly = true)
     public List<ChapterProgressDTO> getLearningPathForUser(User user) {
-        // 1. Get all chapters sorted by their order index
+
         List<Chapter> allChapters = chapterRepository.getAll();
         allChapters.sort(Comparator.comparingInt(Chapter::getOrderIndex));
 
         List<ChapterProgressDTO> dtos = new ArrayList<>();
 
-        // The first chapter is always unlocked
         boolean previousChapterCompleted = true;
 
         for (Chapter chapter : allChapters) {
@@ -81,20 +80,16 @@ public class LearningPathServiceImpl implements LearningPathService {
                 finished = progressOpt.get().isCompleted();
             }
 
-            // A chapter is locked if the previous one wasn't finished
             boolean locked = !previousChapterCompleted;
 
-            //God mode for testing
             if (user.isTesterAccount()) {
                 locked = false;
             }
-
 
             int dynamicLessons = 0;
             if (chapter.getContent() != null && chapter.getContent().getQuestions() != null) {
                 dynamicLessons = chapter.getContent().getQuestions().size();
             }
-
 
             ChapterDTO chapterDTO = ChapterDTO.builder()
                     .id(chapter.getId())
@@ -110,16 +105,14 @@ public class LearningPathServiceImpl implements LearningPathService {
                     .topicName(chapter.getTopicName())
                     .build();
 
-
             dtos.add(ChapterProgressDTO.builder()
                     .chapter(chapterDTO)
                     .completedLessons(completed)
                     .isCompleted(finished)
                     .isLocked(locked)
-                    .dynamicTotalLessons(dynamicLessons) // Injected safely here!
+                    .dynamicTotalLessons(dynamicLessons)
                     .build());
 
-            // Set tracker for the next chapter in the loop
             previousChapterCompleted = finished;
         }
 

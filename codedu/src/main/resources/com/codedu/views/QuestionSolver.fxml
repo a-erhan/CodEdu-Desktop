@@ -16,31 +16,25 @@
            fx:controller="com.codedu.controllers.QuestionSolverController"
            prefHeight="600.0" prefWidth="900.0">
 
-    <!-- Left Side: Task Instructions -->
     <VBox spacing="16" minWidth="250.0">
         <padding>
             <Insets top="24" right="24" bottom="24" left="24"/>
         </padding>
 
-        <!-- Back Button -->
         <Button fx:id="btnBack" text="← Back" styleClass="button-outlined"/>
 
-        <!-- Title of the task -->
         <Label fx:id="questionTitleLabel" text="Task Loading..." wrapText="true"/>
 
-        <!-- Separator or subtle subtitle -->
         <Label text="Instructions" styleClass="text-bold, text-subtle"/>
 
-        <!-- Description of the problem -->
-        <Label fx:id="questionDescriptionLabel" 
-               text="Problem description will appear here." 
-               wrapText="true" 
-               alignment="TOP_LEFT" 
-               VBox.vgrow="ALWAYS" 
+        <Label fx:id="questionDescriptionLabel"
+               text="Problem description will appear here."
+               wrapText="true"
+               alignment="TOP_LEFT"
+               VBox.vgrow="ALWAYS"
                maxHeight="Infinity"/>
     </VBox>
 
-    <!-- Right Side: Code Editor -->
     <VBox spacing="16">
         <padding>
             <Insets top="24" right="24" bottom="24" left="24"/>
@@ -48,13 +42,10 @@
 
         <Label text="Source Code" styleClass="text-bold, text-subtle"/>
 
-        <!-- The text area acts as our code editor -->
-        <!-- Added monospace font so the code aligns perfectly like in IntelliJ/Eclipse -->
-        <TextArea fx:id="codeEditorArea" 
+        <TextArea fx:id="codeEditorArea"
                   VBox.vgrow="ALWAYS"
                   style="-fx-font-family: 'Consolas', 'Courier New', monospace; -fx-font-size: 14px;"/>
 
-        <!-- Action Bar at the bottom -->
         <HBox alignment="BOTTOM_LEFT" spacing="15">
             <Label fx:id="resultMessageLabel" wrapText="true" maxWidth="300"/>
 

@@ -8,11 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Transient DTO representing an active 1v1 match room.
- * Not a JPA entity — created in-memory by MatchmakingService and
- * broadcast to both players via STOMP.
- */
 @Getter
 @Setter
 @NoArgsConstructor

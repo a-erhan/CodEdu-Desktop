@@ -6,11 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * DTO representing the outcome of a 1v1 match.
- * Sent by the winning client to /app/match.win, then
- * broadcast by the server to both players via STOMP.
- */
 @Getter
 @Setter
 @NoArgsConstructor

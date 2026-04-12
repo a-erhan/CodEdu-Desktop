@@ -17,7 +17,6 @@
         <Insets top="10" right="0" bottom="10" left="0"/>
     </padding>
 
-    <!-- Header row -->
     <HBox alignment="CENTER_LEFT" spacing="8">
         <Label fx:id="titleLabel" text="Daily challenge"/>
         <Region HBox.hgrow="ALWAYS"/>
@@ -28,13 +27,10 @@
            text="Solve the coding task below. When you’re happy with your solution, submit it to check your answer."
            wrapText="true"/>
 
-    <!-- Main content row -->
     <HBox alignment="TOP_LEFT" spacing="16">
 
-        <!-- Left column -->
         <VBox fx:id="leftColumn" spacing="12" prefWidth="750">
 
-            <!-- Challenge card -->
             <VBox fx:id="challengeCard" spacing="6">
                 <Label fx:id="problemTitle" text="Problem title"/>
                 <Label fx:id="problemDescription"
@@ -42,7 +38,6 @@
                        wrapText="true"/>
             </VBox>
 
-            <!-- Editor card -->
             <VBox fx:id="editorCard" spacing="8">
                 <Label fx:id="editorLabel" text="Code editor"/>
                 <TextArea fx:id="codeArea" promptText="Write your solution here..." prefRowCount="12"/>

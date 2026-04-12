@@ -20,20 +20,9 @@ import javafx.util.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-/**
- * Controls the Matchmaking view.
- *
- * <p>
- * Two UI states:
- * <ol>
- * <li><b>Lobby</b> — "Find Match" button visible, match pane hidden.</li>
- * <li><b>Match Active</b> — lobby hidden, question + editor + timer shown.</li>
- * </ol>
- */
 @Controller
 public class MatchmakingController {
 
-    // ── Lobby FXML ──────────────────────────────────────────────────────
     @FXML
     private VBox lobbyPane;
     @FXML
@@ -45,7 +34,6 @@ public class MatchmakingController {
     @FXML
     private Label lobbyStatus;
 
-    // ── Match FXML ──────────────────────────────────────────────────────
     @FXML
     private VBox matchPane;
     @FXML
@@ -85,7 +73,6 @@ public class MatchmakingController {
     @FXML
     private Label opponentAttempts;
 
-    // ── Result Pane ─────────────────────────────────────────────────────
     @FXML
     private VBox resultPane;
     @FXML
@@ -109,7 +96,6 @@ public class MatchmakingController {
     @FXML
     private Button backToLobbyButton;
 
-    // ── State ───────────────────────────────────────────────────────────
     private User currentUser;
     private GameRoom activeRoom;
     private User activeOpponent;
@@ -120,7 +106,6 @@ public class MatchmakingController {
     private int opponentAttemptsCount = 0;
     private java.util.function.Consumer<String> onOpenProfile;
 
-    // ── Services ────────────────────────────────────────────────────────
     private final CodeExecutionService codeExecutionService;
     private final QuestionEvaluationService evaluationService;
     private final com.codedu.repositories.interfaces.QuestionRepository questionRepository;
@@ -136,10 +121,6 @@ public class MatchmakingController {
         this.questionRepository = questionRepository;
         this.webSocketClientService = webSocketClientService;
     }
-
-    // ====================================================================
-    // Lifecycle
-    // ====================================================================
 
     @FXML
     public void initialize() {
@@ -170,10 +151,6 @@ public class MatchmakingController {
         webSocketClientService.leaveMatchmaking(currentUser.getId());
     }
 
-    /**
-     * Called by MainShellController after FXML loading.
-     * Stores the current user but does NOT auto-join the queue.
-     */
     public void setCurrentUser(User user) {
         this.currentUser = user;
     }
@@ -181,10 +158,6 @@ public class MatchmakingController {
     public void setOnOpenProfile(java.util.function.Consumer<String> onOpenProfile) {
         this.onOpenProfile = onOpenProfile;
     }
-
-    // ====================================================================
-    // Lobby → Find Match
-    // ====================================================================
 
     private void onFindMatchClicked() {
         if (currentUser == null)
@@ -198,22 +171,17 @@ public class MatchmakingController {
                 currentUser.getId(), this::onMatchFound, this::onMatchResult, this::onAttemptReceived);
     }
 
-    // ====================================================================
-    // Match found callback (runs on STOMP thread)
-    // ====================================================================
-
     private void onMatchFound(GameRoom gameRoom) {
         System.out.println("[MC] >>> onMatchFound! Room: " + gameRoom.getRoomId());
-        
+
         this.activeRoom = gameRoom;
 
         User opponent = (gameRoom.getPlayer1().getId() == currentUser.getId())
                 ? gameRoom.getPlayer2()
                 : gameRoom.getPlayer1();
-                
+
         this.activeOpponent = opponent;
 
-        // Reload full question from DB (testCases are @JsonIgnored on the wire).
         CodeImplementationQuestion fullQuestion = null;
         if (gameRoom.getQuestion() != null) {
             try {
@@ -231,10 +199,6 @@ public class MatchmakingController {
 
         Platform.runLater(() -> showMatch(opponentName, question));
     }
-
-    // ====================================================================
-    // Match result callback (runs on STOMP thread)
-    // ====================================================================
 
     private void onMatchResult(com.codedu.models.matchmaking.MatchResult result) {
         System.out.println("[MC] >>> onMatchResult! Winner: " + result.getWinnerId());
@@ -254,10 +218,6 @@ public class MatchmakingController {
         });
     }
 
-    // ====================================================================
-    // UI State Transitions
-    // ====================================================================
-
     private void showLobby() {
         if (lobbyPane != null)
             lobbyPane.setVisible(true);
@@ -272,19 +232,16 @@ public class MatchmakingController {
     private void showMatch(String opponentName, CodeImplementationQuestion question) {
         System.out.println("[MC] >>> showMatch on FX thread. Opponent: " + opponentName);
 
-        // Swap panes
         if (lobbyPane != null)
             lobbyPane.setVisible(false);
         if (matchPane != null)
             matchPane.setVisible(true);
 
-        // Header
         if (subtitleLabel != null)
             subtitleLabel.setText("⚔  VS  " + opponentName);
         if (statusValue != null)
             statusValue.setText("Match Active");
 
-        // Question
         if (question != null) {
             activeQuestion = question;
             if (problemTitle != null)
@@ -303,7 +260,6 @@ public class MatchmakingController {
         if (outputArea != null)
             outputArea.setText("");
 
-        // Enable interaction
         matchEnded = false;
         if (submitButton != null)
             submitButton.setDisable(false);
@@ -312,19 +268,13 @@ public class MatchmakingController {
         if (codeArea != null)
             codeArea.setDisable(false);
 
-        // Reset counters
         localAttempts = 0;
         opponentAttemptsCount = 0;
         if (youAttempts != null) youAttempts.setText("You: 0");
         if (opponentAttempts != null) opponentAttempts.setText("Opponent: 0");
 
-        // Start timer
         startTimer();
     }
-
-    // ====================================================================
-    // Timer
-    // ====================================================================
 
     private void startTimer() {
         elapsedSeconds = 0;
@@ -342,9 +292,6 @@ public class MatchmakingController {
         matchTimer.play();
     }
 
-    // ====================================================================
-    // Code execution
-    // ====================================================================
     private void handleSubmitCode() {
         if (activeQuestion == null || codeArea == null)
             return;
@@ -381,8 +328,7 @@ public class MatchmakingController {
             if (passed) {
                 if (outputArea != null)
                     outputArea.setText("🎉 Congratulations! You passed all test cases!");
-                    
-                // End match by reporting win to server 
+
                 if (activeRoom != null && activeOpponent != null) {
                     com.codedu.models.matchmaking.MatchResult result = new com.codedu.models.matchmaking.MatchResult(
                         activeRoom.getRoomId(),
@@ -408,13 +354,13 @@ public class MatchmakingController {
 
     private void handleResign() {
         if (activeRoom == null || activeOpponent == null || matchEnded) return;
-        
+
         System.out.println("[MC] Resign clicked/triggered.");
         matchEnded = true;
         if (resignButton != null) resignButton.setDisable(true);
         if (submitButton != null) submitButton.setDisable(true);
         if (codeArea != null) codeArea.setDisable(true);
-        
+
         com.codedu.models.matchmaking.MatchResult result = new com.codedu.models.matchmaking.MatchResult(
             activeRoom.getRoomId(),
             activeOpponent.getId(),
@@ -423,10 +369,6 @@ public class MatchmakingController {
         );
         webSocketClientService.sendMatchResult(result);
     }
-
-    // ====================================================================
-    // Style / wiring helpers
-    // ====================================================================
 
     private void showResultPane(boolean won) {
         if (matchTimer != null) matchTimer.stop();
@@ -437,7 +379,7 @@ public class MatchmakingController {
             resultTitle.setText(won ? "Match Won!" : "Match Lost!");
             resultTitle.setStyle("-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: " + (won ? "-color-success-emphasis;" : "-color-danger-emphasis;"));
         }
-        
+
         int mins = elapsedSeconds / 60;
         int secs = elapsedSeconds % 60;
         if (resultTime != null) {
@@ -452,7 +394,7 @@ public class MatchmakingController {
             resultYouAvatar.setText(you.isEmpty() ? "?" : you.substring(0, 1).toUpperCase());
             resultYouAvatar.setOnMouseClicked(e -> { if (onOpenProfile != null) onOpenProfile.accept(currentUser.getUsername()); });
         }
-        
+
         if (resultOpponentAvatar != null && activeOpponent != null) {
             String opp = activeOpponent.getDisplayName();
             resultOpponentAvatar.setText(opp.isEmpty() ? "?" : opp.substring(0, 1).toUpperCase());
@@ -470,8 +412,6 @@ public class MatchmakingController {
         }
     }
 
-
-
     private void applyLobbyStyles() {
         if (findMatchButton != null)
             findMatchButton.getStyleClass().addAll(Styles.ACCENT, Styles.ROUNDED, Styles.LARGE);
@@ -482,7 +422,6 @@ public class MatchmakingController {
         if (lobbyStatus != null)
             lobbyStatus.getStyleClass().add(Styles.TEXT_SUBTLE);
 
-        // Match pane cards
         styleCard(statusCard);
         styleCard(challengeCard);
         styleCard(editorCard);

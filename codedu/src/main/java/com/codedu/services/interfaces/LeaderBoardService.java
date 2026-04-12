@@ -7,6 +7,5 @@ public interface LeaderBoardService {
 
     LeaderBoardDTO getLeaderboardByName(String name);
 
-    /** Entity version for controllers still using entity classes */
     LeaderBoard getLeaderboardEntityByName(String name);
 }

@@ -24,7 +24,6 @@ public class AchievementEvaluationServiceImpl implements AchievementEvaluationSe
         UserGameState state = user.getGameState();
         Competitor comp = user.getCompetitor();
 
-        // If earned already, return 100%
         if (state != null && state.getAchievements() != null) {
             for (Achievement earned : state.getAchievements()) {
                 if (earned.getId() == achievement.getId())

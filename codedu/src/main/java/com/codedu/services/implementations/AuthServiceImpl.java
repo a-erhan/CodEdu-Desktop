@@ -54,7 +54,6 @@ public class AuthServiceImpl implements AuthService {
         return email.trim().toLowerCase(Locale.ROOT);
     }
 
-    /** Local part of the email (before {@code @}); used as the basis for the stored username. */
     private static String localPartFromEmail(String normalizedEmail) {
         int at = normalizedEmail.indexOf('@');
         if (at <= 0) {
@@ -83,10 +82,6 @@ public class AuthServiceImpl implements AuthService {
         return base + "/api/auth/verify-email?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
     }
 
-    /**
-     * Wires default one-to-one rows (game state, competitor, inventory) so FKs on {@code users}
-     * and {@code user_inventories} are populated on first persist.
-     */
     private static void attachDefaultRelatedEntities(User user) {
         user.setGameState(UserGameState.newDefault());
 

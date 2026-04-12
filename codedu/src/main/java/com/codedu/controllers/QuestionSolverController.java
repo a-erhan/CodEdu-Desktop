@@ -37,7 +37,6 @@ public class QuestionSolverController {
     @Autowired
     private QuestionEvaluationService questionEvaluationService;
 
-
     private QuestionDTO currentQuestion;
     private Runnable onBack;
     private Consumer<Boolean> onSuccessCallback;
@@ -60,7 +59,6 @@ public class QuestionSolverController {
             submitButton.setFocusTraversable(false);
         }
 
-        // Create the button programmatically if FXML didn't provide one
         if (giveUpButton != null) {
             giveUpButton.setText("Give Up");
             giveUpButton.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.WARNING, Styles.DENSE);
@@ -75,14 +73,13 @@ public class QuestionSolverController {
         }
     }
 
-
     public void setQuestion(QuestionDTO question) {
         this.currentQuestion = question;
         if (questionTitleLabel != null) {
-            questionTitleLabel.setText(question.title()); // Record syntax
+            questionTitleLabel.setText(question.title());
         }
         if (questionDescriptionLabel != null) {
-            questionDescriptionLabel.setText(question.content()); // Record syntax
+            questionDescriptionLabel.setText(question.content());
         }
         if (resultMessageLabel != null) {
             resultMessageLabel.setText("");
@@ -103,7 +100,7 @@ public class QuestionSolverController {
 
     public void setLocked(boolean isLocked) {
         if (codeEditorArea != null) {
-            codeEditorArea.setEditable(!isLocked); // Disable typing
+            codeEditorArea.setEditable(!isLocked);
         }
 
         if (submitButton != null) {
@@ -143,7 +140,6 @@ public class QuestionSolverController {
         java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             try {
 
-                // is updated to accept a QuestionDTO instead of a Question entity!
                 return questionEvaluationService.evaluate(currentQuestion, userCode);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -45,7 +45,7 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         if (user == null || user.getInventory() == null) return List.of();
 
         return inventoryItemRepository.findByInventory(user.getInventory()).stream()
-                .filter(ii -> !ii.isDeleted()) // Filter out deleted items
+                .filter(ii -> !ii.isDeleted())
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -110,7 +110,6 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         user = resolveUserForInventory(user);
         if (user == null || user.getInventory() == null) return false;
 
-        // Find the first available pack that has uses left
         InventoryItem managed = inventoryItemRepository.findByInventory(user.getInventory()).stream()
                 .filter(i -> !i.isDeleted() && i.getItem() != null &&
                         i.getItem().getType() == ItemType.AI_USAGE &&
@@ -122,7 +121,6 @@ public class InventoryItemServiceImpl implements InventoryItemService {
 
         managed.setQuantity(managed.getQuantity() - 1);
 
-        // Optional: If you want to delete the item when it reaches 0
         if (managed.getQuantity() <= 0) {
             managed.setDeleted(true);
         }
@@ -139,25 +137,20 @@ public class InventoryItemServiceImpl implements InventoryItemService {
         InventoryItem managed = inventoryItemRepository.findById(inventoryItem.getId()).orElse(null);
         if (managed == null || managed.isDeleted() || managed.getItem() == null) return;
 
-        // Only Avatars can be equipped
         if (managed.getItem().getType() != ItemType.AVATAR) {
             managed.setEquipped(false);
             inventoryItemRepository.update(managed);
             return;
         }
 
-        // Handle un-equipping
         if (!equipped) {
             managed.setEquipped(false);
             inventoryItemRepository.update(managed);
             return;
         }
 
-        // Logic for exclusive equipment:
-        // 1. Unequip all other avatars in this inventory
         inventoryItemRepository.unequipAllByInventoryAndType(managed.getInventory().getId(), ItemType.AVATAR);
 
-        // 2. Equip this one
         managed.setEquipped(true);
         inventoryItemRepository.update(managed);
     }

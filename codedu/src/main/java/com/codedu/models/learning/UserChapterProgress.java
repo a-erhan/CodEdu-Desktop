@@ -8,7 +8,7 @@ import lombok.*;
 @Entity
 @Table(name = "user_chapter_progress",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "chapter_id"}) // Prevents duplicate progress records
+                @UniqueConstraint(columnNames = {"user_id", "chapter_id"})
         })
 @Getter
 @Setter
@@ -38,7 +38,7 @@ public class UserChapterProgress extends BaseEntity {
     private boolean isUnlocked = false;
 
     public void incrementProgress() {
-        // Use getChapter() instead of this.chapter
+
         if (!this.isCompleted && getChapter() != null) {
             this.completedLessons++;
 

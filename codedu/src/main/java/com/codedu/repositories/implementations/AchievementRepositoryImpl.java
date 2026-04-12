@@ -1,7 +1,6 @@
 package com.codedu.repositories.implementations;
 
 import com.codedu.models.gamification.Achievement;
-import com.codedu.models.user.User;
 import com.codedu.repositories.interfaces.AchievementRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
@@ -26,7 +25,7 @@ public class AchievementRepositoryImpl extends GenericRepositoryImpl<Achievement
     public Optional<Achievement> findByName(String name) {
         try {
             Achievement achievement = entityManager.createQuery(
-                    "SELECT a FROM Achievement a WHERE a.name = :name AND a.isDeleted = false", 
+                    "SELECT a FROM Achievement a WHERE a.name = :name AND a.isDeleted = false",
                     Achievement.class)
                     .setParameter("name", name)
                     .getSingleResult();

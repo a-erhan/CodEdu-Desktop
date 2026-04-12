@@ -1,7 +1,6 @@
 package com.codedu.controllers;
 
 import atlantafx.base.theme.Styles;
-import com.codedu.models.matchmaking.LeaderBoard;
 import com.codedu.models.user.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -9,7 +8,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.image.ImageView;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,7 +127,6 @@ public class AchievementsController {
             }
 
             textContainer.getChildren().addAll(goalTitle, goalMeta, goalBody, goalProgressText, progressBar);
-
 
             goalCard.setOnMouseEntered(new javafx.event.EventHandler<javafx.scene.input.MouseEvent>() {
                 @Override

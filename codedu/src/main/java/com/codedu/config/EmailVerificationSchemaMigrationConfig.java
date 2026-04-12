@@ -10,10 +10,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/**
- * Ensures email verification columns exist. Uses JDBC instead of Flyway so schema updates work on the
- * JavaFX module path (Flyway classpath migrations fail to open from {@code db/migration} in that setup).
- */
 @Configuration
 public class EmailVerificationSchemaMigrationConfig {
 

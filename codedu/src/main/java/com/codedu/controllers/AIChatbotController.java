@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
@@ -23,19 +22,32 @@ import java.util.regex.Pattern;
 @Controller
 public class AIChatbotController {
 
-    @FXML private Label titleLabel;
-    @FXML private Label subtitleLabel;
-    @FXML private VBox chatCard;
-    @FXML private VBox chatList;
-    @FXML private VBox card;
-    @FXML private Label promptLabel;
-    @FXML private TextArea questionArea;
-    @FXML private TextField tagsField;
-    @FXML private Label requestsLabel;
-    @FXML private Button askButton;
-    @FXML private Label noteLabel;
-    @FXML private VBox codeCard;
-    @FXML private TextArea codeArea;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private Label subtitleLabel;
+    @FXML
+    private VBox chatCard;
+    @FXML
+    private VBox chatList;
+    @FXML
+    private VBox card;
+    @FXML
+    private Label promptLabel;
+    @FXML
+    private TextArea questionArea;
+    @FXML
+    private TextField tagsField;
+    @FXML
+    private Label requestsLabel;
+    @FXML
+    private Button askButton;
+    @FXML
+    private Label noteLabel;
+    @FXML
+    private VBox codeCard;
+    @FXML
+    private TextArea codeArea;
 
     private int remainingRequests = 0;
     private User currentUser;
@@ -47,7 +59,8 @@ public class AIChatbotController {
     private final String CARD_BG = "#3b4252";
     private final String BORDER_COLOR = "#4c566a";
 
-    @Autowired private InventoryItemService inventoryItemService;
+    @Autowired
+    private InventoryItemService inventoryItemService;
 
     @Autowired
     public AIChatbotController(AIChatbotService geminiAiService) {
@@ -74,7 +87,8 @@ public class AIChatbotController {
             titleLabel.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold;");
         }
 
-        String commonCardStyle = "-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: " + BORDER_COLOR + "; -fx-border-radius: 12; -fx-border-width: 1;";
+        String commonCardStyle = "-fx-background-color: " + CARD_BG + "; -fx-background-radius: 12; -fx-border-color: "
+                + BORDER_COLOR + "; -fx-border-radius: 12; -fx-border-width: 1;";
 
         if (chatCard != null) {
             chatCard.setPadding(new Insets(15));
@@ -90,7 +104,8 @@ public class AIChatbotController {
         }
 
         if (askButton != null) {
-            askButton.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: #2e3440; -fx-font-weight: bold; -fx-background-radius: 20;");
+            askButton.setStyle("-fx-background-color: " + LOGO_BLUE
+                    + "; -fx-text-fill: #2e3440; -fx-font-weight: bold; -fx-background-radius: 20;");
             askButton.setOnAction(e -> handleAsk());
         }
 
@@ -110,7 +125,8 @@ public class AIChatbotController {
     }
 
     private void updateAskButtonState() {
-        if (askButton == null || questionArea == null) return;
+        if (askButton == null || questionArea == null)
+            return;
         boolean hasQuestion = !questionArea.getText().trim().isEmpty();
         askButton.setDisable(!hasQuestion || remainingRequests <= 0);
     }
@@ -148,8 +164,10 @@ public class AIChatbotController {
 
         StringBuilder fullPrompt = new StringBuilder();
         fullPrompt.append("User Question: ").append(question).append("\n\n");
-        if (!tags.isEmpty()) fullPrompt.append("Tags: ").append(tags).append("\n\n");
-        if (!code.isEmpty()) fullPrompt.append("Code:\n").append(code);
+        if (!tags.isEmpty())
+            fullPrompt.append("Tags: ").append(tags).append("\n\n");
+        if (!code.isEmpty())
+            fullPrompt.append("Code:\n").append(code);
 
         Task<String> aiTask = new Task<>() {
             @Override
@@ -161,7 +179,7 @@ public class AIChatbotController {
         aiTask.setOnSucceeded(event -> {
             String aiResponse = aiTask.getValue();
             String extractedCode = extractCode(aiResponse);
-            
+
             if (extractedCode != null) {
                 codeArea.setText(extractedCode);
                 String textOnly = aiResponse.replaceAll("(?s)```(?:java)?\\n?(.*?)```", "").trim();

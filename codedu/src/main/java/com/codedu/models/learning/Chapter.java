@@ -4,9 +4,6 @@ import com.codedu.models.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-/**
- * Model representing a single chapter/lesson in a learning path.
- */
 @Entity
 @Table(name = "chapters")
 @Getter
@@ -35,7 +32,6 @@ public class Chapter extends BaseEntity {
     @JoinColumn(name = "content_id")
     private ChapterContent content;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "path_id")
     private LearningPath path;
@@ -62,6 +58,6 @@ public class Chapter extends BaseEntity {
     private int tokenReward;
 
     @Column(name = "order_index")
-    private int orderIndex;// e.g., 1 for Variables, 2 for Operators, 3 for Control Flow
+    private int orderIndex;
 
 }

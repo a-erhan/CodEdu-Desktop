@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface UserChapterProgressRepository extends GenericRepository<UserChapterProgress> {
 
     void flush();
-    // Add these so the Implementation can @Override them
+
     Optional<UserChapterProgress> findByUserAndChapter(User user, Chapter chapter);
 
     List<UserChapterProgress> findByUser(User user);

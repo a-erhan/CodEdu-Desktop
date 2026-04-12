@@ -18,10 +18,7 @@ import org.springframework.stereotype.Controller;
 import com.codedu.services.interfaces.AuthService;
 import com.codedu.services.interfaces.UserService;
 import com.codedu.ui.StageNavigator;
-/**
- * Controller for the Login screen.
- * Validates credentials and transitions to MainShell on success.
- */
+
 @Controller
 public class LoginController {
 
@@ -82,7 +79,6 @@ public class LoginController {
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
 
-        // Basic validation
         if (email.isEmpty() || password.isEmpty()) {
             errorLabel.setText("fill in both email and password.");
             return;
@@ -99,7 +95,7 @@ public class LoginController {
         UserDTO loggedInUser = loginResult.user();
 
         try {
-            // Fetch the full User entity for MainShellController
+
             User fullUser = userService.getUserWithProfileData(loggedInUser.username()).orElse(null);
             if (fullUser == null) {
                 errorLabel.setText("Failed to load user profile.");

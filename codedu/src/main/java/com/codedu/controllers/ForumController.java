@@ -47,7 +47,7 @@ public class ForumController {
 
     @Autowired
     private ForumService forumService;
-    
+
     private final String LOGO_BLUE = "#00AEEF";
     private final String LOGO_ORANGE = "#F7941D";
     private final String DARK_BG = "#2e3440";

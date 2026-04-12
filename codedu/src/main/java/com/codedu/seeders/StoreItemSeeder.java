@@ -53,11 +53,10 @@ public class StoreItemSeeder implements CommandLineRunner {
         }
 
         System.out.println(">>> [StoreSeeder] Seeding booster items...");
-        // Heart Refills
+
         itemRepository.save(new Item("Heart Refill", "Instantly restores 1 heart.", null, 30, ItemType.BOOSTER));
         itemRepository.save(new Item("Full Heart Recharge", "Sets hearts to the maximum (15). Use from Inventory after purchase.", null, 100, ItemType.BOOSTER));
 
-        // XP Boosters
         itemRepository.save(new Item("Double XP (30m)", "Earn 2x XP for the next 30 minutes.", null, 150, ItemType.BOOSTER));
         itemRepository.save(new Item("XP Mega-Boost", "Instantly gain 500 XP.", null, 400, ItemType.BOOSTER));
     }
@@ -79,7 +78,7 @@ public class StoreItemSeeder implements CommandLineRunner {
         itemRepository.save(new Item("Basic Avatar", "The classic look.", null, 0, ItemType.AVATAR));
         itemRepository.save(new Item("Ninja Avatar", "Silent and swift.", null, 200, ItemType.AVATAR));
         itemRepository.save(new Item("Wizard Avatar", "Wise and powerful.", null, 500, ItemType.AVATAR));
-        // Added a high-end one for "whales"
+
         itemRepository.save(new Item("Cyberpunk Legend", "Exclusive neon-lit style.", null, 1500, ItemType.AVATAR));
     }
 
@@ -87,7 +86,7 @@ public class StoreItemSeeder implements CommandLineRunner {
         List<UserGameState> states = userGameStateRepository.getAll();
         int granted = 0;
         for (UserGameState state : states) {
-            // Check for 0 balance specifically to avoid spamming existing rich users
+
             if (state.getTokenBalance() == 0) {
                 state.setTokenBalance(100);
                 userGameStateRepository.update(state);

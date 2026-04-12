@@ -25,7 +25,7 @@ public class QuestionRepositoryImpl extends GenericRepositoryImpl<Question> impl
     @Override
     public List<Question> findByQuestionType(QuestionType type) {
         return entityManager.createQuery(
-                "SELECT q FROM Question q WHERE q.questionType = :type AND q.isDeleted = false", 
+                "SELECT q FROM Question q WHERE q.questionType = :type AND q.isDeleted = false",
                 Question.class)
                 .setParameter("type", type)
                 .getResultList();
@@ -34,7 +34,7 @@ public class QuestionRepositoryImpl extends GenericRepositoryImpl<Question> impl
     @Override
     public List<Question> findByQuestionDifficulity(QuestionDifficulty difficulity) {
         return entityManager.createQuery(
-                "SELECT q FROM Question q WHERE q.questionDifficulity = :difficulity AND q.isDeleted = false", 
+                "SELECT q FROM Question q WHERE q.questionDifficulity = :difficulity AND q.isDeleted = false",
                 Question.class)
                 .setParameter("difficulity", difficulity)
                 .getResultList();

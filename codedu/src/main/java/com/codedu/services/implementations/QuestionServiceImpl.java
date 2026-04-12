@@ -18,13 +18,11 @@ public class QuestionServiceImpl implements QuestionService {
         this.questionRepository = questionRepository;
     }
 
-    // 1. Fetch a question by its Database ID
     public Optional<Question> getQuestionById(int id) {
-        // Since your GenericRepository likely implements basic CRUD, this will work perfectly!
+
         return questionRepository.findById(id);
     }
 
-    // 2. Save or update a question
     public void saveQuestion(Question question) {
         questionRepository.save(question);
     }

@@ -20,15 +20,6 @@ import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import com.codedu.models.matchmaking.MatchResult;
 
-/**
- * Thread-safe matchmaking service.
- *
- * <p>
- * Uses a {@link ConcurrentLinkedQueue} for safe multi-threaded access.
- * The critical compound check-and-double-poll is wrapped in
- * {@code synchronized}
- * to prevent race conditions when multiple players join simultaneously.
- */
 @Service
 public class MatchmakingServiceImpl implements MatchmakingService {
 
@@ -40,7 +31,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final QuestionRepository questionRepository;
     private final com.codedu.repositories.interfaces.UserRepository userRepository;
-    
+
     @Autowired
     private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
@@ -52,11 +43,6 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         this.userRepository = userRepository;
     }
 
-    /**
-     * Adds the given user to the waiting queue.
-     * If a second player is already waiting, immediately pairs them and
-     * broadcasts a {@link GameRoom} to both players' private STOMP channels.
-     */
     public synchronized void joinQueue(User user, String sessionId) {
         boolean alreadyWaiting = playerQueue.stream().anyMatch(u -> u.getId() == user.getId());
         if (alreadyWaiting) {
@@ -76,14 +62,10 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         }
     }
 
-    /**
-     * Removes the user with the given id from the waiting queue (cancel
-     * matchmaking).
-     */
     public synchronized void leaveQueue(int userId) {
         playerQueue.removeIf(u -> u.getId() == userId);
         System.out.println("[Matchmaking] Player " + userId + " left the queue.");
-        
+
         String roomId = userToRoom.get(userId);
         if (roomId != null) {
             GameRoom room = activeRooms.get(roomId);
@@ -103,23 +85,19 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         }
     }
 
-    /**
-     * Broadcasts the match result to both players in the room, and applies rewards.
-     */
     @Override
     @Transactional
     public void reportWin(com.codedu.models.matchmaking.MatchResult result) {
         if (result == null) return;
-        
+
         GameRoom room = activeRooms.remove(result.getRoomId());
         if (room == null) return;
-        
+
         userToRoom.remove(room.getPlayer1().getId());
         userToRoom.remove(room.getPlayer2().getId());
-        
+
         System.out.println("[Matchmaking] Match over! Winner ID: " + result.getWinnerId());
-        
-        // Gamification
+
         try {
             transactionTemplate.executeWithoutResult(status -> {
                 userRepository.findById(result.getWinnerId()).ifPresent(winner -> {
@@ -135,7 +113,7 @@ public class MatchmakingServiceImpl implements MatchmakingService {
                     }
                     userRepository.update(winner);
                 });
-                
+
                 userRepository.findById(result.getLoserId()).ifPresent(loser -> {
                     com.codedu.models.user.UserGameState state = loser.getGameState();
                     if (state != null) {
@@ -153,10 +131,10 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         } catch (Exception e) {
             System.err.println("[Matchmaking] ERROR updating gamification: " + e.getMessage());
         }
-        
+
         String dest1 = "/topic/match/" + result.getWinnerId();
         String dest2 = "/topic/match/" + result.getLoserId();
-        
+
         try {
             messagingTemplate.convertAndSend(dest1, result);
             messagingTemplate.convertAndSend(dest2, result);
@@ -176,17 +154,12 @@ public class MatchmakingServiceImpl implements MatchmakingService {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
-
     private void createAndDispatchGameRoom(User player1, User player2) {
         String roomId = UUID.randomUUID().toString();
         CodeImplementationQuestion question = pickRandomCodeQuestion();
 
         GameRoom gameRoom = new GameRoom(roomId, player1, player2, question);
 
-        // Send to each player's private channel
         String dest1 = "/topic/match/" + player1.getId();
         String dest2 = "/topic/match/" + player2.getId();
         System.out.println("[Matchmaking] Sending GameRoom to destinations: " + dest1 + " and " + dest2);

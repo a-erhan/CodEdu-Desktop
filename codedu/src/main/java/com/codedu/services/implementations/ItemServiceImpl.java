@@ -31,7 +31,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
-    // Injecting the Repository instead of using Native SQL
     private final UserGameStateRepository userGameStateRepository;
 
     @PersistenceContext
@@ -48,7 +47,6 @@ public class ItemServiceImpl implements ItemService {
         this.userGameStateRepository = userGameStateRepository;
     }
 
-    // --- STANDARD CRUD METHODS ---
     @Override
     @Transactional(readOnly = true)
     public Optional<ItemDTO> getItemDTOById(int id) {
@@ -64,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public void applyItemEffect(int userId, int itemId) {
-        // 1. Fetch User and Item
+
         User user = userRepository.findByIdWithInventoryAndGameState(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with ID: " + userId));
         Item item = itemRepository.findById(itemId)
@@ -75,7 +73,6 @@ public class ItemServiceImpl implements ItemService {
 
         String name = item.getName() != null ? item.getName().toLowerCase(Locale.ROOT) : "";
 
-        // 2. Apply Game Logic (XP)
         if (item.getType() == ItemType.BOOSTER && name.contains("xp")) {
             if (name.contains("mega")) {
                 gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
@@ -84,7 +81,6 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        // 3. Apply Game Logic (Hearts)
         if (item.getType() == ItemType.BOOSTER && name.contains("heart")) {
             if (name.contains("full")) {
                 gs.setHeartCount(UserGameState.MAX_HEARTS);
@@ -95,10 +91,8 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        // 4. Persist the changes via the proper Repository
         userGameStateRepository.update(gs);
 
-        // 5. Force Hibernate to send the changes to the database immediately
         entityManager.flush();
     }
 
@@ -138,8 +132,6 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.update(item);
     }
 
-    // --- GAME LOGIC & EFFECTS ---
-
     @Override
     public int getGrantedQuantity(Item item) {
         if (item.getType() != ItemType.AI_USAGE || item.getName() == null) {
@@ -160,7 +152,6 @@ public class ItemServiceImpl implements ItemService {
 
         String name = item.getName() != null ? item.getName().toLowerCase(Locale.ROOT) : "";
 
-        // Prevent buying single hearts if already full
         if (name.contains("heart") && !name.contains("full") && gs.getHeartCount() >= UserGameState.MAX_HEARTS) {
             return true;
         }
@@ -175,7 +166,6 @@ public class ItemServiceImpl implements ItemService {
 
         String name = item.getName() != null ? item.getName().toLowerCase(Locale.ROOT) : "";
 
-        // 1. Apply Logic (XP)
         if (item.getType() == ItemType.BOOSTER && name.contains("xp")) {
             if (name.contains("mega")) {
                 gs.addXpAndResolveLevelUps(gs.withDoubleXpApplied(500));
@@ -184,7 +174,6 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        // 2. Apply Logic (Hearts)
         if (name.contains("heart")) {
             if (name.contains("full")) {
                 gs.setHeartCount(UserGameState.MAX_HEARTS);
@@ -195,10 +184,8 @@ public class ItemServiceImpl implements ItemService {
             }
         }
 
-        // 3. Persist the changes via the proper Repository
         userGameStateRepository.update(gs);
 
-        // 4. Force Hibernate to send the changes to the database immediately
         entityManager.flush();
     }
 

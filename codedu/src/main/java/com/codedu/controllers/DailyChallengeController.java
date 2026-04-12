@@ -4,13 +4,11 @@ import atlantafx.base.theme.Styles;
 import com.codedu.models.learning.DailyChallenge;
 import com.codedu.models.learning.Question;
 import com.codedu.services.interfaces.DailyChallengeService;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -23,9 +21,12 @@ import java.util.function.Consumer;
 @Controller
 public class DailyChallengeController {
 
-    @FXML private Label titleLabel;
-    @FXML private Label subtitleLabel;
-    @FXML private VBox challengeList;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private Label subtitleLabel;
+    @FXML
+    private VBox challengeList;
 
     private final DailyChallengeService dailyChallengeService;
     private DailyChallenge todayChallenge;
@@ -72,28 +73,33 @@ public class DailyChallengeController {
     }
 
     private void buildChallenges() {
-        if (challengeList == null) return;
+        if (challengeList == null)
+            return;
         challengeList.getChildren().clear();
 
         if (todayChallenge == null) {
-            if (titleLabel != null) titleLabel.setText("No Challenge Today");
-            if (subtitleLabel != null) subtitleLabel.setText("Check back later!");
+            if (titleLabel != null)
+                titleLabel.setText("No Challenge Today");
+            if (subtitleLabel != null)
+                subtitleLabel.setText("Check back later!");
             return;
         }
 
-        if (titleLabel != null) titleLabel.setText(todayChallenge.getName().toUpperCase());
-        if (subtitleLabel != null) subtitleLabel.setText(todayChallenge.getDescription());
+        if (titleLabel != null)
+            titleLabel.setText(todayChallenge.getName().toUpperCase());
+        if (subtitleLabel != null)
+            subtitleLabel.setText(todayChallenge.getDescription());
 
         List<Question> questions = todayChallenge.getQuestions();
         int totalXp = todayChallenge.getReward() != null ? todayChallenge.getReward().getXp() : 0;
         int xpPerQuestion = questions.isEmpty() ? 0 : totalXp / questions.size();
 
-        // summarycard
         VBox summaryBox = new VBox(10);
         summaryBox.setAlignment(Pos.CENTER);
         summaryBox.setPadding(new Insets(20));
         summaryBox.setMaxWidth(850);
-        summaryBox.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + LOGO_BLUE + "; -fx-border-width: 0 0 0 5; -fx-background-radius: 12;");
+        summaryBox.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + LOGO_BLUE
+                + "; -fx-border-width: 0 0 0 5; -fx-background-radius: 12;");
 
         Label rewardSummary = new Label("DAILY REWARDS AVAILABLE: " + totalXp + " XP");
         rewardSummary.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px;");
@@ -103,7 +109,6 @@ public class DailyChallengeController {
 
         challengeList.getChildren().add(summaryBox);
 
-        // content
         HBox mainContent = new HBox(30);
         mainContent.setAlignment(Pos.TOP_CENTER);
         mainContent.setPadding(new Insets(20, 0, 0, 0));
@@ -118,7 +123,8 @@ public class DailyChallengeController {
             card.setAlignment(Pos.CENTER_LEFT);
             card.setPadding(new Insets(18, 25, 18, 25));
 
-            final String baseStyle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + BORDER_COLOR + "; -fx-border-width: 1px; -fx-background-radius: 12; -fx-border-radius: 12;";
+            final String baseStyle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + BORDER_COLOR
+                    + "; -fx-border-width: 1px; -fx-background-radius: 12; -fx-border-radius: 12;";
             card.setStyle(baseStyle);
 
             VBox textContainer = new VBox(5);
@@ -129,7 +135,8 @@ public class DailyChallengeController {
             chTitle.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-size: 14px;");
 
             final Label typeBadge = new Label(String.valueOf(q.getQuestionType()).toUpperCase());
-            typeBadge.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: " + DARK_BG + "; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;");
+            typeBadge.setStyle("-fx-background-color: " + LOGO_BLUE + "; -fx-text-fill: " + DARK_BG
+                    + "; -fx-padding: 2 8; -fx-background-radius: 4; -fx-font-size: 10px; -fx-font-weight: bold;");
 
             HBox titleRow = new HBox(12, chTitle, typeBadge);
             titleRow.setAlignment(Pos.CENTER_LEFT);
@@ -149,13 +156,16 @@ public class DailyChallengeController {
 
             if (onStartQuestion != null) {
                 card.setOnMouseEntered(e -> {
-                    card.setStyle("-fx-background-color: #434c5e; -fx-border-color: " + LOGO_BLUE + "; -fx-background-radius: 12; -fx-border-radius: 12;");
+                    card.setStyle("-fx-background-color: #434c5e; -fx-border-color: " + LOGO_BLUE
+                            + "; -fx-background-radius: 12; -fx-border-radius: 12;");
                     card.setCursor(Cursor.HAND);
-                    card.setScaleX(1.02); card.setScaleY(1.02);
+                    card.setScaleX(1.02);
+                    card.setScaleY(1.02);
                 });
                 card.setOnMouseExited(e -> {
                     card.setStyle(baseStyle);
-                    card.setScaleX(1.0); card.setScaleY(1.0);
+                    card.setScaleX(1.0);
+                    card.setScaleY(1.0);
                 });
                 card.setOnMouseClicked(e -> onStartQuestion.accept(q));
             }
@@ -163,7 +173,6 @@ public class DailyChallengeController {
             questionNumber++;
         }
 
-        // sidebar
         VBox sidebar = new VBox(20);
         sidebar.setPrefWidth(270);
 
@@ -176,8 +185,7 @@ public class DailyChallengeController {
                         "-fx-border-color: " + LOGO_BLUE + "88;" +
                         "-fx-border-radius: 25;" +
                         "-fx-border-width: 1.5;" +
-                        "-fx-effect: dropshadow(three-pass-box, " + LOGO_BLUE + "22, 10, 0, 0, 0);"
-        );
+                        "-fx-effect: dropshadow(three-pass-box, " + LOGO_BLUE + "22, 10, 0, 0, 0);");
 
         Label mascotIcon = new Label("🛡️");
         mascotIcon.setStyle("-fx-font-size: 50px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.5, 0, 2);");
@@ -187,9 +195,9 @@ public class DailyChallengeController {
                         "-fx-font-weight: bold;" +
                         "-fx-font-size: 14px;" +
                         "-fx-text-alignment: center;" +
-                        "-fx-line-spacing: 2;"
-        );
-        mascotText.setStyle("-fx-text-fill: #eceff4; -fx-font-style: italic; -fx-text-alignment: center; -fx-font-size: 12px;");
+                        "-fx-line-spacing: 2;");
+        mascotText.setStyle(
+                "-fx-text-fill: #eceff4; -fx-font-style: italic; -fx-text-alignment: center; -fx-font-size: 12px;");
         mascotCard.getChildren().addAll(mascotIcon, mascotText);
 
         sidebar.getChildren().add(mascotCard);

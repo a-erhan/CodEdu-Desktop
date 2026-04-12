@@ -14,9 +14,5 @@ public interface InventoryItemRepository extends GenericRepository<InventoryItem
 
     Optional<InventoryItem> findByInventoryAndItem(UserInventory inventory, Item item);
 
-    /**
-     * Unequip all items of the given type for a specific inventory.
-     * Used to enforce "only one equipped avatar at a time".
-     */
     int unequipAllByInventoryAndType(int inventoryId, ItemType type);
 }

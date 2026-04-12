@@ -7,7 +7,6 @@ public interface DailyChallengeService {
 
     DailyChallengeDTO getTodaysChallenge();
 
-    /** Entity version for controllers still using entity classes */
     DailyChallenge getTodaysChallengeEntity();
 
     String submitDailyChallenge(int userId, int correctAnswers);

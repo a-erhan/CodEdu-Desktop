@@ -73,8 +73,6 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ForumPost> posts = new ArrayList<>();
 
-    // --- Bidirectional Synchronization Helpers ---
-
     public void setCompetitor(Competitor competitor) {
         if (competitor == null) {
             if (this.competitor != null) this.competitor.setUser(null);
@@ -101,8 +99,6 @@ public class User extends BaseEntity {
         }
         this.inventory = inventory;
     }
-
-    // --- Utility Methods ---
 
     public boolean login(String email, String password) {
         if (email == null || password == null) return false;

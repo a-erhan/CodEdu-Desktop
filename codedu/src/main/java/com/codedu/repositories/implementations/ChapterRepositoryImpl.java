@@ -22,7 +22,6 @@ public class ChapterRepositoryImpl extends GenericRepositoryImpl<Chapter> implem
         super(Chapter.class);
     }
 
-
     @Override
     public Optional<Chapter> findByIdWithQuestions(Long id) {
         try {

@@ -25,7 +25,7 @@ public class BadgeRepositoryImpl extends GenericRepositoryImpl<Badge> implements
     public Optional<Badge> findByTitle(String title) {
         try {
             Badge badge = entityManager.createQuery(
-                    "SELECT b FROM Badge b WHERE b.title = :title AND b.isDeleted = false", 
+                    "SELECT b FROM Badge b WHERE b.title = :title AND b.isDeleted = false",
                     Badge.class)
                     .setParameter("title", title)
                     .getSingleResult();

@@ -19,7 +19,6 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
     private final UserRepository userRepository;
     private final ChapterRepository chapterRepository;
 
-
     @Autowired
     public UserChapterProgressServiceImpl(UserChapterProgressRepository progressRepository,
                                           UserRepository userRepository,
@@ -57,32 +56,27 @@ public class UserChapterProgressServiceImpl implements UserChapterProgressServic
                 .orElseThrow(() -> new RuntimeException("Chapter progress not found for User: " + userId));
     }
 
-
     @Override
     @Transactional
     public void saveProgressDto(ChapterProgressDTO dto, String username) {
         if (dto == null || dto.getChapter() == null || username == null) return;
 
-        // 1. Fetch the real entities using data from the DTO
         User user = userRepository.findByUsername(username).orElse(null);
         Chapter chapter = chapterRepository.findById(dto.getChapter().id()).orElse(null);
 
         if (user != null && chapter != null) {
-            // 2. See if progress already exists
+
             UserChapterProgress progress = progressRepository.findByUserAndChapter(user, chapter).orElse(null);
 
-            // 3. Create it if it doesn't
             if (progress == null) {
                 progress = new UserChapterProgress();
                 progress.setUser(user);
                 progress.setChapter(chapter);
             }
 
-            // 4. Update the stats
             progress.setCompletedLessons(dto.getCompletedLessons());
             progress.setCompleted(dto.isCompleted());
 
-            // 5. Save back to database
             progressRepository.update(progress);
         }
     }

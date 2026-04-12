@@ -19,9 +19,6 @@ import org.springframework.stereotype.Controller;
 
 import java.util.List;
 
-/**
- * Lists {@link InventoryItem} rows for the logged-in user and supports equip toggles for eligible items.
- */
 @Controller
 public class InventoryItemController {
 

@@ -45,7 +45,7 @@ public class DailyChallengeServiceImpl implements DailyChallengeService {
         if (existingChallenge.isPresent()) {
             DailyChallenge dc = existingChallenge.get();
             if (dc.getQuestions() != null) {
-                dc.getQuestions().size(); // Force initialization
+                dc.getQuestions().size();
             }
             return toDTO(dc);
         }
@@ -152,7 +152,7 @@ public class DailyChallengeServiceImpl implements DailyChallengeService {
             }
             return dc;
         }
-        // Trigger creation via DTO method, then re-fetch
+
         getTodaysChallenge();
         return dailyChallengeRepository.findByTargetDate(today).orElse(null);
     }

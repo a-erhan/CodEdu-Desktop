@@ -15,11 +15,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.springframework.stereotype.Controller;
 
-/**
- * Controller for the Settings view.
- * Handles theme switching, notifications, language, password change, and
- * account removal.
- */
 @Controller
 public class SettingsController {
 
@@ -35,11 +30,9 @@ public class SettingsController {
     private User user;
     private boolean darkMode = true;
 
-    // Callbacks
     private Runnable themeToggleCallback;
-    private Runnable onLogoutCallback; // Çıkış yapıldığında Login ekranına dönmek için
+    private Runnable onLogoutCallback;
 
-    // Backend iletişimi için UserService'i içeri alıyoruz (Constructor Injection)
     private final UserService userService;
 
     public SettingsController(UserService userService) {
@@ -70,12 +63,10 @@ public class SettingsController {
                 themeToggleCallback.run();
         });
 
-        // Butonlara tıklandığında dialogları aç
         btnChangePassword.setOnAction(e -> showChangePasswordDialog());
         btnLogout.setOnAction(e -> showLogoutDialog());
         btnRemoveAccount.setOnAction(e -> showRemoveAccountDialog());
 
-        // Tehlikeli işlemleri kırmızı (Danger) yapmak UI açısından iyidir
         btnRemoveAccount.getStyleClass().addAll(Styles.BUTTON_OUTLINED, Styles.DANGER);
     }
 
@@ -137,16 +128,16 @@ public class SettingsController {
                 feedback.setText("Password must be at least 6 characters.");
                 feedback.setStyle("-fx-text-fill: red;");
             } else {
-                // GERÇEK BACKEND İŞLEMİ BURADA YAPILIYOR
+
                 try {
-                    // Varsayım: UserService içinde changePassword adında bir metod var
+
                     boolean isChanged = userService.changePassword(user.getId(), oldP, newP);
 
                     if (isChanged) {
                         feedback.setText("✓ Password changed successfully!");
                         feedback.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
                         saveBtn.setDisable(true);
-                        // İşlem bitince kutuları temizle
+
                         oldPwd.clear(); newPwd.clear(); confirmPwd.clear();
                     } else {
                         feedback.setText("Incorrect current password.");
@@ -189,7 +180,7 @@ public class SettingsController {
 
         confirmBtn.setOnAction(e -> {
             dialog.close();
-            // Kullanıcıyı giriş ekranına yönlendir
+
             if (onLogoutCallback != null) {
                 onLogoutCallback.run();
             }
@@ -228,11 +219,11 @@ public class SettingsController {
 
         deleteBtn.setOnAction(e -> {
             try {
-                // GERÇEK BACKEND İŞLEMİ (Veritabanından uçurma)
+
                 userService.deleteUser(user.getId());
 
                 dialog.close();
-                // Hesap silindiği için zorunlu çıkış yapıp giriş ekranına atıyoruz
+
                 if (onLogoutCallback != null) {
                     onLogoutCallback.run();
                 }
@@ -251,7 +242,7 @@ public class SettingsController {
     private Stage createDialog(String title, int width, int height) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.initStyle(StageStyle.UNDECORATED); // Modern ve çerçevesiz görünüm
+        dialog.initStyle(StageStyle.UNDECORATED);
         dialog.setTitle(title);
         dialog.setWidth(width);
         dialog.setHeight(height);

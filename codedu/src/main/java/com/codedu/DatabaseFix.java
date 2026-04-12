@@ -23,7 +23,7 @@ public class DatabaseFix {
             System.out.println("SUCCESSFULLY DROPPED NOT NULL CONSTRAINT ON token_balance!");
             int updated = s.executeUpdate("UPDATE users SET is_active = true WHERE is_active = false");
             System.out.println("Restored " + updated + " old user accounts that had is_active=false.");
-            // Legacy DBs may have linked users via users.game_state_id while user_game_states.user_id was null.
+
             try {
                 int backfill = s.executeUpdate(
                         "UPDATE user_game_states AS ugs SET user_id = u.id FROM users u "

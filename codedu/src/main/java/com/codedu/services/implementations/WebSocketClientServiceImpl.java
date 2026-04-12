@@ -17,57 +17,18 @@ import org.springframework.web.socket.messaging.WebSocketStompClient;
 import java.lang.reflect.Type;
 import java.util.function.Consumer;
 
-/**
- * Manages all STOMP/WebSocket connections for the JavaFX client.
- *
- * <p>
- * Two independent sessions are maintained:
- * <ul>
- * <li>{@code chatSession} — private chat messages</li>
- * <li>{@code matchSession} — matchmaking queue and game-room delivery</li>
- * </ul>
- *
- * <p>
- * Both connections are <b>fully asynchronous</b> (no blocking {@code .get()}).
- * All work runs on the STOMP networking thread, keeping the JavaFX UI thread
- * free.
- *
- * <p>
- * The server URL is read from {@code app.websocket.server-url} in
- * {@code application.properties}. For multi-machine setups, set it to the IP of
- * the machine running the Spring Boot server, e.g.
- * {@code ws://192.168.1.100:8080/ws-chat}.
- */
 @Service
 public class WebSocketClientServiceImpl implements WebSocketClientService {
 
     @Value("${app.websocket.server-url:ws://localhost:8080/ws-chat}")
     private String wsUrl;
 
-    /** STOMP session for private chat messages. */
     private volatile StompSession chatSession;
 
-    /** STOMP session dedicated to matchmaking. */
     private volatile StompSession matchSession;
 
-    // =========================================================================
-    // Chat
-    // =========================================================================
-
-    /**
-     * Opens an async STOMP connection and subscribes to
-     * {@code /queue/messages/{currentUserId}} for real-time chat delivery.
-     *
-     * <p>
-     * Safe to call on the JavaFX Application Thread — does NOT block.
-     *
-     * @param currentUserId the logged-in user's id (as a string)
-     * @param onMessage     callback invoked on the STOMP receive thread when a
-     *                      message arrives; wrap UI mutations in
-     *                      {@code Platform.runLater()}
-     */
     public void connect(String currentUserId, Consumer<ChatMessageDTO> onMessage) {
-        // Disconnect any stale session first
+
         if (chatSession != null && chatSession.isConnected()) {
             chatSession.disconnect();
         }
@@ -105,7 +66,6 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
         });
     }
 
-    /** Sends a chat message to {@code /app/chat.send}. */
     public void sendMessage(ChatMessageDTO message) {
         if (chatSession != null && chatSession.isConnected()) {
             chatSession.send("/app/chat.send", message);
@@ -114,37 +74,9 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
         }
     }
 
-    // =========================================================================
-    // Matchmaking
-    // =========================================================================
-
-    /**
-     * Opens an async STOMP connection for matchmaking.
-     *
-     * <p>
-     * Inside {@code afterConnected}, the client:
-     * <ol>
-     * <li>Subscribes to {@code /queue/match/{userId}} — the private channel
-     * where the server delivers a {@link GameRoom} when a match is found.</li>
-     * <li>Immediately sends a join request to {@code /app/match.join}.</li>
-     * </ol>
-     *
-     * <p>
-     * Steps 1 and 2 happen in that exact order on the same TCP connection,
-     * so there is <b>no race condition</b>: the subscription is always
-     * established before the server can ever try to deliver a match.
-     *
-     * <p>
-     * Safe to call on the JavaFX Application Thread — does NOT block.
-     *
-     * @param userId       the current user's database id
-     * @param onMatchFound callback invoked on the STOMP receive thread when a
-     *                     {@link GameRoom} arrives; wrap UI mutations in
-     *                     {@code Platform.runLater()}
-     */
     public void connectAndJoinMatchmaking(int userId, Consumer<GameRoom> onMatchFound,
             Consumer<MatchResult> onMatchResult, Consumer<MatchAttemptUpdate> onAttemptUpdate) {
-        // Clean up any previous matchmaking session
+
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.disconnect();
         }
@@ -158,14 +90,11 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                 System.out.println("[WS-Match] Connected. Session ID: " + session.getSessionId()
                         + ". Subscribing to: " + destination);
 
-                // Step 1 — subscribe FIRST
                 session.subscribe(destination,
                         new StompSessionHandlerAdapter() {
                             @Override
                             public Type getPayloadType(StompHeaders headers) {
-                                // Use byte[] so the STOMP converter delivers raw
-                                // bytes without any Jackson deserialization — avoids
-                                // silent failures caused by type mismatches.
+
                                 return byte[].class;
                             }
 
@@ -218,7 +147,7 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
                         });
 
                 System.out.println("[WS-Match] Subscribed. Now sending /app/match.join for userId=" + userId);
-                // Step 2 — join the queue only after subscription is in place.
+
                 session.send("/app/match.join", userId);
                 System.out.println("[WS-Match] Join message sent for userId=" + userId);
             }
@@ -231,11 +160,6 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
         });
     }
 
-    /**
-     * Cancels matchmaking: sends a leave signal and disconnects the session.
-     *
-     * @param userId the current user's database id
-     */
     public void leaveMatchmaking(int userId) {
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.send("/app/match.leave", userId);
@@ -244,9 +168,6 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
         matchSession = null;
     }
 
-    /**
-     * Sends the match result (win) to the server.
-     */
     public void sendMatchResult(MatchResult result) {
         if (matchSession != null && matchSession.isConnected()) {
             matchSession.send("/app/match.win", result);
@@ -262,10 +183,6 @@ public class WebSocketClientServiceImpl implements WebSocketClientService {
             matchSession.send("/app/match.attempt", update);
         }
     }
-
-    // =========================================================================
-    // Helpers
-    // =========================================================================
 
     private WebSocketStompClient buildStompClient() {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());

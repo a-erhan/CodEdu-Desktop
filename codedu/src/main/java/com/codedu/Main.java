@@ -115,9 +115,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        // If DB is disabled (system property -Dapp.db.enabled=false OR
-        // app.db.enabled=false in application.properties),
-        // exclude DataSource/JPA before Spring starts so no connection is made.
+
         String dbEnabled = System.getProperty("app.db.enabled");
         if (dbEnabled == null) {
             dbEnabled = readAppDbEnabledFromProperties();
@@ -131,10 +129,6 @@ public class Main extends Application {
         Application.launch(Main.class, args);
     }
 
-    /**
-     * Read app.db.enabled from application.properties so file-based disable works
-     * before Spring loads.
-     */
     private static String readAppDbEnabledFromProperties() {
         try (InputStream in = Main.class.getResourceAsStream("/application.properties")) {
             if (in == null)

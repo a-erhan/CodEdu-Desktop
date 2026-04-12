@@ -120,7 +120,6 @@ public class MainShellController {
         });
     }
 
-
     @FXML
     public void initialize() {
         initSidebarAndHeaderStyles();
@@ -339,7 +338,7 @@ public class MainShellController {
             Parent view = loader.load();
 
             LearningPathController lpController = loader.getController();
-            // 🚀 Learning Path now emits a ChapterDTO, which we pass to loadChapterView
+
             lpController.setOnStartChapter(this::loadChapterView);
 
             lpController.loadUserData(this.user);
@@ -404,7 +403,6 @@ public class MainShellController {
             showSectionPlaceholder("Daily challenges", "Error loading daily challenges module.");
         }
     }
-
 
     private void openChallengePage(Question question) {
         refreshShellUserFromDatabase();
@@ -501,7 +499,7 @@ public class MainShellController {
         if (profileUser == null || profileUser.getUsername() == null || profileUser.getUsername().isBlank()) {
             return;
         }
-        // Always load full profile (achievements + badge metadata) from the DB
+
         userService.getUserWithProfileData(profileUser.getUsername()).ifPresent(this::openUserProfileWithHydratedUser);
     }
 
@@ -686,20 +684,20 @@ public class MainShellController {
         int hearts = (gs != null) ? gs.getHeartCount() : 0;
         int streak = (gs != null) ? gs.getCurrentStreak() : 0;
 
-        tokenLabel.setText("\uD83E\uDE99 " + tokens); // 🪙
+        tokenLabel.setText("\uD83E\uDE99 " + tokens);
         tokenLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: -color-fg-default; -fx-font-size: 14px;");
 
-        badgeLabel.setText("\uD83C\uDFC6 LVL " + level); // 🏆
+        badgeLabel.setText("\uD83C\uDFC6 LVL " + level);
 
         welcomeNavLabel.setText("@" + username);
 
         if (heartLabel != null) {
-            heartLabel.setText("\u2764\uFE0F " + hearts); // ❤️
+            heartLabel.setText("\u2764\uFE0F " + hearts);
             heartLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #e74c3c; -fx-font-weight: bold;");
         }
 
         if (streakLabel != null) {
-            streakLabel.setText("\uD83D\uDD25 " + streak); // 🔥
+            streakLabel.setText("\uD83D\uDD25 " + streak);
             String streakColor = (streak > 0) ? "#e67e22" : "#95a5a6";
             streakLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + streakColor + "; -fx-font-weight: bold;");
         }
@@ -708,7 +706,6 @@ public class MainShellController {
             profileIconLabel.setText(username.isEmpty() ? "?" : username.substring(0, 1).toUpperCase());
             profileIconLabel.setAlignment(Pos.CENTER);
         }
-
 
         int levelCap = Math.max(1, level * 100);
         xpProgressBar.setProgress(Math.min(1.0, (double) xp / levelCap));

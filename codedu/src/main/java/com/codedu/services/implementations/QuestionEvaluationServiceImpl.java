@@ -23,26 +23,21 @@ public class QuestionEvaluationServiceImpl implements QuestionEvaluationService 
         this.questionRepository = questionRepository;
     }
 
-
     @Override
     @Transactional
     public boolean evaluate(QuestionDTO questionDto, String userAnswer) {
         if (questionDto == null) return false;
 
-        // Fetch the full entity from the DB using the DTO's ID
         Question loadedQuestion = questionRepository.findById(questionDto.id()).orElse(null);
 
-        // Pass it to the main evaluation logic below
         return evaluate(loadedQuestion, userAnswer);
     }
-
 
     @Override
     @Transactional
     public boolean evaluate(Question question, String userAnswer) {
         if (question == null) return false;
 
-        // Ensure it's fully loaded to avoid Hibernate LazyInitializationExceptions
         Question loadedQuestion = questionRepository.findById(question.getId()).orElse(question);
 
         if (loadedQuestion instanceof CodeImplementationQuestion codeQuestion) {

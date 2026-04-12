@@ -44,16 +44,12 @@ public class ChapterServiceImpl implements ChapterService {
         return chapterRepository.findByIdWithQuestions(id);
     }
 
-
     @Override
     @Transactional(readOnly = true)
     public Optional<ChapterDTO> getChapterDtoWithQuestions(Long id) {
         return chapterRepository.findByIdWithQuestions(id).map(this::toFullDTO);
     }
 
-    // --- MAPPING METHODS ---
-
-    // Basic DTO for path viewing (no heavy questions loaded)
     private ChapterDTO toDTO(Chapter ch) {
         return ChapterDTO.builder()
                 .id(ch.getId())
@@ -70,7 +66,6 @@ public class ChapterServiceImpl implements ChapterService {
                 .build();
     }
 
-    // Full DTO including Questions and Learn Text for the Chapter View
     private ChapterDTO toFullDTO(Chapter ch) {
         String learnText = null;
         List<QuestionDTO> questionDTOs = new ArrayList<>();
@@ -101,13 +96,12 @@ public class ChapterServiceImpl implements ChapterService {
                 .build();
     }
 
-    // Maps a Question Entity to a QuestionDTO
     private QuestionDTO toQuestionDTO(Question q) {
         int rXp = (q.getReward() != null) ? q.getReward().getXp() : 0;
         int rTok = (q.getReward() != null) ? q.getReward().getToken() : 0;
 
         String boilerplate = "";
-        // Specific check to pull code for coding questions
+
         if (q instanceof CodeImplementationQuestion cq) {
             boilerplate = cq.getBoilerplateCode();
         }

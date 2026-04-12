@@ -77,7 +77,6 @@ public class StoreServiceImpl implements StoreService {
         if (userId <= 0 || itemId <= 0)
             return Optional.empty();
 
-        // 1. Fetch User and Item
         User user = userRepository.findByIdWithInventoryAndGameState(userId).orElse(null);
         if (user == null || user.getGameState() == null) {
             return Optional.empty();
@@ -87,7 +86,6 @@ public class StoreServiceImpl implements StoreService {
         if (item == null || item.isDeleted())
             return Optional.empty();
 
-        // 2. Validate Price & Redundancy
         int price = Math.max(0, item.getPrice());
         com.codedu.models.user.UserGameState gs = user.getGameState();
         if (!gs.hasEnoughTokens(price))
@@ -114,13 +112,10 @@ public class StoreServiceImpl implements StoreService {
         userGameStateRepository.update(gs);
         userRepository.update(user);
 
-        // Save the token deduction before any native SQL effects run
         entityManager.flush();
 
-        // 5. Delegate the heavy lifting (Game Logic) to Item Service
         itemService.applyItemEffect(user, item);
 
-        // 6. Clear session and fetch fresh state for the UI
         entityManager.clear();
         return userRepository.findByIdWithInventoryAndGameState(userId);
     }

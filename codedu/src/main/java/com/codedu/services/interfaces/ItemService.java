@@ -21,7 +21,6 @@ public interface ItemService {
 
     int getGrantedQuantity(Item item);
 
-    /** Entity version for controllers still using entity classes */
     List<Item> getAllItemEntities();
 
     List<ItemDTO> getItemsByType(ItemType type);

@@ -8,7 +8,6 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 
-
 public class FillInBlankQuestion extends Question {
 
     @Override

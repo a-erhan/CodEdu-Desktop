@@ -15,7 +15,8 @@ import java.util.Random;
 public class UIUtils {
 
     public static void fireConfetti(Pane root) {
-        if (root == null) return;
+        if (root == null)
+            return;
 
         javafx.application.Platform.runLater(() -> {
             Pane confettiPane = new Pane();
@@ -24,12 +25,12 @@ public class UIUtils {
 
             Random rand = new Random();
             Color[] colors = {
-                    Color.web("#00AEEF"), // LOGO_BLUE
-                    Color.web("#F7941D"), // LOGO_ORANGE
-                    Color.web("#a3be8c"), // GREEN
-                    Color.web("#ebcb8b"), // YELLOW
-                    Color.web("#bf616a"), // RED
-                    Color.web("#b48ead")  // PURPLE
+                    Color.web("#00AEEF"),
+                    Color.web("#F7941D"),
+                    Color.web("#a3be8c"),
+                    Color.web("#ebcb8b"),
+                    Color.web("#bf616a"),
+                    Color.web("#b48ead")
             };
 
             double width = root.getWidth() > 0 ? root.getWidth() : 1200;

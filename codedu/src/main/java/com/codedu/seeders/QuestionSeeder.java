@@ -27,8 +27,7 @@ public class QuestionSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // Programmatic transaction avoids @Transactional CGLIB proxies, which break under JPMS
-        // when spring-aop reflects from the unnamed module.
+
         transactionTemplate.executeWithoutResult(status -> {
             long currentCount = questionRepository.findByQuestionType(QuestionType.CODE_IMPLEMENTATION).size();
 
@@ -44,14 +43,13 @@ public class QuestionSeeder implements CommandLineRunner {
     }
 
     private void generateQuestions() {
-        Random random = new Random(12345); // deterministic seed for consistent DB if needed
+        Random random = new Random(12345);
         List<CodeImplementationQuestion> questionsToSave = new ArrayList<>();
 
         for (int i = 1; i <= 100; i++) {
             CodeImplementationQuestion q = new CodeImplementationQuestion();
             q.setQuestionType(QuestionType.CODE_IMPLEMENTATION);
 
-            // Assign Difficulty
             QuestionDifficulty diff;
             if (i <= 35) {
                 diff = QuestionDifficulty.EASY;
@@ -62,9 +60,7 @@ public class QuestionSeeder implements CommandLineRunner {
             }
             q.setQuestionDifficulty(diff);
 
-            // Assign Topic / Template
             int topicSelector = i % 5;
-            // 0: Array, 1: String, 2: Math, 3: Logic/Conditionals, 4: Sorting/Search
 
             String title = "";
             String content = "";
@@ -116,20 +112,11 @@ public class QuestionSeeder implements CommandLineRunner {
             q.setTitle(title);
             q.setContent(content);
             q.setBoilerplateCode(
-                    "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Write your code here\n        \n    }\n}"); // Leaving
-                                                                                                                                                                                                                          // empty
-                                                                                                                                                                                                                          // as
-                                                                                                                                                                                                                          // challenge
-                                                                                                                                                                                                                          // for
-                                                                                                                                                                                                                          // user
-            // Unless the user needs the boilerplate to literally solve it, but standard
-            // platform provides empty main.
+                    "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        \n    }\n}");
 
-            // Set the hint and solution mapping using the boilerplate string we had defined
             q.setSolution(boilerplateCode);
             q.setHint("Check out basic Java tutorials on Scanner and Loops for hints.");
 
-            // Link testcases to the question and add to list
             for (TestCase tc : testCases) {
                 tc.setQues(q);
             }
@@ -138,7 +125,6 @@ public class QuestionSeeder implements CommandLineRunner {
             questionsToSave.add(q);
         }
 
-        // Save all questions sequentially
         for (CodeImplementationQuestion q : questionsToSave) {
             questionRepository.save(q);
         }
@@ -149,14 +135,14 @@ public class QuestionSeeder implements CommandLineRunner {
             StringBuilder input = new StringBuilder();
             int sum = 0;
             for (int k = 0; k < numElements; k++) {
-                int r = random.nextInt(100) - 20; // Some neg vals
+                int r = random.nextInt(100) - 20;
                 sum += r;
                 input.append(r).append(" ");
             }
             TestCase tc = TestCase.builder()
                     .input(input.toString().trim())
                     .expectedOutput(String.valueOf(sum))
-                    .isHidden(i > 2) // Hide most test cases
+                    .isHidden(i > 2)
                     .cpuTimeLimit(1.0f)
                     .build();
             testCases.add(tc);

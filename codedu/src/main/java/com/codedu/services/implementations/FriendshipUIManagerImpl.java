@@ -31,8 +31,6 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         this.chatWindowManager = chatWindowManager;
     }
 
-    // ========== Add Friend Button ==========
-
     public void setupAddFriendButton(Button addFriendButton, User currentUser, User profileUser, boolean viewingSelf) {
         if (addFriendButton == null)
             return;
@@ -94,8 +92,6 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
             addFriendButton.setText("Add friend");
         }
     }
-
-    // ========== Friends List & Pending Requests ==========
 
     public void renderFriendsList(VBox friendsList, Label noFriendsLabel, User currentUser, boolean viewingSelf,
             Runnable onRefresh, Consumer<User> onProfileClick) {
@@ -201,7 +197,7 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         try {
             userService.answerFriendRequest(currentUser.getId(), requester.getId(), accept);
             if (onRefresh != null)
-                onRefresh.run(); // UI'ı yenilemek için ProfileController'ı tetikler
+                onRefresh.run();
         } catch (Exception ignored) {
         }
     }
@@ -227,11 +223,10 @@ public class FriendshipUIManagerImpl implements FriendshipUIManager {
         Label nameLabel = new Label(name);
         nameLabel.getStyleClass().add(Styles.TEXT_BOLD);
 
-        // Click on avatar, name, or the whole row -> navigate to friend's profile
         if (onProfileClick != null) {
             row.setCursor(Cursor.HAND);
             row.setOnMouseClicked(e -> {
-                // If the user didn't click the Chat button specifically
+
                 if (!(e.getTarget() instanceof Button)) {
                     onProfileClick.accept(friend);
                 }

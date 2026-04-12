@@ -26,7 +26,7 @@ public class DailyChallengeRepositoryImpl extends GenericRepositoryImpl<DailyCha
     public Optional<DailyChallenge> findByName(String name) {
         try {
             DailyChallenge dc = entityManager.createQuery(
-                    "SELECT d FROM DailyChallenge d WHERE d.name = :name AND d.isDeleted = false", 
+                    "SELECT d FROM DailyChallenge d WHERE d.name = :name AND d.isDeleted = false",
                     DailyChallenge.class)
                     .setParameter("name", name)
                     .getSingleResult();

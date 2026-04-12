@@ -12,7 +12,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 
-
 public class Reply extends BaseEntity {
 
     private String title;

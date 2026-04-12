@@ -16,7 +16,6 @@ public interface StoreService {
 
     List<ItemDTO> getCatalogItems();
 
-    /** Entity version for controllers still using entity classes */
     List<Item> getCatalogItemEntities();
 
     Optional<User> purchaseItem(int userId, int itemId);

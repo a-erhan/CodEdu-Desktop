@@ -37,11 +37,6 @@ public class UserGameStateSchemaMigrationConfig {
         };
     }
 
-    /**
-     * Aligns the DB with the JPA mapping where {@code user_game_states.user_id} is the FK to
-     * {@code users}. Legacy schemas used {@code users.game_state_id} only; we backfill {@code user_id}
-     * and relax {@code game_state_id} so new users do not require that column on insert.
-     */
     @Bean
     public static BeanPostProcessor userGameStateUserIdColumnMigration() {
         return new BeanPostProcessor() {

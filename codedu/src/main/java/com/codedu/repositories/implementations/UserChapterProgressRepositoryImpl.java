@@ -49,7 +49,7 @@ public class UserChapterProgressRepositoryImpl extends GenericRepositoryImpl<Use
     @Override
     public Optional<UserChapterProgress> findByUserIdAndChapterIdDetailed(Long userId, Long chapterId) {
         try {
-            // We use JOIN FETCH here to solve the "N+1" slowness problem
+
             UserChapterProgress progress = entityManager
                     .createQuery(
                             "SELECT p FROM UserChapterProgress p " +
@@ -71,7 +71,7 @@ public class UserChapterProgressRepositoryImpl extends GenericRepositoryImpl<Use
 
     @Override
     public void flush() {
-        // This forces the persistence context to sync with the database
+
         entityManager.flush();
     }
 }

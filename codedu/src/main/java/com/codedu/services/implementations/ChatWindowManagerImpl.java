@@ -39,16 +39,12 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
         this.chatMessageRepository = chatMessageRepository;
     }
 
-    // ========== Connection ==========
-
     public void connectUser(User user) {
         this.currentUser = user;
         if (user != null) {
             webSocketClientService.connect(String.valueOf(user.getId()), this::handleIncomingMessage);
         }
     }
-
-    // ========== Chat Window UI ==========
 
     public void openChatWindow(User friend) {
         if (this.currentUser == null)
@@ -74,7 +70,6 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
         this.activeChatFriendId = String.valueOf(friend.getId());
         this.activeScrollPane = scrollPane;
 
-        // Load chat history from DB
         loadChatHistory(messageContainer, currentUser.getId(), friend.getId());
 
         sendButton.setOnAction(e -> {
@@ -89,10 +84,8 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
                         .timestamp(now)
                         .build();
 
-                // Send via WebSocket — server-side ChatMessageController persists to DB
                 webSocketClientService.sendMessage(msg);
 
-                // Show in local UI
                 Label selfLabel = new Label(text);
                 selfLabel.setStyle(
                         "-fx-background-color: -color-accent-subtle; -fx-padding: 8px; -fx-background-radius: 8px;");
@@ -102,7 +95,6 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
 
                 inputField.clear();
 
-                // Auto-scroll to bottom
                 Platform.runLater(() -> {
                     scrollPane.layout();
                     scrollPane.setVvalue(1.0);
@@ -121,11 +113,8 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
         chatStage.setScene(scene);
         chatStage.show();
 
-        // Scroll to bottom after rendering
         Platform.runLater(() -> scrollPane.setVvalue(1.0));
     }
-
-    // ========== History ==========
 
     private void loadChatHistory(VBox messageContainer, int currentUserId, int friendId) {
         try {
@@ -135,12 +124,12 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
                 HBox row = new HBox(label);
 
                 if (msg.getSenderId() == currentUserId) {
-                    // My message
+
                     label.setStyle(
                             "-fx-background-color: -color-accent-subtle; -fx-padding: 8px; -fx-background-radius: 8px;");
                     row.setAlignment(Pos.CENTER_RIGHT);
                 } else {
-                    // Friend's message
+
                     label.setStyle(
                             "-fx-background-color: -color-bg-subtle; -fx-padding: 8px; -fx-background-radius: 8px; -fx-border-color: -color-border-default; -fx-border-radius: 8px;");
                     row.setAlignment(Pos.CENTER_LEFT);
@@ -152,8 +141,6 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
         }
     }
 
-    // ========== Message Handling ==========
-
     private void handleIncomingMessage(ChatMessageDTO message) {
         Platform.runLater(() -> {
             if (activeChatBox != null && message.getSenderId().equals(activeChatFriendId)) {
@@ -164,7 +151,6 @@ public class ChatWindowManagerImpl implements ChatWindowManager {
                 friendRow.setAlignment(Pos.CENTER_LEFT);
                 activeChatBox.getChildren().add(friendRow);
 
-                // Auto-scroll to bottom
                 if (activeScrollPane != null) {
                     activeScrollPane.layout();
                     activeScrollPane.setVvalue(1.0);

@@ -26,7 +26,7 @@ public class ItemRepositoryImpl extends GenericRepositoryImpl<Item> implements I
     @Override
     public List<Item> findByType(ItemType type) {
         return entityManager.createQuery(
-                "SELECT i FROM Item i WHERE i.type = :type AND i.isDeleted = false", 
+                "SELECT i FROM Item i WHERE i.type = :type AND i.isDeleted = false",
                 Item.class)
                 .setParameter("type", type)
                 .getResultList();
@@ -36,7 +36,7 @@ public class ItemRepositoryImpl extends GenericRepositoryImpl<Item> implements I
     public Optional<Item> findByName(String name) {
         try {
             Item item = entityManager.createQuery(
-                    "SELECT i FROM Item i WHERE i.name = :name AND i.isDeleted = false", 
+                    "SELECT i FROM Item i WHERE i.name = :name AND i.isDeleted = false",
                     Item.class)
                     .setParameter("name", name)
                     .getSingleResult();

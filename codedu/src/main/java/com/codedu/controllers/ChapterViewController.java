@@ -45,7 +45,6 @@ public class ChapterViewController {
     private java.util.function.Consumer<User> onProgressUpdated;
     private User currentUser;
 
-    // Brand Colors
     private final String LOGO_BLUE = "#00AEEF";
     private final String LOGO_ORANGE = "#F7941D";
     private final String CARD_BG = "#3b4252";
@@ -61,7 +60,6 @@ public class ChapterViewController {
         tabQuiz.setOnAction(e -> switchTab("quiz"));
         tabPractice.setOnAction(e -> switchTab("practice"));
 
-        // Initial button styling
         btnBack.setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px;");
         headerTitle.setStyle("-fx-text-fill: " + LOGO_ORANGE + "; -fx-font-weight: bold; -fx-font-size: 20px;");
         headerXP.setStyle("-fx-text-fill: " + LOGO_BLUE + "; -fx-font-weight: bold;");
@@ -288,9 +286,8 @@ public class ChapterViewController {
 
         boolean isGodMode = currentUser != null && currentUser.isTesterAccount();
 
-        // 1. Check if the section should be locked
         if (currentLessonCount < quizCount && !isChapterFinished && !isGodMode) {
-            practiceContainer.getChildren().clear(); // Safe to clear here since it's locked
+            practiceContainer.getChildren().clear();
             VBox lockedUI = new VBox(20);
             lockedUI.setAlignment(javafx.geometry.Pos.CENTER);
             lockedUI.setPadding(new Insets(80, 40, 80, 40));
@@ -308,8 +305,6 @@ public class ChapterViewController {
             return;
         }
 
-        // 2. Clear the Locked UI if it was showing, but DON'T clear if we already have questions
-        // We only clear if the first item is the "Locked UI" (the 🔒 label)
         if (!practiceContainer.getChildren().isEmpty() &&
                 practiceContainer.getChildren().get(0) instanceof VBox v &&
                 !v.getChildren().isEmpty() &&
@@ -325,11 +320,9 @@ public class ChapterViewController {
             return;
         }
 
-        // 3. Loop through questions and only add them if they don't already exist
         for (int i = 0; i < codeQuestions.size(); i++) {
             QuestionDTO task = codeQuestions.get(i);
 
-            // Check if this task ID is already in the container
             boolean isAlreadyInUI = false;
             for (javafx.scene.Node node : practiceContainer.getChildren()) {
                 if (node.getUserData() != null && node.getUserData().equals(task.id())) {
@@ -360,7 +353,6 @@ public class ChapterViewController {
                         solverController.showSolutionState(task.solution());
                     });
 
-                    // If loading from DB and it's already done
                     if (isQuestionCompleted(task)) {
                         solverController.showSolutionState(task.solution());
                         solverController.setLocked(true);
@@ -445,21 +437,17 @@ public class ChapterViewController {
             javafx.application.Platform.runLater(() -> {
                 updateHeaderProgress();
 
-                // ONLY rebuild everything if we just unlocked the practice section
-                // or if we finished the whole chapter.
                 long quizCount = uiQuestionOrder.stream()
                         .filter(quest -> quest.questionType() != QuestionType.CODE_IMPLEMENTATION)
                         .count();
 
-                // If we just hit the threshold to unlock practice, OR we finished the chapter
                 if (currentLessonCount == quizCount || currentLessonCount >= uiQuestionOrder.size()) {
                     List<QuestionDTO> codeQuestions = uiQuestionOrder.stream()
                             .filter(quest -> quest.questionType() == QuestionType.CODE_IMPLEMENTATION)
                             .collect(Collectors.toList());
                     buildPracticeSection(codeQuestions);
                 } else {
-                    // Do nothing! The QuestionSolverController already updated its own UI.
-                    // This prevents the "Flash and Reset" bug.
+
                     System.out.println("Question handled locally, skipping full rebuild.");
                 }
             });

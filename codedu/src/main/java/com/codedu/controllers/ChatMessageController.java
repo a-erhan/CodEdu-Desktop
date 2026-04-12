@@ -22,7 +22,7 @@ public class ChatMessageController {
 
     @MessageMapping("/chat.send")
     public void processMessage(@Payload ChatMessageDTO chatMessageDTO) {
-        // Persist message to database
+
         try {
             ChatMessage entity = ChatMessage.builder()
                     .senderId(Integer.parseInt(chatMessageDTO.getSenderId()))
@@ -35,7 +35,6 @@ public class ChatMessageController {
             ex.printStackTrace();
         }
 
-        // Forward via WebSocket for real-time delivery
         messagingTemplate.convertAndSend("/queue/messages/" + chatMessageDTO.getReceiverId(), chatMessageDTO);
     }
 }

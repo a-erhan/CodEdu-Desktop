@@ -7,19 +7,16 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class CodeImplementationQuestion extends Question {
-    //Required for Judge0 API
+
     @Column(columnDefinition = "TEXT")
     private String boilerplateCode;
 
-    // Excluded from STOMP serialisation: lazily loaded, not needed on the wire.
-    // The JavaFX client reloads the full question from the DB by ID after match found.
     @JsonIgnore
     @OneToMany(mappedBy = "ques", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestCase> testCases = new ArrayList<>();

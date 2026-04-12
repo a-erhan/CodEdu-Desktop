@@ -104,7 +104,6 @@ public class LearningPathController {
                                 pathContainer.getChildren().add(line);
                         }
 
-                        // Chapter Card
                         final HBox card = buildChapterCard(chapterDto);
                         pathContainer.getChildren().add(card);
 
@@ -142,9 +141,9 @@ public class LearningPathController {
 
                 pb.setStyle(
                         "-fx-accent: " + LOGO_BLUE + "; " +
-                                "-fx-background-radius: 50; " + // High radius for oval shape
+                                "-fx-background-radius: 50; " +
                                 "-fx-border-radius: 50; " +
-                                "-fx-border-color: rgba(255, 255, 255, 0.4); " + // More visible border
+                                "-fx-border-color: rgba(255, 255, 255, 0.4); " +
                                 "-fx-border-width: 1.5; " +
                                 "-fx-control-inner-background: #2e3440; " +
                                 "-fx-padding: 1;"

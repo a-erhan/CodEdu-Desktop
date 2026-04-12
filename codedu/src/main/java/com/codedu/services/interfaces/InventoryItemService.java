@@ -12,7 +12,6 @@ public interface InventoryItemService {
 
     List<InventoryItemDTO> getItemsForUser(User user);
 
-    /** Entity version for controllers still using entity classes */
     List<InventoryItem> getItemEntitiesForUser(User user);
 
     Optional<InventoryItem> getById(int id);
